@@ -360,6 +360,46 @@ async function main() {
     });
   }
 
+  // Prompt 7: default approval workflow (Draft -> Pending Review ->
+  // Archived) as the org's initial configuration — admins can edit or
+  // replace it entirely from Settings -> Workflow.
+  const workflowStates = [
+    { name: "Draft", order: 0, isInitial: true, isTerminal: false },
+    { name: "Pending Review", order: 1, isInitial: false, isTerminal: false },
+    { name: "Archived", order: 2, isInitial: false, isTerminal: true },
+  ];
+  for (const s of workflowStates) {
+    await prisma.workflowState.upsert({
+      where: { organizationId_name: { organizationId: org.id, name: s.name } },
+      update: {},
+      create: { organizationId: org.id, ...s },
+    });
+  }
+
+  const workflowTransitions: { fromState: string; toState: string; requirements: Record<string, string>[] }[] = [
+    { fromState: "Draft", toState: "Pending Review", requirements: [] },
+    {
+      fromState: "Pending Review",
+      toState: "Archived",
+      requirements: [{ kind: "mandatoryFoldersFilled" }],
+    },
+    { fromState: "Pending Review", toState: "Draft", requirements: [] },
+  ];
+  for (const t of workflowTransitions) {
+    await prisma.workflowTransition.upsert({
+      where: {
+        organizationId_fromState_toState: { organizationId: org.id, fromState: t.fromState, toState: t.toState },
+      },
+      update: {},
+      create: {
+        organizationId: org.id,
+        fromState: t.fromState,
+        toState: t.toState,
+        requirements: t.requirements,
+      },
+    });
+  }
+
   console.log(`Seeded organization "${org.name}" (${org.slug})`);
   console.log("Login as admin@demo-ngo.org / officer@demo-ngo.org with password: Password123!");
 }

@@ -98,13 +98,16 @@ const UpdateMetadataSchema = z.object({
   donor: z.string().trim().optional(),
   projectName: z.string().trim().optional(),
   description: z.string().trim().optional(),
-  status: z.string().trim().optional(),
 });
 
 export type UpdateMetadataState = { errors?: { name?: string[] }; message?: string } | undefined;
 
 // SRS.md FR-3.4: metadata edits are restricted to Administrator/Archive
-// Officer and captured in the audit trail.
+// Officer and captured in the audit trail. Status is intentionally NOT
+// editable here — it only changes via transitionArchiveStatus() below,
+// which enforces the org's configured workflow requirements (Prompt 7).
+// Letting status be set through this free-form form would let anyone
+// bypass those requirements.
 export async function updateArchiveMetadata(
   _state: UpdateMetadataState,
   formData: FormData
@@ -138,13 +141,53 @@ export async function updateArchiveMetadata(
     },
   });
 
-  if (data.status === "Pending Review" && existing.status !== "Pending Review") {
-    await notifyAdmins(
-      user.organizationId,
-      "review_pending",
-      `"${existing.name}" is now pending review`,
-      `/archives/${archiveId}`
-    );
+  revalidatePath(`/archives/${archiveId}`);
+}
+
+// Move an archive to the next state in its org's configured workflow
+// (Prompt 7 / HANDOFF.md point 7). Requirements are re-checked here, not
+// just trusted from the client — the "allowed" flag shown in the UI is a
+// convenience, not the authorization boundary.
+export async function transitionArchiveStatus(archiveId: string, toState: string) {
+  const user = await getCurrentUser();
+  requirePermission(user.role, "canEditMetadata", "change archive status");
+
+  const archive = await prisma.archive.findFirst({
+    where: { id: archiveId, organizationId: user.organizationId, deletedAt: null },
+    include: {
+      folders: { include: { files: { where: { isLatest: true, deletedAt: null } } } },
+    },
+  });
+  if (!archive) {
+    throw new Error("Archive not found.");
+  }
+
+  const { getAvailableTransitions } = await import("@/lib/workflow/engine");
+  const transitions = await getAvailableTransitions(archive);
+  const target = transitions.find((t) => t.toState === toState);
+
+  if (!target) {
+    throw new Error(`"${toState}" is not a valid transition from "${archive.status}".`);
+  }
+  if (!target.allowed) {
+    throw new Error(`Requirements not met for moving to "${toState}".`);
+  }
+
+  await prisma.archive.update({ where: { id: archiveId }, data: { status: toState } });
+
+  await prisma.auditLog.create({
+    data: {
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "edit",
+      entityType: "Archive",
+      entityId: archiveId,
+      note: `status: ${archive.status} → ${toState}`,
+    },
+  });
+
+  if (toState === "Pending Review") {
+    await notifyAdmins(user.organizationId, "review_pending", `"${archive.name}" is now pending review`, `/archives/${archiveId}`);
   }
 
   revalidatePath(`/archives/${archiveId}`);

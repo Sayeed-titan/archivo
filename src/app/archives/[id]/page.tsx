@@ -3,12 +3,15 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
-import { computeArchiveHealth } from "@/lib/archive-health";
+import { resolveArchiveHealth } from "@/lib/workflow/health";
+import { getAvailableTransitions } from "@/lib/workflow/engine";
+import { describeRequirement } from "@/lib/workflow/requirements";
 import { HealthBadge } from "@/components/health-badge";
 import { MetadataForm } from "./metadata-form";
 import { DeleteControls } from "./delete-controls";
 import { FolderUpload } from "./folder-upload";
 import { FileRow } from "./file-row";
+import { TransitionControls } from "./transition-controls";
 
 export default async function ArchiveDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,7 +39,10 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
   }
 
   const missingMandatoryFolders = archive.folders.filter((f) => f.isMandatory && f.files.length === 0).length;
-  const health = computeArchiveHealth({ status: archive.status, missingMandatoryFolders });
+  const [health, availableTransitions] = await Promise.all([
+    resolveArchiveHealth(user.organizationId, archive.status, missingMandatoryFolders),
+    getAvailableTransitions(archive),
+  ]);
 
   const [donorList, projectList, org] = await Promise.all([
     prisma.lookupList.findFirst({
@@ -65,6 +71,20 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
         </div>
         <HealthBadge health={health} />
       </div>
+
+      {user.role.canEditMetadata && availableTransitions.length > 0 && (
+        <TransitionControls
+          archiveId={archive.id}
+          transitions={availableTransitions.map((t) => ({
+            toState: t.toState,
+            allowed: t.allowed,
+            checks: t.checks.map((c) => ({
+              description: describeRequirement(c.requirement),
+              satisfied: c.satisfied,
+            })),
+          }))}
+        />
+      )}
 
       <h2 className="mt-8 text-sm font-medium text-slate-700">Folders</h2>
       {archive.folders.length === 0 ? (

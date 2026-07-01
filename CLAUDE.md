@@ -12,7 +12,8 @@ sibling `ngo-archive/` folder at the repo root:
 - `ngo-archive/SRS.md` — full requirements spec
 - `ngo-archive/PRODUCT_ROADMAP.md` — phasing, business case
 - `ngo-archive/CLAUDE_CODE_PROMPTS.md` — the ordered build prompts this
-  project is being built from (currently on Prompt 6)
+  project is being built from (**all 7 prompts complete** as of this
+  session — see the Prompt 7 section below for what's next if resuming)
 
 ## Key decisions locked in
 - **Multi-tenant from day one**: single deployment, every domain table
@@ -96,13 +97,10 @@ sibling `ngo-archive/` folder at the repo root:
   split by category name (Events/Conferences/Campaigns vs NGO Projects),
   since there's no separate Program entity.
 - **Archive Health** (HANDOFF.md point 6): `src/lib/archive-health.ts`
-  combines missing-mandatory-folder count with review status into one of
-  `healthy` / `needs_attention` / `critical` — critical is specifically
-  "marked Archived but still has empty mandatory folders" (looks done but
-  isn't audit-ready). Shown via `<HealthBadge>` on the dashboard table and
-  the archive detail page. This is a simple rule, not the configurable
-  workflow engine from Prompt 7 — expect it to be rewired once org-defined
-  status flows land.
+  combines missing-mandatory-folder count with workflow position into one
+  of `healthy` / `needs_attention` / `critical`. As of Prompt 7 this is
+  driven by the org's configured `WorkflowState` (`isInitial`/
+  `isTerminal`), not hardcoded status strings — see below.
 - **Notifications**: `Notification` model, one row per recipient (no
   fan-out join table — read state is inherently per-user). Triggers wired
   so far: archive created → all Admins (`notifyAdmins`), upload completed →
@@ -116,4 +114,45 @@ sibling `ngo-archive/` folder at the repo root:
 - `storageQuotaBytes` defaults to null (no limit) — set it per org via
   Prisma Studio or a future settings page; nothing in the UI configures it
   yet.
+
+## Configurable approval workflow (Prompt 7 — last prompt in the sequence)
+- `Archive.status` stays a plain string (it always was — not an enum), so
+  no data migration was needed. `WorkflowState` (org-scoped) is the
+  *declared vocabulary* of valid status values, with `isInitial`/
+  `isTerminal` flags; `WorkflowTransition` is a from→to pair plus a
+  `requirements` JSON array. `src/lib/workflow/` is the engine:
+  `requirements.ts` (two requirement kinds — `mandatoryFoldersFilled` and
+  `fieldRequired`; add new kinds here, no migration needed since it's
+  JSON), `engine.ts` (`getAvailableTransitions()` — the single source of
+  truth for what moves are currently allowed, used by both the UI and the
+  action that performs the move), `health.ts` (resolves a status string
+  against `WorkflowState` for Archive Health).
+- Status can **only** change via `transitionArchiveStatus()` in
+  `src/app/actions/archives.ts` — it re-evaluates requirements
+  server-side and rejects the move if unmet, even though the UI already
+  disables the button for unmet requirements (never trust the client flag
+  as the authorization boundary). `updateArchiveMetadata()` no longer
+  accepts a `status` field at all — this was removed on purpose so the
+  free-form metadata form can't bypass workflow gating.
+- If an org hasn't configured any `WorkflowState` rows (or an archive's
+  status doesn't match any configured state name), health resolution
+  falls back to "neither initial nor terminal" → `needs_attention`,
+  rather than silently reporting healthy. This matters if a workflow gets
+  edited and a state is renamed/removed out from under existing archives.
+- Settings UI at `/settings/workflow` (canManageSettings only): add/remove
+  states, add/remove transitions with checkbox-selected requirements.
+  Demo org is seeded with Draft (initial) → Pending Review → Archived
+  (terminal), where the last transition requires all mandatory folders
+  filled — see `prisma/seed.ts`.
+- Verified live: an archive sitting in a non-terminal workflow state with
+  empty mandatory folders shows "Needs attention"; attempting to move to
+  a terminal state with unmet requirements is blocked with the specific
+  unmet requirement shown; after uploading to every mandatory folder the
+  same transition becomes available and, once taken, health flips to
+  "Healthy".
+
+This was the last prompt in `CLAUDE_CODE_PROMPTS.md`. If resuming this
+project, check with the user for next steps — there's no Prompt 8 defined
+in the plan; further work should come from a new decision, not an
+assumed continuation.
 

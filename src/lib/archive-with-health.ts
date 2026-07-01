@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
-import { computeArchiveHealth } from "@/lib/archive-health";
+import { resolveArchiveHealthBatch } from "@/lib/workflow/health";
 import type { User, Role } from "@/generated/prisma/client";
 
 export async function getRecentArchivesWithHealth(user: User & { role: Role }, take = 10) {
@@ -15,9 +15,11 @@ export async function getRecentArchivesWithHealth(user: User & { role: Role }, t
     },
   });
 
-  return archives.map((archive) => {
-    const missingMandatoryFolders = archive.folders.filter((f) => f.isMandatory && f.files.length === 0).length;
-    const health = computeArchiveHealth({ status: archive.status, missingMandatoryFolders });
-    return { ...archive, health };
-  });
+  const missingCounts = archives.map((archive) => ({
+    status: archive.status,
+    missingMandatoryFolders: archive.folders.filter((f) => f.isMandatory && f.files.length === 0).length,
+  }));
+  const healthResults = await resolveArchiveHealthBatch(user.organizationId, missingCounts);
+
+  return archives.map((archive, i) => ({ ...archive, health: healthResults[i] }));
 }

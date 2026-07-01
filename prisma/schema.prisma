@@ -38,8 +38,50 @@ model Organization {
   integrations    OrgIntegration[]
   reportTemplates ReportTemplate[]
   notifications   Notification[]
+  workflowStates      WorkflowState[]
+  workflowTransitions WorkflowTransition[]
 
   @@map("organizations")
+}
+
+// Configurable approval workflow (HANDOFF.md point 7 / Prompt 7): each
+// org defines its own ordered sequence of statuses instead of a fixed
+// Draft→Archived assumption. Archive.status stays a plain string (it
+// already was one) — WorkflowState is the org's *declared vocabulary* of
+// valid values for that string, not a foreign key, so existing archives
+// with a status outside the current workflow never become unreadable if
+// an admin edits the workflow later.
+model WorkflowState {
+  id             String  @id @default(cuid())
+  organizationId String
+  name           String // must match values used in Archive.status
+  order          Int
+  isInitial      Boolean @default(false) // the status new archives start in
+  isTerminal     Boolean @default(false) // e.g. "Archived" — no further transitions expected
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@map("workflow_states")
+}
+
+// A single allowed state-to-state move, plus what must be true about an
+// archive before that move is allowed. Kept as JSON (not booleans) so new
+// requirement kinds (custom fields, approvals, etc.) don't need schema
+// changes — see src/lib/workflow/requirements.ts for the shape and
+// evaluation logic.
+model WorkflowTransition {
+  id             String @id @default(cuid())
+  organizationId String
+  fromState      String
+  toState        String
+  // e.g. [{ "kind": "mandatoryFoldersFilled" }, { "kind": "fieldRequired", "field": "donor" }]
+  requirements   Json   @default("[]")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, fromState, toState])
+  @@map("workflow_transitions")
 }
 
 // In-app notifications (SRS.md FR-10 / Prompt 6): archive created, missing

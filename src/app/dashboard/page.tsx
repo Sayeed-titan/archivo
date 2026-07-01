@@ -97,6 +97,11 @@ export default async function DashboardPage() {
             Integrations
           </Link>
         )}
+        {user.role.canManageSettings && (
+          <Link href="/settings/workflow" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+            Workflow
+          </Link>
+        )}
         {user.role.canManageUsers && (
           <Link href="/audit-log" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
             Audit trail

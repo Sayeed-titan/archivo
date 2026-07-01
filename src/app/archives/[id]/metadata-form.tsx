@@ -95,19 +95,6 @@ export function MetadataForm({
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-slate-600">Status</label>
-        <select
-          name="status"
-          defaultValue={archive.status}
-          className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm"
-        >
-          <option value="Draft">Draft</option>
-          <option value="Pending Review">Pending Review</option>
-          <option value="Archived">Archived</option>
-        </select>
-      </div>
-
-      <div className="space-y-1">
         <label className="text-xs font-medium text-slate-600">Description</label>
         <textarea
           name="description"
