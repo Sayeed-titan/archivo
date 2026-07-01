@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { generateArchiveNumber } from "@/lib/archive-number";
+import { notifyAdmins } from "@/lib/notifications";
 
 const CreateArchiveSchema = z.object({
   name: z.string().trim().min(1, { error: "Name is required." }),
@@ -77,6 +78,13 @@ export async function createArchive(_state: CreateArchiveState, formData: FormDa
     },
   });
 
+  await notifyAdmins(
+    user.organizationId,
+    "archive_created",
+    `${user.name} created archive "${archive.name}" (${archive.archiveNumber})`,
+    `/archives/${archive.id}`
+  );
+
   redirect(`/archives/${archive.id}`);
 }
 
@@ -129,6 +137,15 @@ export async function updateArchiveMetadata(
       entityId: archiveId,
     },
   });
+
+  if (data.status === "Pending Review" && existing.status !== "Pending Review") {
+    await notifyAdmins(
+      user.organizationId,
+      "review_pending",
+      `"${existing.name}" is now pending review`,
+      `/archives/${archiveId}`
+    );
+  }
 
   revalidatePath(`/archives/${archiveId}`);
 }

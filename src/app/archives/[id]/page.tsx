@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
+import { computeArchiveHealth } from "@/lib/archive-health";
+import { HealthBadge } from "@/components/health-badge";
 import { MetadataForm } from "./metadata-form";
 import { DeleteControls } from "./delete-controls";
 import { FolderUpload } from "./folder-upload";
@@ -33,6 +35,9 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
+  const missingMandatoryFolders = archive.folders.filter((f) => f.isMandatory && f.files.length === 0).length;
+  const health = computeArchiveHealth({ status: archive.status, missingMandatoryFolders });
+
   const [donorList, projectList, org] = await Promise.all([
     prisma.lookupList.findFirst({
       where: { organizationId: user.organizationId, key: "donor" },
@@ -51,11 +56,14 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
         ← Back to dashboard
       </Link>
 
-      <div className="mt-4">
-        <h1 className="text-xl font-semibold">{archive.name}</h1>
-        <p className="text-sm text-slate-500">
-          {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"} · {archive.status}
-        </p>
+      <div className="mt-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">{archive.name}</h1>
+          <p className="text-sm text-slate-500">
+            {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"} · {archive.status}
+          </p>
+        </div>
+        <HealthBadge health={health} />
       </div>
 
       <h2 className="mt-8 text-sm font-medium text-slate-700">Folders</h2>

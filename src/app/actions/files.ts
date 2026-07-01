@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { saveUploadedFile } from "@/lib/file-storage";
+import { notify } from "@/lib/notifications";
+import { checkStorageLimit } from "@/lib/storage-usage";
 
 export type UploadFilesState = { message?: string } | undefined;
 
@@ -68,6 +70,7 @@ export async function uploadToFolder(_state: UploadFilesState, formData: FormDat
 
   const folder = await prisma.folder.findFirst({
     where: { id: folderId, archive: { id: archiveId, organizationId: user.organizationId } },
+    include: { archive: true },
   });
   if (!folder) {
     return { message: "Folder not found." };
@@ -92,6 +95,18 @@ export async function uploadToFolder(_state: UploadFilesState, formData: FormDat
       },
     });
   }
+
+  if (folder.archive.createdById !== user.id) {
+    await notify(
+      user.organizationId,
+      folder.archive.createdById,
+      "upload_completed",
+      `${user.name} uploaded ${files.length} file(s) to "${folder.archive.name}" / ${folder.name}`,
+      `/archives/${archiveId}`
+    );
+  }
+
+  await checkStorageLimit(user.organizationId);
 
   revalidatePath(`/archives/${archiveId}`);
 }

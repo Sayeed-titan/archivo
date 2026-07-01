@@ -21,6 +21,9 @@ model Organization {
   // Which "open in" connector this org uses for Office-type documents.
   // Pluggable per HANDOFF.md point 5 — Google today, Microsoft stubbed.
   docEditorProvider String? // "google" | "microsoft" | null (not configured)
+  // Storage limit warning (SRS.md FR-10.1 / NFR-2): notify as usage
+  // approaches this ceiling. Null = no limit configured/enforced yet.
+  storageQuotaBytes BigInt?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -34,8 +37,32 @@ model Organization {
   auditLogs       AuditLog[]
   integrations    OrgIntegration[]
   reportTemplates ReportTemplate[]
+  notifications   Notification[]
 
   @@map("organizations")
+}
+
+// In-app notifications (SRS.md FR-10 / Prompt 6): archive created, missing
+// required documents, upload completed, review pending, storage limit
+// warning. Each notification targets one recipient user; broadcast-style
+// events (e.g. storage warning to all Admins) create one row per
+// recipient rather than a fan-out join table, since read/unread state is
+// inherently per-user.
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  recipientId    String
+  type           String // "archive_created" | "missing_documents" | "upload_completed" | "review_pending" | "storage_limit"
+  message        String
+  linkPath       String? // e.g. "/archives/<id>" — where clicking the notification should go
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recipient    User         @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, recipientId, readAt])
+  @@map("notifications")
 }
 
 // Dynamic report builder (HANDOFF.md point 4): an admin picks fields +
@@ -142,6 +169,7 @@ model User {
   externalDocLinks  ExternalDocLink[]
   connectedIntegrations OrgIntegration[]
   reportTemplates   ReportTemplate[]
+  notifications     Notification[]
 
   @@unique([organizationId, email])
   @@map("users")

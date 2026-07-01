@@ -12,7 +12,7 @@ sibling `ngo-archive/` folder at the repo root:
 - `ngo-archive/SRS.md` — full requirements spec
 - `ngo-archive/PRODUCT_ROADMAP.md` — phasing, business case
 - `ngo-archive/CLAUDE_CODE_PROMPTS.md` — the ordered build prompts this
-  project is being built from (currently on Prompt 5)
+  project is being built from (currently on Prompt 6)
 
 ## Key decisions locked in
 - **Multi-tenant from day one**: single deployment, every domain table
@@ -85,4 +85,35 @@ sibling `ngo-archive/` folder at the repo root:
 - Report template names are unique per org (`organizationId_name`) —
   `saveReportTemplate` checks for this before creating and returns a
   friendly message rather than letting the DB throw P2002.
+
+## Dashboard, Archive Health, notifications (Prompt 6)
+- Dashboard layout matches `ngo-archive-wireframe.html`: 8 summary cards
+  (Events/Programs/Documents/Photos/Videos/Reports/Pending Review/Storage
+  Used), Recent Archives table (Date/Archive/Type/Status/Health),
+  Quick Actions, Recent Uploads feed, Archive-by-Category chip row. Data
+  helpers live in `src/lib/dashboard-data.ts`. "Events" vs "Programs" is
+  not a schema distinction — both roll up from the same Archive table
+  split by category name (Events/Conferences/Campaigns vs NGO Projects),
+  since there's no separate Program entity.
+- **Archive Health** (HANDOFF.md point 6): `src/lib/archive-health.ts`
+  combines missing-mandatory-folder count with review status into one of
+  `healthy` / `needs_attention` / `critical` — critical is specifically
+  "marked Archived but still has empty mandatory folders" (looks done but
+  isn't audit-ready). Shown via `<HealthBadge>` on the dashboard table and
+  the archive detail page. This is a simple rule, not the configurable
+  workflow engine from Prompt 7 — expect it to be rewired once org-defined
+  status flows land.
+- **Notifications**: `Notification` model, one row per recipient (no
+  fan-out join table — read state is inherently per-user). Triggers wired
+  so far: archive created → all Admins (`notifyAdmins`), upload completed →
+  archive's creator (unless self-upload), status → Pending Review → all
+  Admins, storage ≥80% of `Organization.storageQuotaBytes` → all Admins
+  (deduped to once per 24h, checked inline after each upload in
+  `src/lib/storage-usage.ts` rather than via a scheduled job). "Missing
+  documents" is intentionally *not* a push notification yet — it's
+  surfaced continuously via the Archive Health badge instead of firing a
+  duplicate event on every empty-folder check.
+- `storageQuotaBytes` defaults to null (no limit) — set it per org via
+  Prisma Studio or a future settings page; nothing in the UI configures it
+  yet.
 
