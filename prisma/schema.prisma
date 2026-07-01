@@ -32,8 +32,30 @@ model Organization {
   customFields    CustomFieldDefinition[]
   archives        Archive[]
   auditLogs       AuditLog[]
+  integrations    OrgIntegration[]
 
   @@map("organizations")
+}
+
+// Stores OAuth/API credentials an organization has connected for a given
+// provider (Google Workspace today; Microsoft 365 stubbed — see
+// src/lib/connectors/). One row per org+provider; tokens are the only
+// provider-specific payload, kept as JSON so each connector owns its own
+// shape without further schema changes.
+model OrgIntegration {
+  id             String   @id @default(cuid())
+  organizationId String
+  provider       String // "google" | "microsoft"
+  credentials    Json // refresh_token, access_token, expiry, scope, etc.
+  connectedById  String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  connectedBy  User         @relation(fields: [connectedById], references: [id])
+
+  @@unique([organizationId, provider])
+  @@map("org_integrations")
 }
 
 // Fixed system roles ship as seeded rows (Administrator, Archive Officer,
@@ -84,6 +106,7 @@ model User {
   uploadedFiles     File[]            @relation("FileUploadedBy")
   auditLogs         AuditLog[]
   externalDocLinks  ExternalDocLink[]
+  connectedIntegrations OrgIntegration[]
 
   @@unique([organizationId, email])
   @@map("users")

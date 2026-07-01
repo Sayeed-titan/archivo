@@ -12,7 +12,7 @@ sibling `ngo-archive/` folder at the repo root:
 - `ngo-archive/SRS.md` — full requirements spec
 - `ngo-archive/PRODUCT_ROADMAP.md` — phasing, business case
 - `ngo-archive/CLAUDE_CODE_PROMPTS.md` — the ordered build prompts this
-  project is being built from (currently on Prompt 2)
+  project is being built from (currently on Prompt 4)
 
 ## Key decisions locked in
 - **Multi-tenant from day one**: single deployment, every domain table
@@ -37,4 +37,33 @@ sibling `ngo-archive/` folder at the repo root:
 ## Demo login (after `npm run db:seed`)
 - `admin@demo-ngo.org` / `Password123!` (Administrator)
 - `officer@demo-ngo.org` / `Password123!` (Archive Officer)
+- `deptuser@demo-ngo.org` / `Password123!` (Department User)
+- `viewer@demo-ngo.org` / `Password123!` (Viewer)
+
+## File versioning & external editor connectors (Prompt 4)
+- Re-uploading a file with the same name into the same folder creates a
+  new `File` row linked via `previousVersionId` and flips the old row's
+  `isLatest` to false — nothing is overwritten in place. See
+  `src/lib/file-storage.ts` (`saveUploadedFile`) and the version-history
+  expander in `src/app/archives/[id]/file-row.tsx`.
+- "Open in <provider>" is a pluggable connector: `src/lib/connectors/types.ts`
+  defines the interface, `google.ts` implements it, `microsoft.ts` is a
+  documented stub. `Organization.docEditorProvider` picks which one is
+  active; `OrgIntegration` stores the org's OAuth tokens per provider.
+
+### Google Cloud Console setup (to actually test the Connect flow)
+1. Create/select a project at console.cloud.google.com, enable the
+   **Google Drive API**.
+2. Configure the OAuth consent screen (External or Internal, per your
+   Workspace setup) — no special verification needed for internal testing
+   with your own account added as a test user.
+3. Create an **OAuth 2.0 Client ID** of type "Web application".
+4. Add `http://localhost:3000/api/integrations/google/callback` (or your
+   deployed URL's equivalent) under **Authorized redirect URIs**.
+5. Copy the Client ID/Secret into `.env` as `GOOGLE_CLIENT_ID` /
+   `GOOGLE_CLIENT_SECRET`; `GOOGLE_REDIRECT_URI` must exactly match what
+   you added in step 4.
+6. As an Administrator in the app, go to Settings → Integrations → Connect
+   Google Workspace. The requested scope is `drive.file` (only files this
+   app creates/opens — not the user's whole Drive).
 

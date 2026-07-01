@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
 import { MetadataForm } from "./metadata-form";
 import { DeleteControls } from "./delete-controls";
+import { FolderUpload } from "./folder-upload";
+import { FileRow } from "./file-row";
 
 export default async function ArchiveDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,7 +18,13 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
       category: true,
       folders: {
         orderBy: { order: "asc" },
-        include: { files: { where: { deletedAt: null, isLatest: true }, orderBy: { uploadedAt: "desc" } } },
+        include: {
+          files: {
+            where: { deletedAt: null, isLatest: true },
+            orderBy: { uploadedAt: "desc" },
+            include: { uploadedBy: true },
+          },
+        },
       },
     },
   });
@@ -25,7 +33,7 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const [donorList, projectList] = await Promise.all([
+  const [donorList, projectList, org] = await Promise.all([
     prisma.lookupList.findFirst({
       where: { organizationId: user.organizationId, key: "donor" },
       include: { items: { where: { isActive: true } } },
@@ -34,6 +42,7 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
       where: { organizationId: user.organizationId, key: "project" },
       include: { items: { where: { isActive: true } } },
     }),
+    prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
   ]);
 
   return (
@@ -68,16 +77,19 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
               {folder.files.length > 0 && (
                 <ul className="divide-y divide-slate-100">
                   {folder.files.map((file) => (
-                    <li key={file.id} className="flex items-center justify-between px-4 py-1.5 text-sm">
-                      <span>{file.filename}</span>
-                      {user.role.canDownload && (
-                        <a href={`/api/files/${file.id}/download`} className="text-xs text-slate-500 underline">
-                          download
-                        </a>
-                      )}
-                    </li>
+                    <FileRow
+                      key={file.id}
+                      file={file}
+                      canDownload={user.role.canDownload}
+                      docEditorProvider={org.docEditorProvider}
+                    />
                   ))}
                 </ul>
+              )}
+              {user.role.canUpload && (
+                <div className="p-2">
+                  <FolderUpload archiveId={archive.id} folderId={folder.id} />
+                </div>
               )}
             </div>
           ))}

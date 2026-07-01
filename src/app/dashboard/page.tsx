@@ -42,6 +42,11 @@ export default async function DashboardPage() {
             Folder templates
           </Link>
         )}
+        {user.role.canManageSettings && (
+          <Link href="/settings/integrations" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+            Integrations
+          </Link>
+        )}
         {user.role.canManageUsers && (
           <Link href="/audit-log" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
             Audit trail

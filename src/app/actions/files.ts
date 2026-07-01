@@ -1,15 +1,10 @@
 "use server";
 
-import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
-import { classifyFileType } from "@/lib/file-type";
-
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
+import { saveUploadedFile } from "@/lib/file-storage";
 
 export type UploadFilesState = { message?: string } | undefined;
 
@@ -43,36 +38,60 @@ export async function uploadToInbox(_state: UploadFilesState, formData: FormData
     return { message: "Choose at least one file." };
   }
 
-  await mkdir(STORAGE_ROOT, { recursive: true });
-
   for (const file of files) {
-    const storedName = `${randomUUID()}-${file.name}`;
-    const storagePath = path.join(STORAGE_ROOT, storedName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(storagePath, buffer);
-
-    const created = await prisma.file.create({
-      data: {
-        folderId: unsortedFolder.id,
-        filename: file.name,
-        fileType: classifyFileType(file.name),
-        mimeType: file.type || "application/octet-stream",
-        sizeBytes: buffer.byteLength,
-        storagePath: storedName,
-        uploadedById: user.id,
-      },
-    });
+    const created = await saveUploadedFile(unsortedFolder.id, file, user);
 
     await prisma.auditLog.create({
       data: {
         organizationId: user.organizationId,
         actorId: user.id,
-        action: "create",
+        action: created.version > 1 ? "edit" : "create",
         entityType: "File",
         entityId: created.id,
+        note: created.version > 1 ? `uploaded version ${created.version}` : undefined,
       },
     });
   }
 
   revalidatePath("/inbox");
+}
+
+// Upload into a real archive's folder (Prompt 4): same versioning behavior
+// as the inbox — re-uploading a file with the same name creates a new
+// version rather than silently overwriting it.
+export async function uploadToFolder(_state: UploadFilesState, formData: FormData): Promise<UploadFilesState> {
+  const user = await getCurrentUser();
+  requirePermission(user.role, "canUpload", "upload files");
+
+  const folderId = String(formData.get("folderId") ?? "");
+  const archiveId = String(formData.get("archiveId") ?? "");
+
+  const folder = await prisma.folder.findFirst({
+    where: { id: folderId, archive: { id: archiveId, organizationId: user.organizationId } },
+  });
+  if (!folder) {
+    return { message: "Folder not found." };
+  }
+
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) {
+    return { message: "Choose at least one file." };
+  }
+
+  for (const file of files) {
+    const created = await saveUploadedFile(folder.id, file, user);
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: created.version > 1 ? "edit" : "create",
+        entityType: "File",
+        entityId: created.id,
+        note: created.version > 1 ? `uploaded version ${created.version}` : undefined,
+      },
+    });
+  }
+
+  revalidatePath(`/archives/${archiveId}`);
 }

@@ -2,8 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
+import { STORAGE_ROOT } from "@/lib/file-storage";
 
 // SRS.md FR-4.6 / FR-11.6: every download is logged (who, when), and
 // download itself is a role-gated capability, not just view/search.

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // User-uploaded content, not source code.
+    "storage/**",
   ]),
 ]);
 
