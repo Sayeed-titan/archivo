@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# local file storage (Phase 1 dev only — see PRODUCT_ROADMAP.md storage plan)
+/storage/uploads/*
+!/storage/uploads/.gitkeep

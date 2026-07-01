@@ -1,0 +1,304 @@
+// Archivo — tenant-aware Event/Archive Management schema.
+// Every domain table is scoped by organizationId so a single deployment
+// can serve multiple customer organizations (see HANDOFF.md point 14).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Tenancy & Identity ──────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  industry  String? // e.g. "ngo", "healthcare", "education" — informational, not a schema branch
+  // Which "open in" connector this org uses for Office-type documents.
+  // Pluggable per HANDOFF.md point 5 — Google today, Microsoft stubbed.
+  docEditorProvider String? // "google" | "microsoft" | null (not configured)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  roles           Role[]
+  categories      Category[]
+  lookupLists     LookupList[]
+  folderTemplates FolderTemplate[]
+  customFields    CustomFieldDefinition[]
+  archives        Archive[]
+  auditLogs       AuditLog[]
+
+  @@map("organizations")
+}
+
+// Fixed system roles ship as seeded rows (Administrator, Archive Officer,
+// Department User, Viewer per SRS 3.9) but Role is a table, not an enum,
+// so an organization can add its own roles/permission sets later without
+// a schema migration.
+model Role {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  // Permission flags per SRS 3.9 matrix. Kept as explicit booleans (not a
+  // JSON bag) because these gate real authorization checks — flexibility
+  // here belongs in future custom roles' *values*, not in hiding the checks.
+  canCreateArchive  Boolean @default(false)
+  canUpload         Boolean @default(false)
+  canEditMetadata   Boolean @default(false)
+  canDeleteArchive  Boolean @default(false)
+  canHardDelete     Boolean @default(false)
+  canManageUsers    Boolean @default(false)
+  canManageSettings Boolean @default(false)
+  canGenerateReport Boolean @default(false)
+  canViewAll        Boolean @default(false) // false = own/department scope only
+  canDownload       Boolean @default(false)
+  createdAt         DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users        User[]
+
+  @@unique([organizationId, name])
+  @@map("roles")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  passwordHash   String
+  name           String
+  department     String?
+  roleId         String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role              Role              @relation(fields: [roleId], references: [id])
+  createdArchives   Archive[]         @relation("ArchiveCreatedBy")
+  uploadedFiles     File[]            @relation("FileUploadedBy")
+  auditLogs         AuditLog[]
+  externalDocLinks  ExternalDocLink[]
+
+  @@unique([organizationId, email])
+  @@map("users")
+}
+
+// ── Configurable taxonomy (point 11: managed lookup lists, not free text) ──
+
+model Category {
+  id             String  @id @default(cuid())
+  organizationId String
+  name           String
+  order          Int     @default(0)
+  isActive       Boolean @default(true)
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  folderTemplates FolderTemplate[]
+  archives        Archive[]
+
+  @@unique([organizationId, name])
+  @@map("categories")
+}
+
+// Generic managed lookup list for Donor / Project / Department style
+// fields, so free text never fragments a value like "Global Health Trust"
+// vs "Global Health Trust Foundation" (HANDOFF.md point 11).
+model LookupList {
+  id             String @id @default(cuid())
+  organizationId String
+  key            String // e.g. "donor", "project", "department"
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items        LookupListItem[]
+
+  @@unique([organizationId, key])
+  @@map("lookup_lists")
+}
+
+model LookupListItem {
+  id           String  @id @default(cuid())
+  lookupListId String
+  value        String
+  isActive     Boolean @default(true)
+
+  lookupList LookupList @relation(fields: [lookupListId], references: [id], onDelete: Cascade)
+
+  @@unique([lookupListId, value])
+  @@map("lookup_list_items")
+}
+
+// ── Folder templates per category (point 1) ─────────────────────────
+
+model FolderTemplate {
+  id             String  @id @default(cuid())
+  organizationId String
+  categoryId     String
+  name           String // e.g. "01 Proposal"
+  order          Int
+  isMandatory    Boolean @default(false)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, name])
+  @@map("folder_templates")
+}
+
+// ── Custom fields (point 2: org-configurable metadata, not fixed columns) ──
+
+model CustomFieldDefinition {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String // machine key, e.g. "consent_obtained"
+  label          String // display label
+  fieldType      String // "text" | "number" | "date" | "boolean" | "select"
+  options        Json? // for "select" type
+  isRequired     Boolean  @default(false)
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@map("custom_field_definitions")
+}
+
+// ── Archive (the core entity) ────────────────────────────────────────
+
+model Archive {
+  id             String   @id @default(cuid())
+  organizationId String
+  archiveNumber  String // human-facing auto ID, e.g. "ARC-2026-00042"
+  name           String // the only required field at creation (Zero-Friction Capture, point 9)
+  categoryId     String?
+  department     String?
+  eventDate      DateTime?
+  venue          String?
+  organizer      String?
+  coordinator    String?
+  donor          String?
+  projectName    String?
+  tags           String[] @default([])
+  description    String?
+  status         String   @default("Draft") // Draft | Pending Review | Archived | org-defined (point 7)
+  // Org-configurable metadata that doesn't warrant a fixed column
+  // (CustomFieldDefinition supplies the schema; this holds the values).
+  customFields   Json     @default("{}")
+  isMigrationInbox Boolean @default(false) // true for the always-open backlog bucket (point 3)
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // soft delete (point 5)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  createdBy    User         @relation("ArchiveCreatedBy", fields: [createdById], references: [id])
+  folders      Folder[]
+
+  @@unique([organizationId, archiveNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, donor])
+  @@map("archives")
+}
+
+model Folder {
+  id          String  @id @default(cuid())
+  archiveId   String
+  name        String
+  order       Int
+  isMandatory Boolean @default(false)
+
+  archive Archive @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  files   File[]
+
+  @@unique([archiveId, name])
+  @@map("folders")
+}
+
+model File {
+  id            String    @id @default(cuid())
+  folderId      String
+  filename      String
+  fileType      String // pdf | word | excel | powerpoint | image | video | audio | zip
+  mimeType      String
+  sizeBytes     Int
+  storagePath   String
+  version       Int       @default(1)
+  isLatest      Boolean   @default(true)
+  // Re-upload of the same logical document creates a new File row pointing
+  // back at the one it superseded, instead of overwriting it in place —
+  // the whole chain stays retrievable (HANDOFF.md point 5).
+  previousVersionId String? @unique
+  consentFlag   Boolean? // photo consent/safeguarding flag (point 10), null when not applicable
+  externalDocId String? // ID assigned by an external editor connector (see ExternalDocLink), duplicated here for quick lookup
+  uploadedById  String
+  uploadedAt    DateTime  @default(now())
+  deletedAt     DateTime? // soft delete
+
+  folder          Folder         @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  uploadedBy      User           @relation("FileUploadedBy", fields: [uploadedById], references: [id])
+  downloads       FileDownload[]
+  previousVersion File?          @relation("FileVersionHistory", fields: [previousVersionId], references: [id])
+  nextVersion     File?          @relation("FileVersionHistory")
+  externalDocLink ExternalDocLink?
+
+  @@index([folderId, isLatest])
+  @@map("files")
+}
+
+// Pluggable "open in" integration (Prompt 4): a File can be linked to a
+// document in an external editor (Google Workspace today, Microsoft 365
+// later). One row per file; `provider` selects which connector interprets
+// `externalId`/`externalUrl` — see src/lib/connectors/.
+model ExternalDocLink {
+  id           String   @id @default(cuid())
+  fileId       String   @unique
+  provider     String // "google" | "microsoft"
+  externalId   String // e.g. Google Drive file ID
+  externalUrl  String // direct "open in <provider>" link
+  createdById  String
+  createdAt    DateTime @default(now())
+
+  file      File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@map("external_doc_links")
+}
+
+model FileDownload {
+  id           String   @id @default(cuid())
+  fileId       String
+  downloadedBy String
+  downloadedAt DateTime @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("file_downloads")
+}
+
+// ── Universal audit trail (point 8) ─────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorId        String
+  action         String // "create" | "edit" | "delete" | "hard_delete" | "download" | ...
+  entityType     String // "Archive" | "File" | "Folder" | "User" | ...
+  entityId       String
+  note           String? // optional reason, mandatory in practice for hard-delete
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id])
+
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
+}
