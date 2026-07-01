@@ -12,7 +12,7 @@ sibling `ngo-archive/` folder at the repo root:
 - `ngo-archive/SRS.md` — full requirements spec
 - `ngo-archive/PRODUCT_ROADMAP.md` — phasing, business case
 - `ngo-archive/CLAUDE_CODE_PROMPTS.md` — the ordered build prompts this
-  project is being built from (currently on Prompt 4)
+  project is being built from (currently on Prompt 5)
 
 ## Key decisions locked in
 - **Multi-tenant from day one**: single deployment, every domain table
@@ -66,4 +66,23 @@ sibling `ngo-archive/` folder at the repo root:
 6. As an Administrator in the app, go to Settings → Integrations → Connect
    Google Workspace. The requested scope is `drive.file` (only files this
    app creates/opens — not the user's whole Drive).
+
+## Search & dynamic report builder (Prompt 5)
+- `/search` covers SRS 3.7: free-text across name/venue/organizer/donor/
+  project/keywords/filename plus advanced filters (category, status,
+  project, month/year, doc type) — see `src/lib/search-archives.ts`.
+- Reports are **not** 7 hardcoded pages. `ReportTemplate` (org-scoped)
+  stores a `fields` array + `filters` array; `src/lib/reports/` is the
+  shared engine: `fields.ts` is the field catalog (raw Archive columns +
+  computed ones like `fileCount`/`storageBytes`/`missingMandatoryFolders`),
+  `execute.ts` runs a template against real data (respecting
+  `archiveVisibilityWhere`), `export-excel.ts`/`export-pdf.ts` render
+  results. The 7 SRS reports (Archive Register, Documents by Event/Year,
+  Upload Activity, Storage Usage, Missing Documents, User Activity) are
+  seeded as `ReportTemplate` rows with `isSystemDefault: true` — they are
+  data, not code. Don't add new hardcoded report pages; add fields to the
+  catalog instead.
+- Report template names are unique per org (`organizationId_name`) —
+  `saveReportTemplate` checks for this before creating and returns a
+  friendly message rather than letting the DB throw P2002.
 

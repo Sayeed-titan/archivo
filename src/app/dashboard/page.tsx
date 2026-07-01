@@ -34,9 +34,17 @@ export default async function DashboardPage() {
             + Create archive
           </Link>
         )}
+        <Link href="/search" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          Search
+        </Link>
         <Link href="/inbox" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
           Migration Inbox
         </Link>
+        {user.role.canGenerateReport && (
+          <Link href="/reports" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+            Reports
+          </Link>
+        )}
         {user.role.canManageSettings && (
           <Link href="/settings/folder-templates" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
             Folder templates

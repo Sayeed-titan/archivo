@@ -33,8 +33,42 @@ model Organization {
   archives        Archive[]
   auditLogs       AuditLog[]
   integrations    OrgIntegration[]
+  reportTemplates ReportTemplate[]
 
   @@map("organizations")
+}
+
+// Dynamic report builder (HANDOFF.md point 4): an admin picks fields +
+// filters and saves the combination as a reusable template, instead of
+// the app shipping 7 hardcoded report pages. The 7 SRS reports (Archive
+// Register, Documents by Event/Year, Upload Activity, Storage Usage,
+// Missing Documents, User Activity) are seeded as ReportTemplate rows
+// using this same engine — see prisma/seed.ts and src/lib/reports/.
+model ReportTemplate {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  // Archive-level field keys to include as report columns, e.g.
+  // ["archiveNumber", "name", "category", "donor", "fileCount"].
+  // See src/lib/reports/fields.ts for the full catalog (raw columns +
+  // computed ones like fileCount/storageBytes/missingMandatoryFolders).
+  fields         Json
+  // Filter conditions as a small typed shape (field, operator, value) —
+  // see src/lib/reports/filters.ts. Kept as JSON because filter shapes
+  // vary by field type (date range vs. text-equals vs. status-in), and
+  // this list grows without needing schema migrations.
+  filters        Json     @default("[]")
+  isSystemDefault Boolean @default(false) // true for the 7 SRS starter templates
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@unique([organizationId, name])
+  @@map("report_templates")
 }
 
 // Stores OAuth/API credentials an organization has connected for a given
@@ -107,6 +141,7 @@ model User {
   auditLogs         AuditLog[]
   externalDocLinks  ExternalDocLink[]
   connectedIntegrations OrgIntegration[]
+  reportTemplates   ReportTemplate[]
 
   @@unique([organizationId, email])
   @@map("users")

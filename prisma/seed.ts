@@ -303,6 +303,63 @@ async function main() {
     },
   });
 
+  // SRS.md FR-8.1: the 7 default reports, seeded as ReportTemplate rows
+  // using the same dynamic report engine (not hardcoded pages) — see
+  // HANDOFF.md point 4 and src/lib/reports/.
+  const defaultReports: { name: string; description: string; fields: string[]; filters?: Record<string, string>[] }[] = [
+    {
+      name: "Archive Register",
+      description: "Full register of all archives with core metadata.",
+      fields: ["archiveNumber", "name", "category", "department", "eventDate", "donor", "projectName", "status"],
+    },
+    {
+      name: "Documents by Event",
+      description: "Document counts per archive/event.",
+      fields: ["archiveNumber", "name", "category", "fileCount"],
+    },
+    {
+      name: "Documents by Year",
+      description: "Archives and their document counts, for year-over-year comparison.",
+      fields: ["name", "eventDate", "fileCount"],
+    },
+    {
+      name: "Upload Activity",
+      description: "Recently updated archives, as a proxy for upload activity.",
+      fields: ["archiveNumber", "name", "updatedAt", "fileCount"],
+    },
+    {
+      name: "Storage Usage",
+      description: "Storage consumed per archive.",
+      fields: ["archiveNumber", "name", "storageBytes"],
+    },
+    {
+      name: "Missing Documents",
+      description: "Archives with empty mandatory folders.",
+      fields: ["archiveNumber", "name", "status", "missingMandatoryFolders"],
+    },
+    {
+      name: "User Activity",
+      description: "Archives grouped by who created them.",
+      fields: ["archiveNumber", "name", "createdByName", "createdAt"],
+    },
+  ];
+
+  for (const report of defaultReports) {
+    await prisma.reportTemplate.upsert({
+      where: { organizationId_name: { organizationId: org.id, name: report.name } },
+      update: {},
+      create: {
+        organizationId: org.id,
+        name: report.name,
+        description: report.description,
+        fields: report.fields,
+        filters: report.filters ?? [],
+        isSystemDefault: true,
+        createdById: admin.id,
+      },
+    });
+  }
+
   console.log(`Seeded organization "${org.name}" (${org.slug})`);
   console.log("Login as admin@demo-ngo.org / officer@demo-ngo.org with password: Password123!");
 }
