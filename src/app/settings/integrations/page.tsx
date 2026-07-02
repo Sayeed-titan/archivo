@@ -15,7 +15,7 @@ export default async function IntegrationsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-lg p-8">
+    <main className="mx-auto max-w-lg p-4 sm:p-8">
       <h1 className="text-xl font-semibold">Document editor integration</h1>
       <p className="mt-1 text-sm text-slate-500">
         Word/Excel/PowerPoint files can be opened for native co-editing in your organization&apos;s Office

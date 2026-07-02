@@ -19,7 +19,7 @@ export default async function WorkflowSettingsPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
+    <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <h1 className="text-xl font-semibold">Approval workflow</h1>
       <p className="mt-1 text-sm text-slate-500">
         Define the sequence of statuses your organization uses and what must be true before an archive can

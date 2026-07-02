@@ -10,7 +10,7 @@ export default async function NewReportPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
+    <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <h1 className="text-xl font-semibold">Build a report</h1>
       <p className="mt-1 text-sm text-slate-500">
         Pick the fields and filters you want, then save it as a reusable template.

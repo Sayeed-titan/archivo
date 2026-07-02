@@ -15,7 +15,7 @@ export default async function FolderTemplatesPage() {
   const canManage = user.role.canManageSettings;
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
+    <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <h1 className="text-xl font-semibold">Folder templates</h1>
       <p className="mt-1 text-sm text-slate-500">
         Each category has its own folder set — a Meeting doesn&apos;t need Press Release folders.

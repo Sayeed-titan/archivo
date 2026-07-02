@@ -6,6 +6,12 @@ type FileWithUploader = PrismaFile & { uploadedBy: User };
 
 const OPENABLE_KINDS = new Set(["word", "excel", "powerpoint"]);
 
+function formatDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 async function getVersionHistory(fileId: string): Promise<FileWithUploader[]> {
   const history: FileWithUploader[] = [];
   let currentId: string | null = fileId;
@@ -37,12 +43,23 @@ export async function FileRow({
 
   return (
     <li className="px-4 py-1.5 text-sm">
-      <div className="flex items-center justify-between">
-        <span>
-          {file.filename}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="flex min-w-0 items-center gap-2">
+          {file.fileType === "video" && file.thumbnailPath && (
+            // eslint-disable-next-line @next/next/no-img-element -- server-generated preview, not worth next/image's optimization pipeline
+            <img
+              src={`/api/files/${file.id}/thumbnail`}
+              alt=""
+              className="h-10 w-16 shrink-0 rounded object-cover"
+            />
+          )}
+          <span className="break-all">{file.filename}</span>
           {file.version > 1 && <span className="ml-2 text-xs text-slate-400">v{file.version}</span>}
+          {file.fileType === "video" && file.durationSeconds !== null && (
+            <span className="text-xs text-slate-400">{formatDuration(file.durationSeconds)}</span>
+          )}
         </span>
-        <span className="flex items-center gap-3 text-xs text-slate-400">
+        <span className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
           {file.fileType} · {(file.sizeBytes / 1024).toFixed(0)} KB · {file.uploadedBy.name} ·{" "}
           {file.uploadedAt.toLocaleDateString()}
           {canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} />}

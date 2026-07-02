@@ -3,6 +3,7 @@ import path from "path";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { STORAGE_ROOT } from "@/lib/file-storage";
+import { applyImageWatermark, WATERMARKABLE_FILE_TYPES } from "@/lib/watermark";
 
 // SRS.md FR-4.6 / FR-11.6: every download is logged (who, when), and
 // download itself is a role-gated capability, not just view/search.
@@ -26,7 +27,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return new Response("Not found", { status: 404 });
   }
 
-  const buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
+  let buffer: Buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
+
+  if (WATERMARKABLE_FILE_TYPES.has(file.fileType)) {
+    const org = await prisma.organization.findUnique({ where: { id: user.organizationId } });
+    if (org?.watermarkEnabled) {
+      buffer = await applyImageWatermark(buffer, org.watermarkText || org.name);
+    }
+  }
 
   await prisma.$transaction([
     prisma.fileDownload.create({ data: { fileId: file.id, downloadedBy: user.id } }),

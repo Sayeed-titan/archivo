@@ -156,3 +156,182 @@ project, check with the user for next steps — there's no Prompt 8 defined
 in the plan; further work should come from a new decision, not an
 assumed continuation.
 
+## Automated backups (post-Prompt-7, closing a PRODUCT_ROADMAP.md Phase 2 gap)
+
+PRODUCT_ROADMAP.md lists "audit trail, automated backups" as a Phase 2
+item (NFR-5: daily automated backups, RPO ≤24h, RTO ≤8h). Everything else
+in that phase was already covered by Prompts 3/5/6; this closed the one
+remaining gap.
+
+- `scripts/backup/run-backup.ts` (`npm run backup`) exports every Prisma
+  model to JSON (one file per table, in FK-dependency order — see
+  `scripts/backup/models.ts`) plus a copy of `storage/uploads/`, into a
+  timestamped `backups/<ISO-timestamp>/` directory with a `manifest.json`
+  (row counts, duration, file count). Old backup directories past
+  `BACKUP_RETENTION_DAYS` (env var, default 30) are pruned automatically
+  on each run.
+- **Why JSON export instead of `pg_dump`**: this sandbox's local dev DB is
+  Prisma's embedded WASM Postgres with no `pg_dump` binary on PATH. A
+  Node-native export works against any Postgres (including that one) with
+  zero external dependencies, and was chosen deliberately over shelling
+  out to `pg_dump` — see the decision in this session's history. It is
+  **not** a byte-identical Postgres dump; for a real production deployment
+  with `pg_dump` available, that's the more standard/robust choice and
+  this script's manifest-driven approach could be swapped in without
+  touching the app UI (`getBackupStatus()` in `src/lib/backup-status.ts`
+  just reads whatever's in `backups/`, agnostic to how it got there).
+- `scripts/backup/run-restore.ts` (`npm run backup:restore -- <dir>`)
+  reverses the process — `createMany({ skipDuplicates: true })` per model
+  in the same dependency order. Intended for disaster recovery into a
+  fresh/empty database, not reconciliation against live data.
+- **Verified end-to-end in this session**: ran a real backup, wiped every
+  table in the dev database (with explicit user confirmation first — this
+  is genuinely destructive), ran the restore, confirmed every table's row
+  count matched the manifest exactly, and confirmed the app actually
+  works against the restored data (login, dashboard, search all
+  functioned correctly) — not just that row counts matched.
+- Dashboard shows a backup-status banner (Administrator/canManageSettings
+  only) — green if the last backup is under 24h old, red "overdue" past
+  that, matching the NFR-5 RPO target.
+- **Scheduling** (this only runs when invoked — nothing calls it
+  automatically yet):
+  - **Linux/macOS (cron)**: `0 2 * * * cd /path/to/archivo && npm run backup >> /var/log/archivo-backup.log 2>&1` (daily at 2am).
+  - **Windows (Task Scheduler)**: create a Basic Task, daily trigger,
+    action = `npm.cmd`, arguments = `run backup`, start-in = the project
+    directory.
+  - **Managed hosting** (Vercel, etc.): use the platform's Cron Jobs
+    feature to hit a protected API route that shells out to the same
+    logic, or run this as a separate scheduled job/container against the
+    same `DATABASE_URL` — `next dev`/`next start` do not run background
+    cron themselves.
+- `backups/` is gitignored (never commit real data dumps) with a
+  `.gitkeep` placeholder, same pattern as `storage/uploads/`.
+
+## Phase 3 polish (PRODUCT_ROADMAP.md) — in progress
+
+Working through Phase 3's polish items one at a time: watermarking →
+video thumbnails/duration → email notifications → mobile-responsive pass.
+
+### Watermarking (FR-11.5) — done
+- `Organization.watermarkEnabled` / `watermarkText` (null text falls back
+  to org name at render time). Settings UI at `/settings/security`
+  (canManageSettings only).
+- **Images**: `src/lib/watermark.ts` (`applyImageWatermark`, using
+  `sharp`) composites a semi-transparent SVG text overlay at download
+  time in `src/app/api/files/[id]/download/route.ts` — the *stored*
+  file is never modified, only the response bytes. Verified with a real
+  pixel-level check: watermark-enabled downloads have measurably
+  different image statistics than the original; watermark-disabled
+  downloads are byte-for-byte identical to the original.
+- **PDF report exports**: `buildPdfReport()` in
+  `src/lib/reports/export-pdf.ts` takes an optional `watermarkText` and
+  draws a repeated, rotated, low-opacity text pattern across every page
+  (via `pdf-lib`'s `degrees()` helper, not a hand-rolled rotation). Wired
+  in `src/app/reports/[id]/export/route.ts`. Only PDF, not Excel — Excel
+  cells don't have an equivalent "background watermark" concept.
+- **Scope decision**: watermarking only covers images and PDF report
+  exports, not raw Word/Excel/PowerPoint file downloads — properly
+  watermarking those needs format-specific document manipulation, not
+  just an overlay, and was explicitly descoped as a separate, bigger task
+  if ever needed.
+
+### Video thumbnails & duration (FR-6.2) — done
+- `File.thumbnailPath` / `File.durationSeconds`, populated best-effort at
+  upload time in `saveUploadedFile()` (`src/lib/file-storage.ts`) for
+  `fileType === "video"` — extraction failure never blocks the upload,
+  both fields just stay null.
+- `src/lib/video-processing.ts` shells out directly to the `ffmpeg`/
+  `ffprobe` binaries bundled by `ffmpeg-static`/`ffprobe-static` (no
+  system ffmpeg install needed) via `child_process.execFile` —
+  `fluent-ffmpeg` was deliberately avoided since it's an unmaintained
+  wrapper package.
+- **Critical gotcha — do not remove**: `next.config.ts` has
+  `serverExternalPackages: ["ffmpeg-static", "ffprobe-static"]`. Without
+  this, Turbopack bundles these packages into the server chunk and
+  rewrites their `__dirname`-based binary path resolution to a virtual
+  `\ROOT\node_modules\...` path that doesn't exist on disk — the upload
+  silently succeeds but thumbnail/duration extraction fails every time
+  with an ENOENT spawn error (caught and swallowed, so nothing visibly
+  breaks except the feature not working). Confirmed by testing: works
+  perfectly when the ffmpeg/ffprobe functions are called directly in a
+  plain Node script, fails only when called from inside the Next.js
+  server bundle — this is what `serverExternalPackages` fixes. If you add
+  another native-binary npm package later, check this list first.
+- Also note: changing `next.config.ts` requires killing and restarting
+  the dev server (not just triggering an HMR reload) — Next.js reads this
+  file once at startup.
+- Thumbnails are served via a separate, lighter route
+  (`/api/files/[id]/thumbnail`) that does NOT write a `FileDownload` row
+  or audit-log "download" entry — viewing a preview thumbnail isn't a
+  file download for FR-4.6 purposes.
+- Verified end-to-end with a real generated MP4 (via ffmpeg itself):
+  uploaded through the Migration Inbox UI, confirmed a valid JPEG
+  thumbnail (checked magic bytes) was generated and served, and the
+  correct duration ("0:03" for a 3-second clip) displayed in both the
+  inbox list and archive detail file rows
+  (`src/app/archives/[id]/file-row.tsx`).
+
+### Email notifications (FR-10.2) — done
+- `src/lib/email.ts` wraps `nodemailer`; `SMTP_HOST` env var gates
+  everything — unset it and email sending no-ops silently (in-app
+  notifications still work). Dev default points at a local MailDev
+  catcher: run `npx maildev` (web UI at http://localhost:1080, SMTP on
+  1025) to actually see/verify sent emails. `.env` already has
+  `SMTP_HOST=localhost` / `SMTP_PORT=1025` set for this.
+- **Single wiring point, no per-trigger duplication**: `notify()` and
+  `notifyAdmins()` in `src/lib/notifications.ts` (already the sole path
+  every existing trigger uses — archive created, upload completed, review
+  pending, storage limit) now also call `sendEmailIfEnabled()` internally.
+  No changes were needed at any call site.
+- `User.emailNotificationsEnabled` (default `true`) is a per-user opt-out,
+  editable at `/profile` (new page — first "account settings for the
+  logged-in user" page in the app, previously only org-level settings
+  existed). Email failure (bad SMTP config, mail server down) is caught
+  and logged, never thrown — it must not block the action that triggered
+  the notification.
+- **Verified for real, not just "no errors thrown"**: cleared MailDev's
+  inbox via its REST API, triggered an archive-creation notification
+  through the running app, and confirmed via `GET http://localhost:1080/email`
+  that MailDev actually received an email addressed to the right
+  recipient with the correct subject/body. Separately verified that
+  disabling the preference at `/profile` suppresses the email (0 received)
+  while the in-app `Notification` row is still created — email is
+  strictly additive, never a replacement path.
+- For production: point `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/
+  `SMTP_SECURE` at a real provider (SendGrid, SES, etc.); no code changes
+  needed, `getTransport()` in `email.ts` already reads all of this from env.
+
+### Mobile-responsive pass — done
+- Root-cause fix, not page-by-page patching: `body` in `layout.tsx` is
+  `flex flex-col`, so every page's `<main>` is a flex item. A flex item's
+  layout width is resolved from its content *before* the flex container's
+  width constraint is reapplied — a wide table (even one already wrapped
+  in its own `overflow-x-auto` div) could still force the whole page to
+  scroll sideways on narrow screens, no matter how the individual page
+  was styled. Fixed once in `globals.css`: `body { overflow-x: hidden }`
+  clips any such leak at the top level, `body > main { min-width: 0 }`
+  lets flex items actually shrink. Internal scrollable regions (data
+  tables) keep scrolling correctly within their own wrapper — only the
+  *whole-page* sideways scroll is what's blocked.
+- **Testing gotcha**: `document.documentElement.scrollWidth >
+  document.documentElement.clientWidth` is the wrong check once
+  `overflow-x: hidden` is in play — `scrollWidth` reports the pre-clip
+  layout size regardless of whether it's actually visible/scrollable.
+  The right test is whether `window.scrollX` changes in response to a
+  horizontal scroll attempt (it shouldn't, anywhere in the app).
+- 13 pages sharing the `mx-auto max-w-* p-8` shell were switched to
+  `p-4 sm:p-8` (32px padding eats a lot of a 375px screen). Several forms
+  with multiple `<select>` elements or icon+metadata rows
+  (`add-transition-form.tsx`, `add-folder-form.tsx`, `file-row.tsx`,
+  the dashboard header, the reports run page's export/delete button row)
+  got `flex-wrap` added where they previously assumed enough horizontal
+  space. `audit-log/page.tsx`'s table was missing the `overflow-x-auto`
+  wrapper every other table in the app already had — added for
+  consistency. `metadata-form.tsx`'s field grid is now `grid-cols-1
+  sm:grid-cols-2` instead of a fixed 2-column grid.
+- Verified across all 15 distinct pages (including pages with real data —
+  an archive detail page, a report run page with 8 columns) at a 375px
+  viewport (iPhone SE size): none are horizontally scrollable as a whole
+  page; wide tables still scroll correctly within their own bounded
+  region.
+

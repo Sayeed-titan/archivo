@@ -45,3 +45,7 @@ next-env.d.ts
 # local file storage (Phase 1 dev only — see PRODUCT_ROADMAP.md storage plan)
 /storage/uploads/*
 !/storage/uploads/.gitkeep
+
+# local backup snapshots (NFR-5) — never commit actual data dumps
+/backups/*
+!/backups/.gitkeep

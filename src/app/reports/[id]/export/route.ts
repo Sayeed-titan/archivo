@@ -15,12 +15,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return new Response("Forbidden", { status: 403 });
   }
 
-  const template = await prisma.reportTemplate.findFirst({
-    where: { id, organizationId: user.organizationId },
-  });
+  const [template, org] = await Promise.all([
+    prisma.reportTemplate.findFirst({ where: { id, organizationId: user.organizationId } }),
+    prisma.organization.findUnique({ where: { id: user.organizationId } }),
+  ]);
   if (!template) {
     return new Response("Not found", { status: 404 });
   }
+  const watermarkText = org?.watermarkEnabled ? org.watermarkText || org.name : undefined;
 
   const format = request.nextUrl.searchParams.get("format");
   const fields = template.fields as string[];
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   if (format === "pdf") {
-    const buffer = await buildPdfReport(template.name, fields, rows);
+    const buffer = await buildPdfReport(template.name, fields, rows, watermarkText);
     return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",

@@ -26,17 +26,17 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
   const rows = await runReport(user, fields, filters);
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
+    <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <Link href="/reports" className="text-sm text-slate-500 underline">
         ← Back to reports
       </Link>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">{template.name}</h1>
           {template.description && <p className="text-sm text-slate-500">{template.description}</p>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a
             href={`/reports/${template.id}/export?format=excel`}
             className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium"

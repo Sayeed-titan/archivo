@@ -34,7 +34,7 @@ export default async function SearchPage({
   ];
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto max-w-3xl p-4 sm:p-8">
       <Link href="/dashboard" className="text-sm text-slate-500 underline">
         ← Back to dashboard
       </Link>

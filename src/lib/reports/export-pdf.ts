@@ -1,5 +1,5 @@
 import "server-only";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import { getFieldDef } from "./fields";
 import type { ReportRow } from "./execute";
 
@@ -9,7 +9,33 @@ const MARGIN = 36;
 const ROW_HEIGHT = 18;
 const FONT_SIZE = 9;
 
-export async function buildPdfReport(title: string, fields: string[], rows: ReportRow[]): Promise<Buffer> {
+// SRS.md FR-11.5: optional watermark on exported documents. Drawn as a
+// large, diagonal, low-opacity text repeated across the page so it
+// survives printing/screenshots without obscuring the table underneath.
+function drawWatermark(page: import("pdf-lib").PDFPage, font: import("pdf-lib").PDFFont, text: string) {
+  const size = 28;
+  const textWidth = font.widthOfTextAtSize(text, size);
+  const step = textWidth + 80;
+
+  for (let x = -PAGE_HEIGHT; x < PAGE_WIDTH + PAGE_HEIGHT; x += step) {
+    page.drawText(text, {
+      x,
+      y: PAGE_HEIGHT / 2,
+      size,
+      font,
+      color: rgb(0.6, 0.6, 0.6),
+      opacity: 0.15,
+      rotate: degrees(-30),
+    });
+  }
+}
+
+export async function buildPdfReport(
+  title: string,
+  fields: string[],
+  rows: ReportRow[],
+  watermarkText?: string
+): Promise<Buffer> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -20,6 +46,8 @@ export async function buildPdfReport(title: string, fields: string[], rows: Repo
   const labels = fields.map((key) => getFieldDef(key)?.label ?? key);
 
   function drawHeader(page: import("pdf-lib").PDFPage, y: number) {
+    if (watermarkText) drawWatermark(page, boldFont, watermarkText);
+
     page.drawText(title, { x: MARGIN, y: PAGE_HEIGHT - MARGIN, size: 14, font: boldFont });
     page.drawText(`Generated ${new Date().toLocaleString()} · ${rows.length} rows`, {
       x: MARGIN,

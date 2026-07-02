@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logout } from "@/app/actions/auth";
 import { getDashboardSummary, getRecentUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
+import { getBackupStatus } from "@/lib/backup-status";
 import { HealthBadge } from "@/components/health-badge";
 import { NotificationBell } from "@/components/notification-bell";
 
@@ -16,7 +17,7 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
-  const [summary, recentArchives, recentUploads, categories, notifications] = await Promise.all([
+  const [summary, recentArchives, recentUploads, categories, notifications, backupStatus] = await Promise.all([
     getDashboardSummary(user),
     getRecentArchivesWithHealth(user),
     getRecentUploads(user),
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
+    user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
   ]);
 
   const summaryCards = [
@@ -40,8 +42,8 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-5xl p-8">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto max-w-5xl p-4 sm:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Welcome, {user.name}</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -50,6 +52,9 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell notifications={notifications} />
+          <Link href="/profile" className="text-sm text-slate-600 underline">
+            Profile
+          </Link>
           <form action={logout}>
             <button type="submit" className="text-sm text-slate-600 underline">
               Log out
@@ -69,6 +74,24 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {backupStatus && (
+        <div
+          className={`mt-3 rounded-md border px-4 py-2 text-sm ${
+            backupStatus.isOverdue ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {backupStatus.lastBackup ? (
+            <>
+              Last backup: {new Date(backupStatus.lastBackup.createdAt).toLocaleString()} (
+              {backupStatus.hoursSinceLastBackup !== null ? `${backupStatus.hoursSinceLastBackup.toFixed(1)}h ago` : "—"})
+              {backupStatus.isOverdue && " — overdue (RPO target: 24h)"}
+            </>
+          ) : (
+            "No backups found yet — run `npm run backup` or schedule it (see CLAUDE.md)."
+          )}
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         {user.role.canCreateArchive && (
@@ -100,6 +123,11 @@ export default async function DashboardPage() {
         {user.role.canManageSettings && (
           <Link href="/settings/workflow" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
             Workflow
+          </Link>
+        )}
+        {user.role.canManageSettings && (
+          <Link href="/settings/security" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+            Security
           </Link>
         )}
         {user.role.canManageUsers && (

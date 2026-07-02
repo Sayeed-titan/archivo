@@ -31,7 +31,7 @@ export default async function AuditLogPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto max-w-3xl p-4 sm:p-8">
       <Link href="/dashboard" className="text-sm text-slate-500 underline">
         ← Back to dashboard
       </Link>
@@ -70,37 +70,39 @@ export default async function AuditLogPage({
         </button>
       </form>
 
-      <table className="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-slate-500">
-            <th className="py-2">When</th>
-            <th className="py-2">Who</th>
-            <th className="py-2">Action</th>
-            <th className="py-2">Entity</th>
-            <th className="py-2">Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id} className="border-b border-slate-100">
-              <td className="py-2 text-slate-500">{entry.createdAt.toLocaleString()}</td>
-              <td className="py-2">{entry.actor.name}</td>
-              <td className="py-2">{entry.action}</td>
-              <td className="py-2 text-slate-500">
-                {entry.entityType} · {entry.entityId.slice(0, 8)}…
-              </td>
-              <td className="py-2 text-slate-500">{entry.note ?? "—"}</td>
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500">
+              <th className="whitespace-nowrap py-2">When</th>
+              <th className="whitespace-nowrap py-2">Who</th>
+              <th className="whitespace-nowrap py-2">Action</th>
+              <th className="whitespace-nowrap py-2">Entity</th>
+              <th className="whitespace-nowrap py-2">Note</th>
             </tr>
-          ))}
-          {entries.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-4 text-center text-slate-400">
-                No matching audit entries.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id} className="border-b border-slate-100">
+                <td className="whitespace-nowrap py-2 text-slate-500">{entry.createdAt.toLocaleString()}</td>
+                <td className="whitespace-nowrap py-2">{entry.actor.name}</td>
+                <td className="whitespace-nowrap py-2">{entry.action}</td>
+                <td className="whitespace-nowrap py-2 text-slate-500">
+                  {entry.entityType} · {entry.entityId.slice(0, 8)}…
+                </td>
+                <td className="whitespace-nowrap py-2 text-slate-500">{entry.note ?? "—"}</td>
+              </tr>
+            ))}
+            {entries.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-slate-400">
+                  No matching audit entries.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }

@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* body is `flex flex-col` (see layout.tsx). Wide content inside a flex
+   child (e.g. a data table with whitespace-nowrap cells, even one wrapped
+   in its own overflow-x-auto div) can still push the flex item wider than
+   its container and leak a horizontal scrollbar onto the whole page,
+   because a flex item's layout width is resolved from its content before
+   the flex container's own width constraint is reapplied. min-width: 0 on
+   the child alone doesn't reliably stop this in all engines. Clipping
+   horizontal overflow at the body level is the robust fix: individual
+   scrollable regions (tables wrapped in overflow-x-auto) still scroll
+   internally as intended, but nothing can force the whole page to scroll
+   sideways. */
+body {
+  overflow-x: hidden;
+}
+
+body > main {
+  min-width: 0;
+}

@@ -24,6 +24,10 @@ model Organization {
   // Storage limit warning (SRS.md FR-10.1 / NFR-2): notify as usage
   // approaches this ceiling. Null = no limit configured/enforced yet.
   storageQuotaBytes BigInt?
+  // SRS.md FR-11.5: optional watermark on downloaded images / exported
+  // PDF reports. Off by default — an org opts in and sets the text.
+  watermarkEnabled Boolean @default(false)
+  watermarkText    String? // null = fall back to Organization.name at render time
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -200,6 +204,10 @@ model User {
   department     String?
   roleId         String
   isActive       Boolean  @default(true)
+  // SRS.md FR-10.2: email is a configurable enhancement on top of in-app
+  // notifications, opt-in per user (default on — matches "notify by
+  // default" expectation, users who don't want it can turn it off).
+  emailNotificationsEnabled Boolean @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -366,6 +374,11 @@ model File {
   previousVersionId String? @unique
   consentFlag   Boolean? // photo consent/safeguarding flag (point 10), null when not applicable
   externalDocId String? // ID assigned by an external editor connector (see ExternalDocLink), duplicated here for quick lookup
+  // SRS.md FR-6.2: auto-generated for fileType="video" at upload time via
+  // ffmpeg (see src/lib/video-processing.ts). Null for non-video files or
+  // if extraction failed (e.g. corrupt upload) — never blocks the upload.
+  thumbnailPath   String?
+  durationSeconds Int?
   uploadedById  String
   uploadedAt    DateTime  @default(now())
   deletedAt     DateTime? // soft delete

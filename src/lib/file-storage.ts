@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { classifyFileType } from "@/lib/file-type";
+import { extractVideoDuration, generateVideoThumbnail } from "@/lib/video-processing";
 import type { User } from "@/generated/prisma/client";
 
 export const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
@@ -16,7 +17,21 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
 
   const storedName = `${randomUUID()}-${file.name}`;
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(STORAGE_ROOT, storedName), buffer);
+  const fullStoragePath = path.join(STORAGE_ROOT, storedName);
+  await writeFile(fullStoragePath, buffer);
+
+  const fileType = classifyFileType(file.name);
+
+  // SRS.md FR-6.2: best-effort — a failed extraction never blocks the
+  // upload, the File row is just created with null duration/thumbnail.
+  let durationSeconds: number | null = null;
+  let thumbnailPath: string | null = null;
+  if (fileType === "video") {
+    [durationSeconds, thumbnailPath] = await Promise.all([
+      extractVideoDuration(fullStoragePath),
+      generateVideoThumbnail(fullStoragePath),
+    ]);
+  }
 
   const existing = await prisma.file.findFirst({
     where: { folderId, filename: file.name, isLatest: true, deletedAt: null },
@@ -29,7 +44,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
         data: {
           folderId,
           filename: file.name,
-          fileType: classifyFileType(file.name),
+          fileType,
           mimeType: file.type || "application/octet-stream",
           sizeBytes: buffer.byteLength,
           storagePath: storedName,
@@ -37,6 +52,8 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
           version: existing.version + 1,
           isLatest: true,
           previousVersionId: existing.id,
+          durationSeconds,
+          thumbnailPath,
         },
       }),
     ]);
@@ -47,11 +64,13 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
     data: {
       folderId,
       filename: file.name,
-      fileType: classifyFileType(file.name),
+      fileType,
       mimeType: file.type || "application/octet-stream",
       sizeBytes: buffer.byteLength,
       storagePath: storedName,
       uploadedById: user.id,
+      durationSeconds,
+      thumbnailPath,
     },
   });
 }

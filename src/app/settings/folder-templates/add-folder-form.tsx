@@ -7,7 +7,7 @@ export function AddFolderForm({ categoryId }: { categoryId: string }) {
   const [state, action, pending] = useActionState<AddFolderState, FormData>(addFolderTemplate, undefined);
 
   return (
-    <form action={action} className="mt-3 flex items-center gap-2">
+    <form action={action} className="mt-3 flex flex-wrap items-center gap-2">
       <input type="hidden" name="categoryId" value={categoryId} />
       <input
         name="name"

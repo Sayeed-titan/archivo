@@ -29,7 +29,7 @@ export function MetadataForm({
         {state?.errors?.name && <p className="text-sm text-red-600">{state.errors.name[0]}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-600">Department</label>
           <input

@@ -14,8 +14,12 @@ export function AddTransitionForm({ states }: { states: string[] }) {
 
   return (
     <form action={action} className="mt-3 space-y-2 rounded-md border border-slate-200 p-3 text-sm">
-      <div className="flex items-center gap-2">
-        <select name="fromState" defaultValue={states[0]} className="rounded-md border border-slate-300 px-2 py-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          name="fromState"
+          defaultValue={states[0]}
+          className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1"
+        >
           {states.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -23,7 +27,11 @@ export function AddTransitionForm({ states }: { states: string[] }) {
           ))}
         </select>
         <span>→</span>
-        <select name="toState" defaultValue={states[1]} className="rounded-md border border-slate-300 px-2 py-1">
+        <select
+          name="toState"
+          defaultValue={states[1]}
+          className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1"
+        >
           {states.map((s) => (
             <option key={s} value={s}>
               {s}
