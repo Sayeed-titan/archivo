@@ -12,10 +12,10 @@ export function AddFolderForm({ categoryId }: { categoryId: string }) {
       <input type="hidden" name="categoryId" value={categoryId} />
       <TextField name="name" placeholder="Folder name" compact className="flex-1" />
       <CheckboxField name="isMandatory" label="required" compact />
-      <Button disabled={pending} type="submit" size="sm">
+      <Button disabled={pending} type="submit" size="sm" icon="add">
         Add
       </Button>
-      {state?.errors?.name && <p className="text-sm text-red-600">{state.errors.name[0]}</p>}
+      {state?.errors?.name && <p className="type-body-medium text-error">{state.errors.name[0]}</p>}
     </form>
   );
 }

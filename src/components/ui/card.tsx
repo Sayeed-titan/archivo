@@ -2,20 +2,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
-// Audit found `rounded-md` vs `rounded-lg` panels used interchangeably
-// for the same purpose (settings sections, form wrappers, dashboard
-// summary cards, danger-zone boxes). Standardizing on rounded-md
-// everywhere except summary-card-style stat tiles (lg), which is the one
-// place the wireframe itself uses a larger radius.
-const cardVariants = cva("rounded-md border p-4", {
+// MD3 cards (https://m3.material.io/components/cards): corner-medium,
+// three container styles. `variant` picks the MD3 style; `tone` keeps the
+// pre-MD3 semantic API (danger zones, warning banners) and overrides the
+// container colors with the matching MD3 role pair.
+const cardVariants = cva("rounded-md p-4", {
   variants: {
+    variant: {
+      outlined: "border border-outline-variant bg-surface",
+      elevated: "bg-surface-container-low shadow-elevation-1",
+      filled: "bg-surface-container-highest",
+    },
     tone: {
-      default: "border-slate-200 bg-white",
-      danger: "border-red-200 bg-red-50",
-      warn: "border-amber-200 bg-amber-50",
+      default: "",
+      danger: "border border-transparent bg-error-container text-on-error-container",
+      warn: "border border-transparent bg-warning-container text-on-warning-container",
     },
   },
   defaultVariants: {
+    variant: "outlined",
     tone: "default",
   },
 });
@@ -25,6 +30,6 @@ export type CardProps = VariantProps<typeof cardVariants> & {
   children: ReactNode;
 };
 
-export function Card({ tone, className, children }: CardProps) {
-  return <div className={cn(cardVariants({ tone }), className)}>{children}</div>;
+export function Card({ variant, tone, className, children }: CardProps) {
+  return <div className={cn(cardVariants({ variant, tone }), className)}>{children}</div>;
 }

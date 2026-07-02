@@ -49,4 +49,6 @@ export async function updateWatermarkSettings(
   });
 
   revalidatePath("/settings/security");
+  // Truthy-but-messageless state = success (the form shows a snackbar).
+  return {};
 }

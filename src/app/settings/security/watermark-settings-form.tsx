@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { updateWatermarkSettings, type WatermarkSettingsState } from "@/app/actions/security-settings";
-import { CheckboxField, TextField, Button, Card } from "@/components/ui";
+import { SwitchField, TextField, Button, Card, useSnackbar } from "@/components/ui";
 
 export function WatermarkSettingsForm({
   watermarkEnabled,
@@ -14,14 +14,21 @@ export function WatermarkSettingsForm({
   orgName: string;
 }) {
   const [state, action, pending] = useActionState<WatermarkSettingsState, FormData>(updateWatermarkSettings, undefined);
+  const { showSnackbar } = useSnackbar();
+
+  // The action returns {} on success and { message } on failure.
+  useEffect(() => {
+    if (state && !state.message) showSnackbar("Watermark settings saved.");
+  }, [state, showSnackbar]);
 
   return (
     <form action={action} className="mt-6">
-      <Card className="space-y-3">
-        <CheckboxField
+      <Card className="space-y-4">
+        <SwitchField
           name="watermarkEnabled"
           defaultChecked={watermarkEnabled}
-          label="Enable watermark on image downloads and PDF report exports"
+          label="Watermark downloads"
+          description="Applied to image downloads and PDF report exports. Stored files are never modified."
         />
 
         <TextField
@@ -29,13 +36,12 @@ export function WatermarkSettingsForm({
           label="Watermark text"
           defaultValue={watermarkText ?? ""}
           placeholder={orgName}
-          compact
           hint={`Leave blank to use the organization name ("${orgName}").`}
         />
 
-        {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+        {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
 
-        <Button type="submit" loading={pending} loadingText="Saving...">
+        <Button type="submit" loading={pending} loadingText="Saving…">
           Save settings
         </Button>
       </Card>

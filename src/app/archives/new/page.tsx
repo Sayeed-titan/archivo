@@ -13,7 +13,7 @@ export default async function NewArchivePage() {
 
   return (
     <main className="mx-auto max-w-lg p-4 sm:p-8">
-      <PageHeader title="Create a new archive" subtitle="Just give it a name to start — you can fill in the rest later." />
+      <PageHeader backHref="/dashboard" backLabel="Dashboard" title="Create a new archive" subtitle="Just give it a name to start — you can fill in the rest later." />
       <NewArchiveForm categories={categories} />
     </main>
   );

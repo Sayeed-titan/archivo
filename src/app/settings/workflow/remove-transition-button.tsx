@@ -5,7 +5,7 @@ import { Button } from "@/components/ui";
 
 export function RemoveTransitionButton({ transitionId }: { transitionId: string }) {
   return (
-    <Button onClick={() => removeWorkflowTransition(transitionId)} variant="danger-ghost" size="inline">
+    <Button onClick={() => removeWorkflowTransition(transitionId)} variant="text-error" size="inline">
       remove
     </Button>
   );

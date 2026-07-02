@@ -23,6 +23,20 @@ export const getOptionalSession = cache(async () => {
   return decrypt(cookie);
 });
 
+// Shell/layout variant: full user + role + organization (nav permissions
+// and org theme settings), returning null when logged out instead of
+// redirecting — the root layout renders the login screen chrome-free.
+export const getShellUser = cache(async () => {
+  const cookie = (await cookies()).get("session")?.value;
+  const session = await decrypt(cookie);
+  if (!session?.userId) return null;
+
+  return prisma.user.findFirst({
+    where: { id: session.userId, organizationId: session.organizationId, isActive: true },
+    include: { role: true, organization: true },
+  });
+});
+
 export const getCurrentUser = cache(async () => {
   const session = await verifySession();
 

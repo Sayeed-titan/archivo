@@ -10,7 +10,7 @@ export function AddTransitionForm({ states }: { states: string[] }) {
   const requirableFields = getRequirableFields();
 
   if (states.length < 2) {
-    return <p className="mt-3 text-sm text-slate-400">Add at least two states to define a transition.</p>;
+    return <p className="mt-3 type-body-medium text-on-surface-variant">Add at least two states to define a transition.</p>;
   }
 
   return (
@@ -35,7 +35,7 @@ export function AddTransitionForm({ states }: { states: string[] }) {
         </div>
 
         <div>
-          <p className="text-xs font-medium text-slate-600">Requirements before this move is allowed:</p>
+          <p className="type-label-medium text-on-surface-variant">Requirements before this move is allowed:</p>
           <div className="mt-1">
             <CheckboxField
               name="req_mandatoryFolders"
@@ -55,10 +55,10 @@ export function AddTransitionForm({ states }: { states: string[] }) {
           ))}
         </div>
 
-        <Button disabled={pending} type="submit" size="sm">
+        <Button disabled={pending} type="submit" size="sm" icon="add">
           Add transition
         </Button>
-        {state?.message && <p className="text-red-600">{state.message}</p>}
+        {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
       </Card>
     </form>
   );

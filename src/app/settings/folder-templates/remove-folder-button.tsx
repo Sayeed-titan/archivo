@@ -5,7 +5,7 @@ import { Button } from "@/components/ui";
 
 export function RemoveFolderButton({ folderTemplateId }: { folderTemplateId: string }) {
   return (
-    <Button onClick={() => removeFolderTemplate(folderTemplateId)} variant="danger-ghost" size="inline">
+    <Button onClick={() => removeFolderTemplate(folderTemplateId)} variant="text-error" size="inline">
       remove
     </Button>
   );

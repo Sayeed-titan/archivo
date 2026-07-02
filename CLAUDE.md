@@ -335,71 +335,126 @@ video thumbnails/duration → email notifications → mobile-responsive pass.
   page; wide tables still scroll correctly within their own bounded
   region.
 
-## Shared UI component library (`src/components/ui/`)
+## Material Design 3 design system (org-themable, added 2026-07-03)
 
-Built after an audit found ~15 near-duplicate hand-rolled button class
-strings (inconsistent padding, disabled handling), 3 competing input
-padding scales, and 4 near-identical badge/pill patterns across the app.
-All new UI should use these instead of hand-rolling Tailwind classes —
-import from `@/components/ui` (barrel export in `index.ts`).
+The whole UI follows Google's Material Design 3, driven by **runtime
+design tokens generated per organization**. This *supersedes* the earlier
+"no custom CSS color tokens" decision — the reason it was revisited is
+that org-configurable theming (a product requirement: one settings page
+that restyles everything) is impossible without tokens.
 
-- **`Button`** (`button.tsx`) — `variant`: `primary`/`secondary`/
-  `danger-outline`/`danger-solid`/`ghost`/`danger-ghost`; `size`: `sm`/
-  `md`/`lg`/`inline` (`inline` = no padding/radius, for bare text triggers
-  in dense rows like a settings-list "remove" link — pair with
-  `danger-ghost`). Renders as `<Link>` when given `href`, otherwise
-  `<button>`. Has `loading`/`loadingText` props for the
-  `useActionState`-pending pattern used everywhere
-  (`pending ? "Saving..." : "Save"` no longer needs to be written by hand).
-- **`TextField`/`SelectField`/`TextareaField`/`CheckboxField`**
-  (`form-field.tsx`) — label + control + error/hint slot in one component.
-  `compact` prop switches to the smaller `px-2 py-1` padding used in dense
-  inline forms (folder-template add-row, search/audit-log filter bars,
-  workflow settings) vs. the default `px-3 py-2` for standalone forms.
-  `label` accepts `ReactNode`, not just `string` (needed for labels with
-  embedded hint text or quoted field names).
-- **`Badge`** (`badge.tsx`) — `tone`: `neutral`/`success`/`warning`/
-  `danger`/`info`; `pill` (default `true`) toggles between a rounded pill
-  (status badges) and plain colored text (`pill={false}`, for small inline
-  tags like "required"/"initial"/"terminal"/"default template").
-  `HealthBadge` (`src/components/health-badge.tsx`) is a thin wrapper
-  mapping `ArchiveHealthLevel` → tone — the old
-  `HEALTH_BADGE_CLASSES` export was removed, nothing else referenced it.
-- **`Card`** (`card.tsx`) — `tone`: `default`/`danger`/`warn`. Replaces
-  every hand-rolled `rounded-md border ... p-4` panel. Pass
-  `className="p-0"` when the card's children need their own internal
-  padding structure (e.g. a folder card with a bordered header + list +
-  upload zone, each with different padding) rather than the default `p-4`.
-- **`PageHeader`** (`page-header.tsx`) — `backHref`/`backLabel` (both
-  optional — omit for pages with no back link, e.g. dashboard/login)/
-  `title`/`subtitle`/`actions` (right-aligned slot, accepts any
-  `ReactNode` — used for action buttons AND for non-button content like a
-  `HealthBadge` on the archive detail page).
-- **`Table`/`TableHead`/`Th`/`Td`/`TableRow`/`TableEmptyState`**
-  (`table.tsx`) — standardizes the `overflow-x-auto` wrapper (required —
-  see the mobile-responsive-pass note above on why every table needs
-  this) + shell markup used on the dashboard, report run pages, and audit
-  log.
-- **`cn()`** (`src/lib/cn.ts`) — `clsx` + `tailwind-merge`, for merging a
-  component's default classes with a caller-supplied `className` override
-  without class-conflict bugs.
+**How theming flows, end to end:**
+1. `Organization.themeSeedColor/themeMode/themeShape/themeFontScale`
+   (schema) — edited at `/settings/appearance` (canManageSettings), with
+   a client-side live preview. `User.themePreference` overrides the org's
+   light/dark default per user (top-bar toggle, cycles
+   light→dark→system).
+2. `src/lib/theme/scheme.ts` — seed hex → full MD3 color-role vocabulary
+   (light+dark) via Google's `@material/material-color-utilities`
+   (`SchemeTonalSpot` + `MaterialDynamicColors`), plus harmonized custom
+   `success`/`warning` roles (`customColor` with `blend: true`). Pure and
+   isomorphic on purpose — the appearance page reuses it client-side.
+3. `src/lib/theme/css.ts` — emits the `--md-sys-color-*` /
+   `--md-sys-shape-corner-*` variable stylesheet (memoized per settings
+   tuple). Dark mode = `<html data-theme="light|dark|system">` rendered
+   by the server (no flash, no client script); dark vars apply under
+   `[data-theme="dark"]` and via media query under `[data-theme="system"]`.
+4. `src/app/layout.tsx` injects that CSS with React 19's hoistable
+   `<style href precedence>`, reading the org via `getShellUser()`
+   (`src/lib/dal.ts` — session + role + organization, null when logged
+   out → login renders chrome-free).
+5. `globals.css` `@theme inline` maps every variable into Tailwind
+   utilities: `bg-primary`, `text-on-surface-variant`,
+   `border-outline-variant`, `bg-surface-container-high`, etc. State
+   layers are precomputed colors (`bg-primary-hover`, `bg-on-surface-8`
+   …). `rounded-xs/sm/md/lg/xl` = the MD3 shape scale (so the org shape
+   setting restyles every corner); `shadow-elevation-1..5` = MD3
+   elevation; `.type-display-large` … `.type-label-small` = the 15-role
+   MD3 type scale (rem-based so the org font scale applies).
 
-**Explicit decision, don't revisit without a reason**: no custom CSS color
-tokens (`--color-surface`, etc.) were introduced even though the
-wireframe (`ngo-archive-wireframe.html`) defines its own hex palette —
-the existing app already uses Tailwind's built-in `slate`/`emerald`/
-`amber`/`red`/`blue` palette in 30+ files. Consistency here comes from
-routing all UI through these shared components (which use a fixed,
-documented set of Tailwind classes internally), not from a parallel
-token system that would require migrating every existing color class.
+**Never hardcode Tailwind palette colors** (`slate-500`, `red-600`, …) —
+the codebase has zero of them; always use the token utilities above.
 
-**Intentionally NOT migrated to `Button`**: bare inline text triggers
-with no box model at all inside already-dense rows — e.g.
-`folder-upload.tsx`'s "Drag files here or click to upload" trigger, and
-`file-row.tsx`'s inline metadata-row links. Forcing `Button` (which
-always adds `inline-flex`, padding, and `rounded-md`) onto these would
-visibly change their sizing inside dense `text-xs` rows. Use judgment
-here rather than mechanically converting every `<button>`/`<a>` in the
-codebase — the goal is consistency where things are visually the same
-kind of control, not a 100%-component-coverage mandate.
+**Icons**: Material Symbols variable font, **self-hosted** at
+`src/fonts/material-symbols-outlined.woff2` via `next/font/local` —
+`next/font/google` does NOT have Material Symbols in its registry
+("Unknown font" at build). Use `<Icon name="search" />`
+(`src/components/icon.tsx`, ligature-based, any name from
+fonts.google.com/icons); `filled` prop = FILL axis for active nav states.
+
+**App shell** (`src/components/shell/`): `AppShell` (in the root layout,
+signed-in only) = MD3 navigation rail on md+ / modal drawer on mobile
+(role-gated destinations + "New archive" FAB) + top app bar (brand,
+theme toggle, notification bell, avatar menu with sign-out). Pages
+render their own `<main>`; the shell only provides chrome. Notifications
+are fetched in the layout; their mark-read actions revalidate the layout.
+
+### Component library (`src/components/ui/`, barrel export `index.ts`)
+- **`Button`** — MD3 variants `filled`/`tonal`/`elevated`/`outlined`/
+  `text` + `filled-error`/`tonal-error`/`outlined-error`/`text-error`;
+  `size` `sm`/`md`/`lg`/`inline` (`inline` = bare text trigger in dense
+  rows); `icon` (leading Material Symbol), `loading`/`loadingText`,
+  `href` renders a `<Link>`.
+- **`IconButton`** — 40px round icon button (`standard`/`filled`/`tonal`/
+  `outlined`); `label` is mandatory (accessible name + tooltip).
+- **`TextField`/`SelectField`/`TextareaField`/`CheckboxField`/`SwitchField`**
+  — label-above MD3 fields (`compact` for dense filter rows);
+  `SwitchField` is a spec MD3 switch for boolean settings.
+- **`Badge`** — `tone` `neutral`/`success`/`warning`/`danger`/`info`
+  mapped to container/on-container pairs (success/warning are the
+  harmonized custom roles, so badges re-tint with the seed);
+  `pill={false}` = bare colored text tag.
+- **`Card`** — `variant` `outlined` (default)/`elevated`/`filled`; `tone`
+  `danger`/`warn` for error/warning containers. `className="p-0"` when
+  children manage their own padding (folder cards).
+- **`PageHeader`** — back link (icon + label), headline-small title,
+  supporting text, right `actions` slot.
+- **`Table`/`TableHead`/`Th`/`Td`/`TableRow`/`TableEmptyState`** — MD3
+  data table incl. the required `overflow-x-auto` wrapper (see the
+  mobile-responsive note above).
+- **`Dialog`/`ConfirmSubmitButton`** — native `<dialog>`-based MD3 dialog;
+  `ConfirmSubmitButton` guards destructive server-action forms (opens the
+  dialog, on confirm submits the enclosing form). Used for archive/report
+  deletion instead of instant destructive clicks.
+- **`SnackbarProvider`/`useSnackbar`/`SnackbarOnMount`** — global MD3
+  snackbar (provider mounted in the root layout); settings forms toast on
+  success.
+- **`CircularProgress`/`LinearProgress`** — loading spinner (used by
+  Button `loading`) and determinate meter (storage usage, flips to error
+  ≥90%).
+- **`EmptyState`** — icon-in-tonal-circle + title + description + CTA;
+  used on search/inbox/reports/dashboard empties.
+- **`Menu`/`MenuItem`/`MenuFormItem`/`MenuSeparator`** — anchored MD3
+  menu (avatar menu; `MenuFormItem` submits a wrapping server-action
+  form, e.g. logout).
+- **`ExtendedFab`** — the "New archive" FAB in the rail/drawer.
+- **`cn()`** (`src/lib/cn.ts`) — `clsx` + `tailwind-merge`.
+- `src/lib/file-icon.ts` — fileType → Material Symbol name for file rows.
+
+**Intentionally NOT migrated to `Button`**: bare inline text triggers in
+dense rows (`folder-upload.tsx`'s upload trigger, `file-row.tsx`'s
+download links) — a Button box model would break those rows. Judgment
+over mechanical conversion.
+
+### Settings IA
+`/settings` is a hub page (canManageSettings) linking: Appearance (MD3
+theming), Organization (name/industry/**storage quota** — the quota
+finally has UI; usage meter shown), Folder templates, Workflow,
+Integrations, Security & watermarking. `/profile` is per-user (email
+opt-out, theme note, identity card).
+
+### Gotchas hit during the MD3 build (2026-07-03)
+- **`next/font/google` has no Material Symbols** — self-host via
+  `next/font/local` (see Icons above).
+- **`prisma db push` did not regenerate the client** in this setup — run
+  `npx prisma generate` after schema changes, **and restart the dev
+  server**: the running server keeps the old client in memory and throws
+  "Unknown argument" on new fields even after regeneration.
+- **CSS comments in `globals.css` must not contain `*/`-like sequences**
+  (e.g. writing "text-*/font-*" inside a comment terminates it and breaks
+  the whole stylesheet parse).
+- `.playwright/*.mjs` are ad-hoc smoke-walk scripts (login → every page →
+  theme toggle → appearance reseed → mobile). `playwright` is a
+  devDependency; screenshots go to the session scratchpad. Reuse/extend
+  them for future UI verification.
 

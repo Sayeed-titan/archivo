@@ -12,10 +12,10 @@ export function AddStateForm() {
       <TextField name="name" placeholder="State name (e.g. Approved)" compact className="flex-1" />
       <CheckboxField name="isInitial" label="initial" compact />
       <CheckboxField name="isTerminal" label="terminal" compact />
-      <Button disabled={pending} type="submit" size="sm">
+      <Button disabled={pending} type="submit" size="sm" icon="add">
         Add state
       </Button>
-      {state?.message && <p className="w-full text-red-600">{state.message}</p>}
+      {state?.message && <p className="w-full type-body-medium text-error">{state.message}</p>}
     </form>
   );
 }

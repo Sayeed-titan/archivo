@@ -2,7 +2,14 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { searchArchives } from "@/lib/search-archives";
-import { PageHeader, TextField, SelectField, Button } from "@/components/ui";
+import { PageHeader, TextField, SelectField, Button, Badge, EmptyState } from "@/components/ui";
+import { Icon } from "@/components/icon";
+
+const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
+  Archived: "success",
+  "Pending Review": "warning",
+  Draft: "neutral",
+};
 
 export default async function SearchPage({
   searchParams,
@@ -38,17 +45,18 @@ export default async function SearchPage({
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
       <PageHeader
-        backHref="/dashboard"
-        backLabel="← Back to dashboard"
         title="Search archives"
         subtitle="Search by event/program name, venue, organizer, donor, project, keyword, or filename."
       />
 
       <form action="/search" className="mt-4 space-y-3">
         {params.group && <input type="hidden" name="group" value={params.group} />}
-        <TextField name="q" defaultValue={params.q ?? ""} placeholder="Search..." />
+        <div className="relative">
+          <Icon name="search" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+          <TextField name="q" defaultValue={params.q ?? ""} placeholder="Search archives…" className="pl-10" />
+        </div>
 
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-3">
           <SelectField name="categoryId" defaultValue={params.categoryId ?? ""} compact>
             <option value="">All categories</option>
             {categories.map((c) => (
@@ -97,27 +105,46 @@ export default async function SearchPage({
             <option value="zip">ZIP</option>
           </SelectField>
 
-          <Button type="submit" size="sm">
+          <Button type="submit" size="sm" icon="search">
             Search
           </Button>
         </div>
       </form>
 
-      <h2 className="mt-6 text-sm font-medium text-slate-700">{results.length} results</h2>
-      <ul className="mt-2 divide-y divide-slate-200 rounded-md border border-slate-200">
-        {results.map((archive) => (
-          <li key={archive.id} className="px-4 py-2 text-sm">
-            <Link href={`/archives/${archive.id}`} className="font-medium hover:underline">
-              {archive.name}
-            </Link>
-            <span className="ml-2 text-slate-400">
-              {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"} · {archive.status}
-              {archive.donor && ` · ${archive.donor}`}
-            </span>
-          </li>
-        ))}
-        {results.length === 0 && <li className="px-4 py-2 text-sm text-slate-400">No matching archives.</li>}
-      </ul>
+      <h2 className="mt-6 type-title-small text-on-surface-variant">
+        {results.length} {results.length === 1 ? "result" : "results"}
+      </h2>
+      <div className="mt-2 overflow-hidden rounded-md border border-outline-variant bg-surface">
+        {results.length > 0 ? (
+          <ul className="divide-y divide-outline-variant/60">
+            {results.map((archive) => (
+              <li key={archive.id}>
+                <Link
+                  href={`/archives/${archive.id}`}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-on-surface-8"
+                >
+                  <Icon name="folder_open" size={22} className="shrink-0 text-on-surface-variant" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate type-body-large text-on-surface">{archive.name}</span>
+                    <span className="block truncate type-body-small text-on-surface-variant">
+                      {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"}
+                      {archive.donor && ` · ${archive.donor}`}
+                    </span>
+                  </span>
+                  <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
+                  <Icon name="chevron_right" size={20} className="shrink-0 text-on-surface-variant" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            icon="search_off"
+            title="No matching archives"
+            description="Try fewer filters, or a different keyword — search also covers venue, organizer, donor, and filenames."
+          />
+        )}
+      </div>
     </main>
   );
 }

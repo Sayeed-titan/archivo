@@ -29,15 +29,15 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
     <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <PageHeader
         backHref="/reports"
-        backLabel="← Back to reports"
+        backLabel="Reports"
         title={template.name}
         subtitle={template.description}
         actions={
           <>
-            <Button href={`/reports/${template.id}/export?format=excel`} variant="secondary">
+            <Button href={`/reports/${template.id}/export?format=excel`} variant="outlined" icon="table_chart">
               Export Excel
             </Button>
-            <Button href={`/reports/${template.id}/export?format=pdf`} variant="secondary">
+            <Button href={`/reports/${template.id}/export?format=pdf`} variant="outlined" icon="picture_as_pdf">
               Export PDF
             </Button>
             {!template.isSystemDefault && <DeleteReportButton templateId={template.id} />}
@@ -45,7 +45,9 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
         }
       />
 
-      <p className="mt-4 text-sm text-slate-500">{rows.length} rows</p>
+      <p className="mt-4 type-body-medium text-on-surface-variant">
+        {rows.length} {rows.length === 1 ? "row" : "rows"}
+      </p>
 
       <div className="mt-2">
         <Table>

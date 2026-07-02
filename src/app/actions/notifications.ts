@@ -12,7 +12,7 @@ export async function markNotificationRead(notificationId: string) {
     data: { readAt: new Date() },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout"); // bell now lives in the layout shell
 }
 
 export async function markAllNotificationsRead() {
@@ -23,5 +23,5 @@ export async function markAllNotificationsRead() {
     data: { readAt: new Date() },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout"); // bell now lives in the layout shell
 }

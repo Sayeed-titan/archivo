@@ -22,11 +22,11 @@ export function OpenInEditorButton({ fileId, provider }: { fileId: string; provi
             }
           })
         }
-        className="underline disabled:opacity-50"
+        className="text-primary underline hover:text-primary-hover disabled:opacity-50"
       >
         {isPending ? "Opening..." : `Open in ${provider === "google" ? "Google" : provider}`}
       </button>
-      {error && <span className="text-red-600">{error}</span>}
+      {error && <span className="text-error">{error}</span>}
     </>
   );
 }

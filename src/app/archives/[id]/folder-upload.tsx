@@ -31,8 +31,8 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
         setIsDragging(false);
         if (e.dataTransfer.files.length > 0) submitFiles(e.dataTransfer.files);
       }}
-      className={`rounded-md border border-dashed px-3 py-2 text-xs ${
-        isDragging ? "border-slate-500 bg-slate-50" : "border-slate-300"
+      className={`rounded-sm border border-dashed px-3 py-2 type-body-small transition-colors ${
+        isDragging ? "border-primary bg-primary-8" : "border-outline"
       }`}
     >
       <input type="hidden" name="archiveId" value={archiveId} />
@@ -49,11 +49,11 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={pending}
-        className="text-slate-500 underline disabled:opacity-50"
+        className="text-on-surface-variant underline hover:text-primary disabled:opacity-50"
       >
         {pending ? "Uploading..." : "Drag files here or click to upload"}
       </button>
-      {state?.message && <p className="mt-1 text-red-600">{state.message}</p>}
+      {state?.message && <p className="mt-1 text-error">{state.message}</p>}
     </form>
   );
 }

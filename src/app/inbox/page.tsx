@@ -1,7 +1,9 @@
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
+import { fileTypeIcon } from "@/lib/file-icon";
 import { InboxUploadForm } from "./inbox-upload-form";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, EmptyState, IconButton } from "@/components/ui";
+import { Icon } from "@/components/icon";
 
 export default async function InboxPage() {
   const user = await getCurrentUser();
@@ -26,34 +28,41 @@ export default async function InboxPage() {
 
       {user.role.canUpload && <InboxUploadForm />}
 
-      <h2 className="mt-8 text-sm font-medium text-slate-700">Uploaded files ({files.length})</h2>
-      <ul className="mt-2 divide-y divide-slate-200 rounded-md border border-slate-200">
-        {files.map((file) => (
-          <li key={file.id} className="flex items-center justify-between px-4 py-2 text-sm">
-            <span className="flex items-center gap-2">
-              {file.fileType === "video" && file.thumbnailPath && (
-                // eslint-disable-next-line @next/next/no-img-element -- server-generated preview, not worth next/image's optimization pipeline
-                <img src={`/api/files/${file.id}/thumbnail`} alt="" className="h-8 w-14 rounded object-cover" />
-              )}
-              {file.filename}
-            </span>
-            <span className="flex items-center gap-3 text-slate-400">
-              {file.fileType} · {(file.sizeBytes / 1024).toFixed(0)} KB
-              {file.fileType === "video" && file.durationSeconds !== null && (
-                <span>
-                  {Math.floor(file.durationSeconds / 60)}:{(file.durationSeconds % 60).toString().padStart(2, "0")}
+      <h2 className="mt-8 type-title-small text-on-surface-variant">Uploaded files ({files.length})</h2>
+      <div className="mt-2 overflow-hidden rounded-md border border-outline-variant bg-surface">
+        {files.length > 0 ? (
+          <ul className="divide-y divide-outline-variant/60">
+            {files.map((file) => (
+              <li key={file.id} className="flex items-center gap-3 px-4 py-2.5">
+                {file.fileType === "video" && file.thumbnailPath ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- server-generated preview, not worth next/image's optimization pipeline
+                  <img src={`/api/files/${file.id}/thumbnail`} alt="" className="h-8 w-14 shrink-0 rounded-xs object-cover" />
+                ) : (
+                  <Icon name={fileTypeIcon(file.fileType)} size={22} className="shrink-0 text-on-surface-variant" />
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate type-body-medium text-on-surface">{file.filename}</span>
+                  <span className="block type-body-small text-on-surface-variant">
+                    {file.fileType} · {(file.sizeBytes / 1024).toFixed(0)} KB
+                    {file.fileType === "video" &&
+                      file.durationSeconds !== null &&
+                      ` · ${Math.floor(file.durationSeconds / 60)}:${(file.durationSeconds % 60).toString().padStart(2, "0")}`}
+                  </span>
                 </span>
-              )}
-              {user.role.canDownload && (
-                <a href={`/api/files/${file.id}/download`} className="text-xs underline">
-                  download
-                </a>
-              )}
-            </span>
-          </li>
-        ))}
-        {files.length === 0 && <li className="px-4 py-2 text-sm text-slate-400">No files yet.</li>}
-      </ul>
+                {user.role.canDownload && (
+                  <IconButton href={`/api/files/${file.id}/download`} icon="download" label={`Download ${file.filename}`} />
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            icon="inbox"
+            title="Inbox is empty"
+            description="Anything you drop in the upload zone above lands here, ready to be sorted into archives."
+          />
+        )}
+      </div>
     </main>
   );
 }

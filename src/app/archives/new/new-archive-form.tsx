@@ -24,7 +24,7 @@ export function NewArchiveForm({ categories }: { categories: Category[] }) {
         name="categoryId"
         label={
           <>
-            Category <span className="text-slate-400">(optional — sets up folders automatically)</span>
+            Category <span className="text-on-surface-variant/70">(optional — sets up folders automatically)</span>
           </>
         }
       >
@@ -36,9 +36,9 @@ export function NewArchiveForm({ categories }: { categories: Category[] }) {
         ))}
       </SelectField>
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
 
-      <Button type="submit" loading={pending} loadingText="Creating..." className="w-full">
+      <Button type="submit" loading={pending} loadingText="Creating…" icon="create_new_folder" className="w-full">
         Create archive
       </Button>
     </form>

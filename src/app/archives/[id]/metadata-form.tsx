@@ -59,9 +59,9 @@ export function MetadataForm({
           rows={3}
         />
 
-        {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+        {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
 
-        <Button type="submit" loading={pending} loadingText="Saving...">
+        <Button type="submit" loading={pending} loadingText="Saving…" icon="save">
           Save metadata
         </Button>
       </Card>

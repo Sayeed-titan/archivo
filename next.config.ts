@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
   // (src/lib/video-processing.ts). Keeping them external preserves their
   // real node_modules path.
   serverExternalPackages: ["ffmpeg-static", "ffprobe-static"],
+  experimental: {
+    // Default Server Action body limit is 1MB — too small for video/large
+    // file uploads (uploadToFolder/uploadToInbox in src/app/actions/files.ts
+    // submit files as multipart FormData through a Server Action). Without
+    // this, uploads over ~1MB fail client-side with a generic
+    // "Failed to fetch" before the action code ever runs.
+    serverActions: {
+      bodySizeLimit: "500mb",
+    },
+  },
 };
 
 export default nextConfig;

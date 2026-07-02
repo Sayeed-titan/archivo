@@ -3,6 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { markNotificationRead, markAllNotificationsRead } from "@/app/actions/notifications";
+import { Icon } from "@/components/icon";
+import { IconButton } from "@/components/ui/icon-button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/cn";
 
 export type NotificationItem = {
   id: string;
@@ -14,11 +18,11 @@ export type NotificationItem = {
 };
 
 const TYPE_ICON: Record<string, string> = {
-  archive_created: "🗂️",
-  missing_documents: "⚠️",
-  upload_completed: "✅",
-  review_pending: "⏳",
-  storage_limit: "💾",
+  archive_created: "create_new_folder",
+  missing_documents: "warning",
+  upload_completed: "check_circle",
+  review_pending: "pending_actions",
+  storage_limit: "database",
 };
 
 export function NotificationBell({ notifications }: { notifications: NotificationItem[] }) {
@@ -27,26 +31,28 @@ export function NotificationBell({ notifications }: { notifications: Notificatio
 
   return (
     <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="relative rounded-md border border-slate-300 px-3 py-2 text-sm"
-      >
-        Notifications
+      <span className="relative inline-block">
+        <IconButton
+          icon="notifications"
+          label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+          filledIcon={unreadCount > 0}
+          onClick={() => setOpen((v) => !v)}
+        />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
+          <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 type-label-small text-on-error">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
-      </button>
+      </span>
 
       {open && (
-        <div className="absolute right-0 z-10 mt-2 w-80 rounded-md border border-slate-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
-            <span className="text-sm font-medium">Notifications</span>
+        <div className="absolute right-0 z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-md bg-surface-container shadow-elevation-2">
+          <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
+            <span className="type-title-small text-on-surface">Notifications</span>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllNotificationsRead()}
-                className="text-xs text-slate-500 underline"
+                className="rounded-full px-2 py-1 type-label-medium text-primary hover:bg-primary-8"
               >
                 Mark all read
               </button>
@@ -54,22 +60,29 @@ export function NotificationBell({ notifications }: { notifications: Notificatio
           </div>
           <ul className="max-h-80 overflow-y-auto">
             {notifications.map((n) => (
-              <li key={n.id} className={`border-b border-slate-50 px-3 py-2 text-sm ${!n.readAt ? "bg-slate-50" : ""}`}>
+              <li key={n.id} className={cn("border-b border-outline-variant/50 last:border-b-0", !n.readAt && "bg-primary-8")}>
                 <Link
                   href={n.linkPath ?? "#"}
-                  onClick={() => !n.readAt && markNotificationRead(n.id)}
-                  className="flex gap-2"
+                  onClick={() => {
+                    setOpen(false);
+                    if (!n.readAt) markNotificationRead(n.id);
+                  }}
+                  className="flex gap-3 px-4 py-3 transition-colors hover:bg-on-surface-8"
                 >
-                  <span>{TYPE_ICON[n.type] ?? "🔔"}</span>
-                  <span className="flex-1">
+                  <Icon name={TYPE_ICON[n.type] ?? "notifications"} size={20} className="mt-0.5 text-on-surface-variant" />
+                  <span className="flex-1 type-body-medium text-on-surface">
                     {n.message}
-                    <span className="mt-0.5 block text-xs text-slate-400">{n.createdAt.toLocaleString()}</span>
+                    <span className="mt-0.5 block type-body-small text-on-surface-variant">
+                      {n.createdAt.toLocaleString()}
+                    </span>
                   </span>
                 </Link>
               </li>
             ))}
             {notifications.length === 0 && (
-              <li className="px-3 py-4 text-center text-sm text-slate-400">No notifications yet.</li>
+              <li>
+                <EmptyState icon="notifications_off" title="All caught up" description="Nothing new right now." className="py-6" />
+              </li>
             )}
           </ul>
         </div>

@@ -1,13 +1,25 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { logout } from "@/app/actions/auth";
 import { getDashboardSummary, getRecentUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
 import { getBackupStatus } from "@/lib/backup-status";
 import { HealthBadge } from "@/components/health-badge";
-import { NotificationBell } from "@/components/notification-bell";
-import { Button, Badge, Card, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
+import { Icon } from "@/components/icon";
+import {
+  Badge,
+  Card,
+  LinearProgress,
+  PageHeader,
+  Table,
+  TableHead,
+  Th,
+  Td,
+  TableRow,
+  TableEmptyState,
+  EmptyState,
+  Button,
+} from "@/components/ui";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
   Archived: "success",
@@ -18,61 +30,64 @@ const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
-  const [summary, recentArchives, recentUploads, categories, notifications, backupStatus] = await Promise.all([
+  const [summary, recentArchives, recentUploads, categories, backupStatus, org] = await Promise.all([
     getDashboardSummary(user),
     getRecentArchivesWithHealth(user),
     getRecentUploads(user),
     getCategoryCounts(user),
-    prisma.notification.findMany({
-      where: { recipientId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
     user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
+    prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
   ]);
 
-  const summaryCards = [
-    { label: "Events Archived", value: summary.eventsCount, href: "/search?group=events" },
-    { label: "Programs Archived", value: summary.programsCount, href: "/search?group=programs" },
-    { label: "Total Documents", value: summary.documentsCount },
-    { label: "Photos", value: summary.photosCount, href: "/search?docType=image" },
-    { label: "Videos", value: summary.videosCount, href: "/search?docType=video" },
-    { label: "Reports", value: summary.reportCount, href: user.role.canGenerateReport ? "/reports" : undefined },
-    { label: "Pending Review", value: summary.pendingReviewCount, warn: true, href: "/search?status=Pending+Review" },
-    { label: "Storage Used", value: formatBytes(summary.storageBytes) },
+  const quotaBytes = org.storageQuotaBytes ? Number(org.storageQuotaBytes) : null;
+  const summaryCards: { label: string; value: string | number; icon: string; warn?: boolean; href?: string }[] = [
+    { label: "Events Archived", value: summary.eventsCount, icon: "event", href: "/search?group=events" },
+    { label: "Programs Archived", value: summary.programsCount, icon: "flag", href: "/search?group=programs" },
+    { label: "Total Documents", value: summary.documentsCount, icon: "description" },
+    { label: "Photos", value: summary.photosCount, icon: "photo_library", href: "/search?docType=image" },
+    { label: "Videos", value: summary.videosCount, icon: "smart_display", href: "/search?docType=video" },
+    {
+      label: "Reports",
+      value: summary.reportCount,
+      icon: "monitoring",
+      href: user.role.canGenerateReport ? "/reports" : undefined,
+    },
+    {
+      label: "Pending Review",
+      value: summary.pendingReviewCount,
+      icon: "pending_actions",
+      warn: summary.pendingReviewCount > 0,
+      href: "/search?status=Pending+Review",
+    },
+    { label: "Storage Used", value: formatBytes(summary.storageBytes), icon: "database" },
   ];
 
   return (
     <main className="mx-auto max-w-5xl p-4 sm:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Welcome, {user.name}</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Role: {user.role.name} · Department: {user.department ?? "—"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell notifications={notifications} />
-          <Button href="/profile" variant="ghost">
-            Profile
-          </Button>
-          <form action={logout}>
-            <Button type="submit" variant="ghost">
-              Log out
-            </Button>
-          </form>
-        </div>
-      </div>
+      <PageHeader
+        title={`Welcome, ${user.name}`}
+        subtitle={`${user.role.name} · ${user.department ?? "No department"}`}
+      />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {summaryCards.map((card) => {
           const body = (
             <Card
               tone={card.warn ? "warn" : "default"}
-              className={`rounded-lg ${card.href ? "transition-colors hover:border-slate-400 hover:bg-slate-50" : ""}`}
+              className={`h-full rounded-lg ${card.href ? "transition-shadow hover:shadow-elevation-1" : ""}`}
             >
-              <p className={`text-2xl font-semibold ${card.warn ? "text-amber-700" : "text-slate-900"}`}>{card.value}</p>
-              <p className="mt-1 text-xs text-slate-500">{card.label}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className={`type-headline-small ${card.warn ? "" : "text-on-surface"}`}>{card.value}</p>
+                <Icon
+                  name={card.icon}
+                  size={20}
+                  className={card.warn ? "text-on-warning-container" : "text-on-surface-variant"}
+                />
+              </div>
+              <p className={`mt-1 type-body-small ${card.warn ? "" : "text-on-surface-variant"}`}>{card.label}</p>
+              {card.label === "Storage Used" && quotaBytes && (
+                <LinearProgress value={Number(summary.storageBytes) / quotaBytes} className="mt-2" />
+              )}
             </Card>
           );
           return card.href ? (
@@ -86,8 +101,13 @@ export default async function DashboardPage() {
       </div>
 
       {backupStatus && (
-        <Card tone={backupStatus.isOverdue ? "danger" : "default"} className="mt-3 py-2 text-sm">
-          <span className={backupStatus.isOverdue ? "text-red-700" : "text-emerald-700"}>
+        <Card tone={backupStatus.isOverdue ? "danger" : "default"} className="mt-4 flex items-center gap-3 py-3">
+          <Icon
+            name={backupStatus.isOverdue ? "gpp_bad" : "verified_user"}
+            size={20}
+            className={backupStatus.isOverdue ? "" : "text-success"}
+          />
+          <span className="type-body-medium">
             {backupStatus.lastBackup ? (
               <>
                 Last backup: {new Date(backupStatus.lastBackup.createdAt).toLocaleString()} (
@@ -101,56 +121,16 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        {user.role.canCreateArchive && (
-          <Button href="/archives/new" variant="primary" size="lg">
-            + Create archive
-          </Button>
-        )}
-        <Button href="/inbox" variant="secondary" size="lg">
-          Migration Inbox
-        </Button>
-        <Button href="/search" variant="secondary" size="lg">
-          Search
-        </Button>
-        {user.role.canGenerateReport && (
-          <Button href="/reports" variant="secondary" size="lg">
-            Reports
-          </Button>
-        )}
-        {user.role.canManageSettings && (
-          <Button href="/settings/folder-templates" variant="secondary" size="lg">
-            Folder templates
-          </Button>
-        )}
-        {user.role.canManageSettings && (
-          <Button href="/settings/integrations" variant="secondary" size="lg">
-            Integrations
-          </Button>
-        )}
-        {user.role.canManageSettings && (
-          <Button href="/settings/workflow" variant="secondary" size="lg">
-            Workflow
-          </Button>
-        )}
-        {user.role.canManageSettings && (
-          <Button href="/settings/security" variant="secondary" size="lg">
-            Security
-          </Button>
-        )}
-        {user.role.canManageUsers && (
-          <Button href="/audit-log" variant="secondary" size="lg">
-            Audit trail
-          </Button>
-        )}
-      </div>
-
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div>
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-slate-700">Recent Archives</h2>
-            <Link href="/search" className="text-xs text-slate-500 underline">
-              View all →
+            <h2 className="type-title-medium text-on-surface">Recent Archives</h2>
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 type-label-medium text-primary hover:bg-primary-8"
+            >
+              View all
+              <Icon name="arrow_forward" size={14} />
             </Link>
           </div>
           <div className="mt-2">
@@ -165,13 +145,13 @@ export default async function DashboardPage() {
               <tbody>
                 {recentArchives.map((archive) => (
                   <TableRow key={archive.id}>
-                    <Td className="text-slate-500">{archive.createdAt.toLocaleDateString()}</Td>
+                    <Td className="text-on-surface-variant">{archive.createdAt.toLocaleDateString()}</Td>
                     <Td className="whitespace-normal">
-                      <Link href={`/archives/${archive.id}`} className="font-medium hover:underline">
+                      <Link href={`/archives/${archive.id}`} className="font-medium text-on-surface hover:text-primary hover:underline">
                         {archive.name}
                       </Link>
                     </Td>
-                    <Td className="text-slate-500">{archive.category?.name ?? "Uncategorized"}</Td>
+                    <Td className="text-on-surface-variant">{archive.category?.name ?? "Uncategorized"}</Td>
                     <Td>
                       <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
                     </Td>
@@ -180,37 +160,54 @@ export default async function DashboardPage() {
                     </Td>
                   </TableRow>
                 ))}
-                {recentArchives.length === 0 && <TableEmptyState colSpan={5} message="No archives yet." />}
+                {recentArchives.length === 0 && <TableEmptyState colSpan={5} message="No archives yet — create the first one." />}
               </tbody>
             </Table>
           </div>
         </div>
 
         <div>
-          <h2 className="text-sm font-medium text-slate-700">Recent Uploads</h2>
-          <ul className="mt-2 divide-y divide-slate-200 rounded-md border border-slate-200">
-            {recentUploads.map((file) => (
-              <li key={file.id} className="px-3 py-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="truncate">{file.filename}</span>
-                  <span className="whitespace-nowrap text-xs text-slate-400">
-                    {file.uploadedAt.toLocaleDateString()}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400">
-                  {file.uploadedBy.name} · {file.folder.archive.name}
-                </p>
-              </li>
-            ))}
-            {recentUploads.length === 0 && <li className="px-3 py-4 text-center text-sm text-slate-400">No uploads yet.</li>}
-          </ul>
+          <h2 className="type-title-medium text-on-surface">Recent Uploads</h2>
+          <div className="mt-2 overflow-hidden rounded-md border border-outline-variant bg-surface">
+            {recentUploads.length > 0 ? (
+              <ul className="divide-y divide-outline-variant/60">
+                {recentUploads.map((file) => (
+                  <li key={file.id} className="flex items-start gap-3 px-3 py-2.5">
+                    <Icon name="draft" size={20} className="mt-0.5 text-on-surface-variant" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate type-body-medium text-on-surface">{file.filename}</span>
+                        <span className="whitespace-nowrap type-body-small text-on-surface-variant">
+                          {file.uploadedAt.toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="truncate type-body-small text-on-surface-variant">
+                        {file.uploadedBy.name} · {file.folder.archive.name}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon="cloud_upload"
+                title="No uploads yet"
+                description="Files added to any archive will show up here."
+                action={
+                  <Button href="/inbox" variant="tonal" size="sm">
+                    Open Migration Inbox
+                  </Button>
+                }
+              />
+            )}
+          </div>
 
-          <h2 className="mt-6 text-sm font-medium text-slate-700">Archive by Category</h2>
+          <h2 className="mt-6 type-title-medium text-on-surface">Archive by Category</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {categories.map((category) => (
-              <Badge key={category.id} tone="neutral" className="border-slate-300 bg-white text-slate-700">
+              <Badge key={category.id} tone="neutral">
                 {category.name}
-                <span className="ml-1 text-slate-400">{category._count.archives}</span>
+                <span className="text-on-surface-variant/70">{category._count.archives}</span>
               </Badge>
             ))}
           </div>

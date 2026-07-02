@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { Icon } from "@/components/icon";
 import type { ReactNode } from "react";
 
-// Audit found this exact shape (back link + title + optional subtitle +
-// optional right-aligned actions) hand-rolled 6+ times with inconsistent
-// wrapper spacing.
+// Page header: optional back link + MD3 headline + optional supporting
+// text + right-aligned actions slot.
 export function PageHeader({
   backHref,
-  backLabel = "← Back",
+  backLabel = "Back",
   title,
   subtitle,
   actions,
@@ -20,16 +20,20 @@ export function PageHeader({
   return (
     <div>
       {backHref && (
-        <Link href={backHref} className="text-sm text-slate-500 underline">
+        <Link
+          href={backHref}
+          className="inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-3 type-label-large text-on-surface-variant transition-colors hover:bg-on-surface-8 hover:text-on-surface"
+        >
+          <Icon name="arrow_back" size={18} />
           {backLabel}
         </Link>
       )}
-      <div className={`flex flex-wrap items-center justify-between gap-3 ${backHref ? "mt-4" : ""}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-3 ${backHref ? "mt-3" : ""}`}>
         <div>
-          <h1 className="text-xl font-semibold">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+          <h1 className="type-headline-small text-on-surface">{title}</h1>
+          {subtitle && <p className="mt-1 type-body-medium text-on-surface-variant">{subtitle}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
     </div>
   );

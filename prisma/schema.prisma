@@ -28,6 +28,13 @@ model Organization {
   // PDF reports. Off by default — an org opts in and sets the text.
   watermarkEnabled Boolean @default(false)
   watermarkText    String? // null = fall back to Organization.name at render time
+  // Material Design 3 theming (org brand). The seed color drives the full
+  // MD3 light+dark color scheme, generated at render time in src/lib/theme/.
+  // Editable at /settings/appearance (canManageSettings).
+  themeSeedColor String @default("#6750A4") // any hex; MD3 baseline purple by default
+  themeMode      String @default("system") // "light" | "dark" | "system" — org default; User.themePreference overrides
+  themeShape     String @default("standard") // "sharp" | "standard" | "rounded" — global corner-radius scale
+  themeFontScale String @default("medium") // "small" | "medium" | "large" — global base font size
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -208,6 +215,9 @@ model User {
   // notifications, opt-in per user (default on — matches "notify by
   // default" expectation, users who don't want it can turn it off).
   emailNotificationsEnabled Boolean @default(true)
+  // Per-user light/dark override: "light" | "dark" | "system" | null
+  // (null = follow the org's themeMode default). Toggled from the top app bar.
+  themePreference String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

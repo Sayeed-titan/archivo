@@ -12,7 +12,7 @@ export default async function NewReportPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
-      <PageHeader title="Build a report" subtitle="Pick the fields and filters you want, then save it as a reusable template." />
+      <PageHeader backHref="/reports" backLabel="Reports" title="Build a report" subtitle="Pick the fields and filters you want, then save it as a reusable template." />
       <ReportBuilderForm fields={REPORT_FIELDS} />
     </main>
   );

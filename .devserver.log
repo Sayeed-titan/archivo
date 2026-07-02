@@ -1,0 +1,157 @@
+
+> archivo@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.109:3000
+- Environments: .env
+✓ Ready in 1246ms
+- Experiments (use with caution):
+  · serverActions
+
+ GET /login 200 in 767ms (next.js: 148ms, application-code: 619ms)
+ GET /archives/cmr43ny1f0000e4206e8txkg0 200 in 8.8s (next.js: 6.0s, application-code: 2.8s)
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/archives/..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" data-theme="system" className="roboto_c1e...">
+                          <body className="min-h-full">
+                            <style>
+                            <SnackbarProvider>
+                              <AppShell>
+                                <div
++                                 className="flex min-h-dvh"
+-                                 className={null}
+-                                 id="open-incognito-widget"
+-                                 role="button"
+-                                 tabindex="0"
+-                                 aria-label="Open current tab in incognito"
+                                >
+                                  <NavRail items={[...]} fabHref="/archives/new">
++                                   <nav
++                                     aria-label="Main navigation"
++                                     className="sticky top-0 z-30 hidden h-dvh w-20 shrink-0 flex-col items-center ga..."
++                                   >
+                                  ...
+                  ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at throwOnHydrationMismatch (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
+    at beginWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6758:918)
+    at runWithFiberInDEV (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at performUnitOfWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
+    at workLoopConcurrentByScheduler (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+    at nav (<anonymous>)
+    at NavRail (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/src_0l6tbsv._.js:520:214)
+    at AppShell (src\components\shell\app-shell.tsx:46:7)
+    at RootLayout (src\app\layout.tsx:72:13)
+  44 |   return (
+  45 |     <div className="flex min-h-dvh">
+> 46 |       <NavRail items={navItems} fabHref={fabHref} />
+     |       ^
+  47 |       <div className="flex min-w-0 flex-1 flex-col">
+  48 |         <header className="sticky top-0 z-30 border-b border-outline-variant/60 bg-surface">
+  49 |           <div className="flex items-center gap-2 px-3 py-2 sm:px-5">
+ GET /login 200 in 91ms (next.js: 7ms, application-code: 84ms)
+ GET /dashboard 200 in 651ms (next.js: 108ms, application-code: 542ms)
+ POST /login 303 in 963ms (next.js: 8ms, application-code: 955ms)
+  └─ ƒ login(undefined, {}) in 206ms src/app/actions/auth.ts
+ POST /dashboard 200 in 460ms (next.js: 10ms, application-code: 450ms)
+  └─ ƒ setThemePreference("light") in 47ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 372ms (next.js: 10ms, application-code: 362ms)
+  └─ ƒ setThemePreference("dark") in 39ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 344ms (next.js: 8ms, application-code: 336ms)
+  └─ ƒ setThemePreference("system") in 25ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 370ms (next.js: 11ms, application-code: 360ms)
+  └─ ƒ setThemePreference("light") in 41ms src/app/actions/appearance.ts
+ GET /settings/appearance 200 in 477ms (next.js: 96ms, application-code: 381ms)
+ POST /settings/appearance 200 in 238ms (next.js: 8ms, application-code: 229ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 61ms src/app/actions/appearance.ts
+ GET /dashboard 200 in 852ms (next.js: 6ms, application-code: 846ms)
+ GET /settings/appearance 200 in 283ms (next.js: 7ms, application-code: 276ms)
+ POST /settings/appearance 200 in 180ms (next.js: 6ms, application-code: 174ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 48ms src/app/actions/appearance.ts
+ GET /dashboard 200 in 657ms (next.js: 7ms, application-code: 650ms)
+ POST /archives/cmr43ny1f0000e4206e8txkg0 200 in 1738ms (next.js: 33ms, application-code: 1705ms)
+  └─ ƒ uploadToFolder(undefined, {}) in 144ms src/app/actions/files.ts
+✓ Compiled in 1086ms
+ GET /login 200 in 124ms (next.js: 7ms, application-code: 117ms)
+ GET /dashboard 200 in 401ms (next.js: 6ms, application-code: 395ms)
+ POST /login 303 in 613ms (next.js: 6ms, application-code: 607ms)
+  └─ ƒ login(undefined, {}) in 178ms src/app/actions/auth.ts
+ POST /dashboard 200 in 379ms (next.js: 7ms, application-code: 372ms)
+  └─ ƒ setThemePreference("dark") in 33ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 332ms (next.js: 6ms, application-code: 326ms)
+  └─ ƒ setThemePreference("system") in 27ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 384ms (next.js: 8ms, application-code: 376ms)
+  └─ ƒ setThemePreference("light") in 40ms src/app/actions/appearance.ts
+ GET /settings/appearance 200 in 269ms (next.js: 9ms, application-code: 261ms)
+ POST /archives/cmr43ny1f0000e4206e8txkg0 200 in 690ms (next.js: 37ms, application-code: 653ms)
+  └─ ƒ uploadToFolder(undefined, {}) in 99ms src/app/actions/files.ts
+ POST /settings/appearance 200 in 388ms (next.js: 6ms, application-code: 382ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 121ms src/app/actions/appearance.ts
+ GET /dashboard 200 in 519ms (next.js: 8ms, application-code: 511ms)
+ GET /settings/appearance 200 in 291ms (next.js: 6ms, application-code: 285ms)
+ POST /settings/appearance 200 in 177ms (next.js: 8ms, application-code: 168ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 36ms src/app/actions/appearance.ts
+ GET /dashboard 200 in 572ms (next.js: 9ms, application-code: 563ms)
+ POST /archives/cmr43ny1f0000e4206e8txkg0 200 in 554ms (next.js: 34ms, application-code: 520ms)
+  └─ ƒ uploadToFolder(undefined, {}) in 124ms src/app/actions/files.ts
+ POST /archives/cmr43ny1f0000e4206e8txkg0 200 in 515ms (next.js: 28ms, application-code: 487ms)
+  └─ ƒ uploadToFolder(undefined, {}) in 130ms src/app/actions/files.ts
+ GET /dashboard 200 in 429ms (next.js: 9ms, application-code: 420ms)
+ GET /login 200 in 143ms (next.js: 6ms, application-code: 137ms)
+ GET /dashboard 200 in 334ms (next.js: 5ms, application-code: 329ms)
+ POST /login 303 in 548ms (next.js: 7ms, application-code: 541ms)
+  └─ ƒ login(undefined, {}) in 172ms src/app/actions/auth.ts
+ GET /archives/cmr43ny1f0000e4206e8txkg0 200 in 607ms (next.js: 25ms, application-code: 583ms)
+✓ Compiled in 390ms
+ GET /dashboard 200 in 1071ms (next.js: 360ms, application-code: 711ms)
+ GET /dashboard 200 in 1005ms (next.js: 334ms, application-code: 671ms)
+ GET /login 200 in 891ms (next.js: 286ms, application-code: 605ms)
+ GET /dashboard 200 in 379ms (next.js: 5ms, application-code: 374ms)
+ POST /login 303 in 690ms (next.js: 6ms, application-code: 684ms)
+  └─ ƒ login(undefined, {}) in 214ms src/app/actions/auth.ts
+ POST /dashboard 200 in 426ms (next.js: 7ms, application-code: 419ms)
+  └─ ƒ setThemePreference("dark") in 36ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 345ms (next.js: 7ms, application-code: 339ms)
+  └─ ƒ setThemePreference("system") in 34ms src/app/actions/appearance.ts
+✓ Compiled in 291ms
+ GET /login 200 in 140ms (next.js: 5ms, application-code: 135ms)
+ GET /dashboard 307 in 153ms (next.js: 6ms, application-code: 147ms)
+ POST /dashboard 200 in 426ms (next.js: 6ms, application-code: 420ms)
+  └─ ƒ setThemePreference("dark") in 39ms src/app/actions/appearance.ts
+ POST /dashboard 200 in 387ms (next.js: 7ms, application-code: 380ms)
+  └─ ƒ setThemePreference("system") in 21ms src/app/actions/appearance.ts

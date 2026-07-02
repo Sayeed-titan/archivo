@@ -1,20 +1,55 @@
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser, getShellUser } from "@/lib/dal";
 import { EmailPreferenceForm } from "./email-preference-form";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Card, Badge } from "@/components/ui";
+import { Icon } from "@/components/icon";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
+  const shellUser = await getShellUser();
+
+  const themeLabel =
+    user.themePreference === "light"
+      ? "Light"
+      : user.themePreference === "dark"
+        ? "Dark"
+        : user.themePreference === "system"
+          ? "Follows your device"
+          : "Organization default";
 
   return (
     <main className="mx-auto max-w-lg p-4 sm:p-8">
-      <PageHeader
-        backHref="/dashboard"
-        backLabel="← Back to dashboard"
-        title="Your profile"
-        subtitle={`${user.name} · ${user.email} · ${user.role.name}`}
-      />
+      <PageHeader backHref="/dashboard" backLabel="Dashboard" title="Your profile" />
 
-      <h2 className="mt-6 text-sm font-medium text-slate-700">Notifications</h2>
+      <Card className="mt-6 flex items-center gap-4">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary-container type-title-large text-on-primary-container">
+          {user.name
+            .trim()
+            .split(/\s+/)
+            .map((p, i, arr) => (i === 0 || i === arr.length - 1 ? p[0] : ""))
+            .join("")
+            .toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="type-title-medium text-on-surface">{user.name}</p>
+          <p className="truncate type-body-medium text-on-surface-variant">{user.email}</p>
+          <div className="mt-1 flex flex-wrap gap-2">
+            <Badge tone="info">{user.role.name}</Badge>
+            {user.department && <Badge tone="neutral">{user.department}</Badge>}
+            {shellUser?.organization && <Badge tone="neutral">{shellUser.organization.name}</Badge>}
+          </div>
+        </div>
+      </Card>
+
+      <h2 className="mt-8 type-title-medium text-on-surface">Appearance</h2>
+      <Card className="mt-2 flex items-center gap-3">
+        <Icon name="contrast" size={22} className="text-on-surface-variant" />
+        <p className="type-body-medium text-on-surface-variant">
+          Theme: <span className="text-on-surface">{themeLabel}</span> — change it anytime with the sun/moon toggle in
+          the top bar.
+        </p>
+      </Card>
+
+      <h2 className="mt-8 type-title-medium text-on-surface">Notifications</h2>
       <EmailPreferenceForm emailNotificationsEnabled={user.emailNotificationsEnabled} />
     </main>
   );

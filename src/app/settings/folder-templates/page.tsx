@@ -18,6 +18,8 @@ export default async function FolderTemplatesPage() {
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <PageHeader
+        backHref="/settings"
+        backLabel="Settings"
         title="Folder templates"
         subtitle="Each category has its own folder set — a Meeting doesn't need Press Release folders."
       />
@@ -25,10 +27,10 @@ export default async function FolderTemplatesPage() {
       <div className="mt-8 space-y-8">
         {categories.map((category) => (
           <Card key={category.id}>
-            <h2 className="font-medium">{category.name}</h2>
-            <ul className="mt-3 divide-y divide-slate-100">
+            <h2 className="type-title-medium text-on-surface">{category.name}</h2>
+            <ul className="mt-3 divide-y divide-outline-variant/50">
               {category.folderTemplates.map((folder) => (
-                <li key={folder.id} className="flex items-center justify-between py-1.5 text-sm">
+                <li key={folder.id} className="flex items-center justify-between py-2 type-body-medium text-on-surface">
                   <span>
                     {folder.name}
                     {folder.isMandatory && (
@@ -41,7 +43,7 @@ export default async function FolderTemplatesPage() {
                 </li>
               ))}
               {category.folderTemplates.length === 0 && (
-                <li className="py-1.5 text-sm text-slate-400">No folders configured yet.</li>
+                <li className="py-2 type-body-medium text-on-surface-variant">No folders configured yet.</li>
               )}
             </ul>
 

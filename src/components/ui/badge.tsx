@@ -2,25 +2,35 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
 
-// Audit found ~4 near-identical status-badge class strings (dashboard's
-// STATUS_BADGE_CLASSES, HealthBadge, category chips, plain-text tags like
-// "required"/"initial"/"default template") each with slightly different
-// padding/radius. One component, two render modes (pill vs plain text
-// tag), covers all of them.
-const badgeVariants = cva("inline-flex items-center font-medium", {
+// Status/tag chip mapped to MD3 container/on-container role pairs — the
+// success/warning roles are the harmonized extended colors generated with
+// the org's scheme (src/lib/theme/scheme.ts), so badges re-tint with the
+// brand seed automatically. `pill` keeps the two render modes: a chip
+// (MD3 corner-small, like assist chips) vs bare colored text for dense
+// inline tags ("required", "initial", "default template").
+const badgeVariants = cva("inline-flex items-center gap-1 font-medium", {
   variants: {
     tone: {
-      neutral: "bg-slate-100 text-slate-600 border-slate-200",
-      success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      warning: "bg-amber-50 text-amber-700 border-amber-200",
-      danger: "bg-red-50 text-red-700 border-red-200",
-      info: "bg-blue-50 text-blue-700 border-blue-200",
+      neutral: "bg-surface-container-highest text-on-surface-variant",
+      success: "bg-success-container text-on-success-container",
+      warning: "bg-warning-container text-on-warning-container",
+      danger: "bg-error-container text-on-error-container",
+      info: "bg-secondary-container text-on-secondary-container",
     },
     pill: {
-      true: "rounded-full border px-2 py-0.5 text-xs",
-      false: "text-xs",
+      true: "rounded-sm px-2 py-0.5 type-label-medium",
+      false: "bg-transparent type-label-medium",
     },
   },
+  compoundVariants: [
+    // Plain-text mode drops the container fill and uses the on-container
+    // color directly against the page surface.
+    { tone: "neutral", pill: false, className: "text-on-surface-variant" },
+    { tone: "success", pill: false, className: "text-success" },
+    { tone: "warning", pill: false, className: "text-warning" },
+    { tone: "danger", pill: false, className: "text-error" },
+    { tone: "info", pill: false, className: "text-secondary" },
+  ],
   defaultVariants: {
     tone: "neutral",
     pill: true,

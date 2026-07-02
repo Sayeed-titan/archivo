@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { PageHeader, SelectField, Button, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
+import { PageHeader, SelectField, Button, Badge, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
+
+const ACTION_TONE: Record<string, "success" | "info" | "danger" | "neutral"> = {
+  create: "success",
+  edit: "info",
+  delete: "danger",
+  hard_delete: "danger",
+  download: "neutral",
+};
 
 export default async function AuditLogPage({
   searchParams,
@@ -31,15 +39,13 @@ export default async function AuditLogPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl p-4 sm:p-8">
+    <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <PageHeader
-        backHref="/dashboard"
-        backLabel="← Back to dashboard"
         title="Audit trail"
         subtitle="Every create, edit, delete, and download action, logged."
       />
 
-      <form className="mt-4 flex flex-wrap gap-3 text-sm" action="/audit-log">
+      <form className="mt-4 flex flex-wrap items-center gap-3" action="/audit-log">
         <SelectField name="actorId" defaultValue={actorId ?? ""} compact>
           <option value="">All users</option>
           {users.map((u) => (
@@ -65,7 +71,7 @@ export default async function AuditLogPage({
           <option value="download">Download</option>
         </SelectField>
 
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" icon="filter_alt">
           Filter
         </Button>
       </form>
@@ -82,13 +88,15 @@ export default async function AuditLogPage({
           <tbody>
             {entries.map((entry) => (
               <TableRow key={entry.id}>
-                <Td className="text-slate-500">{entry.createdAt.toLocaleString()}</Td>
+                <Td className="text-on-surface-variant">{entry.createdAt.toLocaleString()}</Td>
                 <Td>{entry.actor.name}</Td>
-                <Td>{entry.action}</Td>
-                <Td className="text-slate-500">
+                <Td>
+                  <Badge tone={ACTION_TONE[entry.action] ?? "neutral"}>{entry.action}</Badge>
+                </Td>
+                <Td className="text-on-surface-variant">
                   {entry.entityType} · {entry.entityId.slice(0, 8)}…
                 </Td>
-                <Td className="text-slate-500">{entry.note ?? "—"}</Td>
+                <Td className="text-on-surface-variant">{entry.note ?? "—"}</Td>
               </TableRow>
             ))}
             {entries.length === 0 && <TableEmptyState colSpan={5} message="No matching audit entries." />}

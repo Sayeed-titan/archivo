@@ -56,8 +56,8 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
       <TextField name="description" label="Description (optional)" />
 
       <div>
-        <h2 className="text-sm font-medium text-slate-700">Fields to include</h2>
-        <div className="mt-2 grid grid-cols-2 gap-1 rounded-md border border-slate-200 p-3">
+        <h2 className="type-title-small text-on-surface">Fields to include</h2>
+        <div className="mt-2 grid grid-cols-2 gap-1 rounded-md border border-outline-variant bg-surface p-3">
           {fields.map((field) => (
             <CheckboxField
               key={field.key}
@@ -73,9 +73,9 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
 
       <div>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-slate-700">Filters</h2>
-          <Button type="button" onClick={addFilter} variant="ghost" size="sm">
-            + Add filter
+          <h2 className="type-title-small text-on-surface">Filters</h2>
+          <Button type="button" onClick={addFilter} variant="text" size="sm" icon="add">
+            Add filter
           </Button>
         </div>
         <div className="mt-2 space-y-2">
@@ -113,21 +113,21 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
                   compact
                   className="flex-1"
                 />
-                <Button type="button" onClick={() => removeFilter(i)} variant="danger-ghost" size="inline">
+                <Button type="button" onClick={() => removeFilter(i)} variant="text-error" size="inline">
                   remove
                 </Button>
               </div>
             );
           })}
-          {filters.length === 0 && <p className="text-sm text-slate-400">No filters — report will include all archives.</p>}
+          {filters.length === 0 && <p className="type-body-medium text-on-surface-variant">No filters — report will include all archives.</p>}
         </div>
       </div>
 
       <input type="hidden" name="filtersJson" value={JSON.stringify(filters)} />
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
 
-      <Button type="submit" loading={pending} loadingText="Saving..." size="lg">
+      <Button type="submit" loading={pending} loadingText="Saving…" icon="save">
         Save report template
       </Button>
     </form>
