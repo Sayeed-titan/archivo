@@ -6,6 +6,7 @@ import { AddStateForm } from "./add-state-form";
 import { AddTransitionForm } from "./add-transition-form";
 import { RemoveStateButton } from "./remove-state-button";
 import { RemoveTransitionButton } from "./remove-transition-button";
+import { PageHeader, Badge } from "@/components/ui";
 
 export default async function WorkflowSettingsPage() {
   const user = await getCurrentUser();
@@ -20,11 +21,10 @@ export default async function WorkflowSettingsPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
-      <h1 className="text-xl font-semibold">Approval workflow</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Define the sequence of statuses your organization uses and what must be true before an archive can
-        move to the next one. This drives the Archive Health indicator too.
-      </p>
+      <PageHeader
+        title="Approval workflow"
+        subtitle="Define the sequence of statuses your organization uses and what must be true before an archive can move to the next one. This drives the Archive Health indicator too."
+      />
 
       <h2 className="mt-6 text-sm font-medium text-slate-700">States</h2>
       <ul className="mt-2 divide-y divide-slate-100 rounded-md border border-slate-200">
@@ -32,8 +32,16 @@ export default async function WorkflowSettingsPage() {
           <li key={state.id} className="flex items-center justify-between px-4 py-2 text-sm">
             <span>
               {state.name}
-              {state.isInitial && <span className="ml-2 text-xs text-blue-600">initial</span>}
-              {state.isTerminal && <span className="ml-2 text-xs text-emerald-600">terminal</span>}
+              {state.isInitial && (
+                <Badge tone="info" pill={false} className="ml-2">
+                  initial
+                </Badge>
+              )}
+              {state.isTerminal && (
+                <Badge tone="success" pill={false} className="ml-2">
+                  terminal
+                </Badge>
+              )}
             </span>
             <RemoveStateButton stateId={state.id} />
           </li>

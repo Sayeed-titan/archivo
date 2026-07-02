@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { NewArchiveForm } from "./new-archive-form";
+import { PageHeader } from "@/components/ui";
 
 export default async function NewArchivePage() {
   const user = await getCurrentUser();
@@ -12,10 +13,7 @@ export default async function NewArchivePage() {
 
   return (
     <main className="mx-auto max-w-lg p-4 sm:p-8">
-      <h1 className="text-xl font-semibold">Create a new archive</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Just give it a name to start — you can fill in the rest later.
-      </p>
+      <PageHeader title="Create a new archive" subtitle="Just give it a name to start — you can fill in the rest later." />
       <NewArchiveForm categories={categories} />
     </main>
   );

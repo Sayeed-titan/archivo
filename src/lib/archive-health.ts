@@ -34,9 +34,3 @@ export function computeArchiveHealth({
 
   return { level: "healthy", label: "Healthy", missingMandatoryFolders };
 }
-
-export const HEALTH_BADGE_CLASSES: Record<ArchiveHealthLevel, string> = {
-  healthy: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  needs_attention: "bg-amber-50 text-amber-700 border-amber-200",
-  critical: "bg-red-50 text-red-700 border-red-200",
-};

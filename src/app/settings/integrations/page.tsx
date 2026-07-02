@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
+import { PageHeader, Card, Button } from "@/components/ui";
 
 export default async function IntegrationsPage() {
   const user = await getCurrentUser();
@@ -16,13 +17,12 @@ export default async function IntegrationsPage() {
 
   return (
     <main className="mx-auto max-w-lg p-4 sm:p-8">
-      <h1 className="text-xl font-semibold">Document editor integration</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Word/Excel/PowerPoint files can be opened for native co-editing in your organization&apos;s Office
-        suite instead of downloading a local copy each time.
-      </p>
+      <PageHeader
+        title="Document editor integration"
+        subtitle="Word/Excel/PowerPoint files can be opened for native co-editing in your organization's Office suite instead of downloading a local copy each time."
+      />
 
-      <div className="mt-6 rounded-md border border-slate-200 p-4">
+      <Card className="mt-6">
         <h2 className="font-medium">Google Workspace</h2>
         {integration ? (
           <p className="mt-1 text-sm text-slate-500">
@@ -32,18 +32,15 @@ export default async function IntegrationsPage() {
         ) : (
           <p className="mt-1 text-sm text-slate-500">Not connected.</p>
         )}
-        <a
-          href="/api/integrations/google/connect"
-          className="mt-3 inline-block rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white"
-        >
+        <Button href="/api/integrations/google/connect" className="mt-3">
           {integration ? "Reconnect" : "Connect"} Google Workspace
-        </a>
-      </div>
+        </Button>
+      </Card>
 
-      <div className="mt-4 rounded-md border border-slate-200 p-4 opacity-60">
+      <Card className="mt-4 opacity-60">
         <h2 className="font-medium">Microsoft 365</h2>
         <p className="mt-1 text-sm text-slate-500">Not yet available — connector is stubbed for a future release.</p>
-      </div>
+      </Card>
     </main>
   );
 }

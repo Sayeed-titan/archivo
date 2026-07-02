@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateWatermarkSettings, type WatermarkSettingsState } from "@/app/actions/security-settings";
+import { CheckboxField, TextField, Button, Card } from "@/components/ui";
 
 export function WatermarkSettingsForm({
   watermarkEnabled,
@@ -15,32 +16,29 @@ export function WatermarkSettingsForm({
   const [state, action, pending] = useActionState<WatermarkSettingsState, FormData>(updateWatermarkSettings, undefined);
 
   return (
-    <form action={action} className="mt-6 space-y-3 rounded-md border border-slate-200 p-4">
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="watermarkEnabled" defaultChecked={watermarkEnabled} />
-        Enable watermark on image downloads and PDF report exports
-      </label>
+    <form action={action} className="mt-6">
+      <Card className="space-y-3">
+        <CheckboxField
+          name="watermarkEnabled"
+          defaultChecked={watermarkEnabled}
+          label="Enable watermark on image downloads and PDF report exports"
+        />
 
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-slate-600">Watermark text</label>
-        <input
+        <TextField
           name="watermarkText"
+          label="Watermark text"
           defaultValue={watermarkText ?? ""}
           placeholder={orgName}
-          className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm"
+          compact
+          hint={`Leave blank to use the organization name ("${orgName}").`}
         />
-        <p className="text-xs text-slate-400">Leave blank to use the organization name (&quot;{orgName}&quot;).</p>
-      </div>
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+        {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
 
-      <button
-        disabled={pending}
-        type="submit"
-        className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-      >
-        {pending ? "Saving..." : "Save settings"}
-      </button>
+        <Button type="submit" loading={pending} loadingText="Saving...">
+          Save settings
+        </Button>
+      </Card>
     </form>
   );
 }

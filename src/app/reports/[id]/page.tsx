@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { runReport } from "@/lib/reports/execute";
 import { getFieldDef } from "@/lib/reports/fields";
 import { parseFilters } from "@/lib/reports/filters";
 import { DeleteReportButton } from "./delete-report-button";
+import { PageHeader, Button, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
 
 export default async function ReportRunPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,64 +27,44 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
 
   return (
     <main className="mx-auto max-w-4xl p-4 sm:p-8">
-      <Link href="/reports" className="text-sm text-slate-500 underline">
-        ← Back to reports
-      </Link>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{template.name}</h1>
-          {template.description && <p className="text-sm text-slate-500">{template.description}</p>}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <a
-            href={`/reports/${template.id}/export?format=excel`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium"
-          >
-            Export Excel
-          </a>
-          <a
-            href={`/reports/${template.id}/export?format=pdf`}
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium"
-          >
-            Export PDF
-          </a>
-          {!template.isSystemDefault && <DeleteReportButton templateId={template.id} />}
-        </div>
-      </div>
+      <PageHeader
+        backHref="/reports"
+        backLabel="← Back to reports"
+        title={template.name}
+        subtitle={template.description}
+        actions={
+          <>
+            <Button href={`/reports/${template.id}/export?format=excel`} variant="secondary">
+              Export Excel
+            </Button>
+            <Button href={`/reports/${template.id}/export?format=pdf`} variant="secondary">
+              Export PDF
+            </Button>
+            {!template.isSystemDefault && <DeleteReportButton templateId={template.id} />}
+          </>
+        }
+      />
 
       <p className="mt-4 text-sm text-slate-500">{rows.length} rows</p>
 
-      <div className="mt-2 overflow-x-auto rounded-md border border-slate-200">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-slate-500">
-              {fields.map((key) => (
-                <th key={key} className="whitespace-nowrap px-3 py-2">
-                  {getFieldDef(key)?.label ?? key}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      <div className="mt-2">
+        <Table>
+          <TableHead>
+            {fields.map((key) => (
+              <Th key={key}>{getFieldDef(key)?.label ?? key}</Th>
+            ))}
+          </TableHead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={i} className="border-b border-slate-100">
+              <TableRow key={i}>
                 {fields.map((key) => (
-                  <td key={key} className="whitespace-nowrap px-3 py-2">
-                    {row[key] ?? "—"}
-                  </td>
+                  <Td key={key}>{row[key] ?? "—"}</Td>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={fields.length} className="px-3 py-4 text-center text-slate-400">
-                  No matching archives.
-                </td>
-              </tr>
-            )}
+            {rows.length === 0 && <TableEmptyState colSpan={fields.length} message="No matching archives." />}
           </tbody>
-        </table>
+        </Table>
       </div>
     </main>
   );

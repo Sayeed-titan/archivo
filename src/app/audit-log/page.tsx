@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
+import { PageHeader, SelectField, Button, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
 
 export default async function AuditLogPage({
   searchParams,
@@ -32,76 +32,68 @@ export default async function AuditLogPage({
 
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
-      <Link href="/dashboard" className="text-sm text-slate-500 underline">
-        ← Back to dashboard
-      </Link>
-
-      <h1 className="mt-4 text-xl font-semibold">Audit trail</h1>
-      <p className="mt-1 text-sm text-slate-500">Every create, edit, delete, and download action, logged.</p>
+      <PageHeader
+        backHref="/dashboard"
+        backLabel="← Back to dashboard"
+        title="Audit trail"
+        subtitle="Every create, edit, delete, and download action, logged."
+      />
 
       <form className="mt-4 flex flex-wrap gap-3 text-sm" action="/audit-log">
-        <select name="actorId" defaultValue={actorId ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+        <SelectField name="actorId" defaultValue={actorId ?? ""} compact>
           <option value="">All users</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
             </option>
           ))}
-        </select>
+        </SelectField>
 
-        <select name="entityType" defaultValue={entityType ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+        <SelectField name="entityType" defaultValue={entityType ?? ""} compact>
           <option value="">All entity types</option>
           <option value="Archive">Archive</option>
           <option value="File">File</option>
           <option value="FolderTemplate">Folder Template</option>
-        </select>
+        </SelectField>
 
-        <select name="action" defaultValue={action ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+        <SelectField name="action" defaultValue={action ?? ""} compact>
           <option value="">All actions</option>
           <option value="create">Create</option>
           <option value="edit">Edit</option>
           <option value="delete">Delete</option>
           <option value="hard_delete">Hard delete</option>
           <option value="download">Download</option>
-        </select>
+        </SelectField>
 
-        <button type="submit" className="rounded-md bg-slate-900 px-3 py-1 text-white">
+        <Button type="submit" size="sm">
           Filter
-        </button>
+        </Button>
       </form>
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-slate-500">
-              <th className="whitespace-nowrap py-2">When</th>
-              <th className="whitespace-nowrap py-2">Who</th>
-              <th className="whitespace-nowrap py-2">Action</th>
-              <th className="whitespace-nowrap py-2">Entity</th>
-              <th className="whitespace-nowrap py-2">Note</th>
-            </tr>
-          </thead>
+      <div className="mt-6">
+        <Table>
+          <TableHead>
+            <Th>When</Th>
+            <Th>Who</Th>
+            <Th>Action</Th>
+            <Th>Entity</Th>
+            <Th>Note</Th>
+          </TableHead>
           <tbody>
             {entries.map((entry) => (
-              <tr key={entry.id} className="border-b border-slate-100">
-                <td className="whitespace-nowrap py-2 text-slate-500">{entry.createdAt.toLocaleString()}</td>
-                <td className="whitespace-nowrap py-2">{entry.actor.name}</td>
-                <td className="whitespace-nowrap py-2">{entry.action}</td>
-                <td className="whitespace-nowrap py-2 text-slate-500">
+              <TableRow key={entry.id}>
+                <Td className="text-slate-500">{entry.createdAt.toLocaleString()}</Td>
+                <Td>{entry.actor.name}</Td>
+                <Td>{entry.action}</Td>
+                <Td className="text-slate-500">
                   {entry.entityType} · {entry.entityId.slice(0, 8)}…
-                </td>
-                <td className="whitespace-nowrap py-2 text-slate-500">{entry.note ?? "—"}</td>
-              </tr>
+                </Td>
+                <Td className="text-slate-500">{entry.note ?? "—"}</Td>
+              </TableRow>
             ))}
-            {entries.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-4 text-center text-slate-400">
-                  No matching audit entries.
-                </td>
-              </tr>
-            )}
+            {entries.length === 0 && <TableEmptyState colSpan={5} message="No matching audit entries." />}
           </tbody>
-        </table>
+        </Table>
       </div>
     </main>
   );

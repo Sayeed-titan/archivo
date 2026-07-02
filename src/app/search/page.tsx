@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { searchArchives } from "@/lib/search-archives";
+import { PageHeader, TextField, SelectField, Button } from "@/components/ui";
 
 export default async function SearchPage({
   searchParams,
@@ -14,6 +15,7 @@ export default async function SearchPage({
     month?: string;
     year?: string;
     docType?: string;
+    group?: string;
   }>;
 }) {
   const user = await getCurrentUser();
@@ -35,66 +37,55 @@ export default async function SearchPage({
 
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
-      <Link href="/dashboard" className="text-sm text-slate-500 underline">
-        ← Back to dashboard
-      </Link>
-
-      <h1 className="mt-4 text-xl font-semibold">Search archives</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Search by event/program name, venue, organizer, donor, project, keyword, or filename.
-      </p>
+      <PageHeader
+        backHref="/dashboard"
+        backLabel="← Back to dashboard"
+        title="Search archives"
+        subtitle="Search by event/program name, venue, organizer, donor, project, keyword, or filename."
+      />
 
       <form action="/search" className="mt-4 space-y-3">
-        <input
-          name="q"
-          defaultValue={params.q ?? ""}
-          placeholder="Search..."
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-        />
+        {params.group && <input type="hidden" name="group" value={params.group} />}
+        <TextField name="q" defaultValue={params.q ?? ""} placeholder="Search..." />
 
         <div className="flex flex-wrap gap-3 text-sm">
-          <select name="categoryId" defaultValue={params.categoryId ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+          <SelectField name="categoryId" defaultValue={params.categoryId ?? ""} compact>
             <option value="">All categories</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </select>
+          </SelectField>
 
-          <select name="status" defaultValue={params.status ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+          <SelectField name="status" defaultValue={params.status ?? ""} compact>
             <option value="">All statuses</option>
             <option value="Draft">Draft</option>
             <option value="Pending Review">Pending Review</option>
             <option value="Archived">Archived</option>
-          </select>
+          </SelectField>
 
-          <select name="projectName" defaultValue={params.projectName ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+          <SelectField name="projectName" defaultValue={params.projectName ?? ""} compact>
             <option value="">All projects</option>
             {projectList?.items.map((p) => (
               <option key={p.id} value={p.value}>
                 {p.value}
               </option>
             ))}
-          </select>
+          </SelectField>
 
-          <select name="month" defaultValue={params.month ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+          <SelectField name="month" defaultValue={params.month ?? ""} compact>
             <option value="">Any month</option>
             {months.map((m, i) => (
               <option key={m} value={i + 1}>
                 {m}
               </option>
             ))}
-          </select>
+          </SelectField>
 
-          <input
-            name="year"
-            defaultValue={params.year ?? ""}
-            placeholder="Year"
-            className="w-20 rounded-md border border-slate-300 px-2 py-1"
-          />
+          <TextField name="year" defaultValue={params.year ?? ""} placeholder="Year" compact className="w-20" />
 
-          <select name="docType" defaultValue={params.docType ?? ""} className="rounded-md border border-slate-300 px-2 py-1">
+          <SelectField name="docType" defaultValue={params.docType ?? ""} compact>
             <option value="">Any doc type</option>
             <option value="pdf">PDF</option>
             <option value="word">Word</option>
@@ -104,11 +95,11 @@ export default async function SearchPage({
             <option value="video">Video</option>
             <option value="audio">Audio</option>
             <option value="zip">ZIP</option>
-          </select>
+          </SelectField>
 
-          <button type="submit" className="rounded-md bg-slate-900 px-3 py-1 text-white">
+          <Button type="submit" size="sm">
             Search
-          </button>
+          </Button>
         </div>
       </form>
 

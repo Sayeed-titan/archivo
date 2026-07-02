@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { saveReportTemplate, type SaveTemplateState } from "@/app/actions/reports";
 import type { ReportFieldDef, ReportFieldType } from "@/lib/reports/fields";
+import { TextField, SelectField, CheckboxField, Button } from "@/components/ui";
 
 type FilterRow = { field: string; operator: string; value: string };
 
@@ -50,30 +51,22 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
 
   return (
     <form action={action} className="mt-6 space-y-6">
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-slate-700">Report name</label>
-        <input name="name" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      </div>
+      <TextField name="name" label="Report name" />
 
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-slate-700">Description (optional)</label>
-        <input name="description" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
-      </div>
+      <TextField name="description" label="Description (optional)" />
 
       <div>
         <h2 className="text-sm font-medium text-slate-700">Fields to include</h2>
         <div className="mt-2 grid grid-cols-2 gap-1 rounded-md border border-slate-200 p-3">
           {fields.map((field) => (
-            <label key={field.key} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="fields"
-                value={field.key}
-                checked={selectedFields.includes(field.key)}
-                onChange={() => toggleField(field.key)}
-              />
-              {field.label}
-            </label>
+            <CheckboxField
+              key={field.key}
+              name="fields"
+              value={field.key}
+              label={field.label}
+              checked={selectedFields.includes(field.key)}
+              onChange={() => toggleField(field.key)}
+            />
           ))}
         </div>
       </div>
@@ -81,9 +74,9 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium text-slate-700">Filters</h2>
-          <button type="button" onClick={addFilter} className="text-sm text-slate-500 underline">
+          <Button type="button" onClick={addFilter} variant="ghost" size="sm">
             + Add filter
-          </button>
+          </Button>
         </div>
         <div className="mt-2 space-y-2">
           {filters.map((filter, i) => {
@@ -91,37 +84,38 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
             const type: ReportFieldType = fieldDef?.type ?? "text";
             return (
               <div key={i} className="flex items-center gap-2 text-sm">
-                <select
+                <SelectField
                   value={filter.field}
                   onChange={(e) => updateFilter(i, { field: e.target.value, operator: "equals" })}
-                  className="rounded-md border border-slate-300 px-2 py-1"
+                  compact
                 >
                   {filterableFields.map((f) => (
                     <option key={f.key} value={f.key}>
                       {f.label}
                     </option>
                   ))}
-                </select>
-                <select
+                </SelectField>
+                <SelectField
                   value={filter.operator}
                   onChange={(e) => updateFilter(i, { operator: e.target.value })}
-                  className="rounded-md border border-slate-300 px-2 py-1"
+                  compact
                 >
                   {OPERATORS_BY_TYPE[type].map((op) => (
                     <option key={op.value} value={op.value}>
                       {op.label}
                     </option>
                   ))}
-                </select>
-                <input
+                </SelectField>
+                <TextField
                   value={filter.value}
                   onChange={(e) => updateFilter(i, { value: e.target.value })}
                   type={type === "date" ? "date" : "text"}
-                  className="flex-1 rounded-md border border-slate-300 px-2 py-1"
+                  compact
+                  className="flex-1"
                 />
-                <button type="button" onClick={() => removeFilter(i)} className="text-xs text-red-600">
+                <Button type="button" onClick={() => removeFilter(i)} variant="danger-ghost" size="inline">
                   remove
-                </button>
+                </Button>
               </div>
             );
           })}
@@ -133,13 +127,9 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
 
       {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
 
-      <button
-        disabled={pending}
-        type="submit"
-        className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
-        {pending ? "Saving..." : "Save report template"}
-      </button>
+      <Button type="submit" loading={pending} loadingText="Saving..." size="lg">
+        Save report template
+      </Button>
     </form>
   );
 }

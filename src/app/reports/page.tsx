@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
+import { PageHeader, Button, Badge } from "@/components/ui";
 
 export default async function ReportsPage() {
   const user = await getCurrentUser();
@@ -16,16 +17,12 @@ export default async function ReportsPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
-      <Link href="/dashboard" className="text-sm text-slate-500 underline">
-        ← Back to dashboard
-      </Link>
-
-      <div className="mt-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Reports</h1>
-        <Link href="/reports/new" className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white">
-          + New report
-        </Link>
-      </div>
+      <PageHeader
+        backHref="/dashboard"
+        backLabel="← Back to dashboard"
+        title="Reports"
+        actions={<Button href="/reports/new">+ New report</Button>}
+      />
 
       <ul className="mt-6 divide-y divide-slate-200 rounded-md border border-slate-200">
         {templates.map((template) => (
@@ -33,7 +30,11 @@ export default async function ReportsPage() {
             <Link href={`/reports/${template.id}`} className="font-medium hover:underline">
               {template.name}
             </Link>
-            {template.isSystemDefault && <span className="ml-2 text-xs text-slate-400">default template</span>}
+            {template.isSystemDefault && (
+              <Badge tone="neutral" pill={false} className="ml-2">
+                default template
+              </Badge>
+            )}
             {template.description && <p className="mt-0.5 text-slate-500">{template.description}</p>}
           </li>
         ))}

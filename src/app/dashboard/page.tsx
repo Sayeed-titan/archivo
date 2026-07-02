@@ -7,11 +7,12 @@ import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
 import { getBackupStatus } from "@/lib/backup-status";
 import { HealthBadge } from "@/components/health-badge";
 import { NotificationBell } from "@/components/notification-bell";
+import { Button, Badge, Card, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
 
-const STATUS_BADGE_CLASSES: Record<string, string> = {
-  Archived: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "Pending Review": "bg-amber-50 text-amber-700 border-amber-200",
-  Draft: "bg-slate-100 text-slate-600 border-slate-200",
+const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
+  Archived: "success",
+  "Pending Review": "warning",
+  Draft: "neutral",
 };
 
 export default async function DashboardPage() {
@@ -31,13 +32,13 @@ export default async function DashboardPage() {
   ]);
 
   const summaryCards = [
-    { label: "Events Archived", value: summary.eventsCount },
-    { label: "Programs Archived", value: summary.programsCount },
+    { label: "Events Archived", value: summary.eventsCount, href: "/search?group=events" },
+    { label: "Programs Archived", value: summary.programsCount, href: "/search?group=programs" },
     { label: "Total Documents", value: summary.documentsCount },
-    { label: "Photos", value: summary.photosCount },
-    { label: "Videos", value: summary.videosCount },
-    { label: "Reports", value: summary.reportCount },
-    { label: "Pending Review", value: summary.pendingReviewCount, warn: true },
+    { label: "Photos", value: summary.photosCount, href: "/search?docType=image" },
+    { label: "Videos", value: summary.videosCount, href: "/search?docType=video" },
+    { label: "Reports", value: summary.reportCount, href: user.role.canGenerateReport ? "/reports" : undefined },
+    { label: "Pending Review", value: summary.pendingReviewCount, warn: true, href: "/search?status=Pending+Review" },
     { label: "Storage Used", value: formatBytes(summary.storageBytes) },
   ];
 
@@ -52,88 +53,95 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell notifications={notifications} />
-          <Link href="/profile" className="text-sm text-slate-600 underline">
+          <Button href="/profile" variant="ghost">
             Profile
-          </Link>
+          </Button>
           <form action={logout}>
-            <button type="submit" className="text-sm text-slate-600 underline">
+            <Button type="submit" variant="ghost">
               Log out
-            </button>
+            </Button>
           </form>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {summaryCards.map((card) => (
-          <div
-            key={card.label}
-            className={`rounded-lg border p-4 ${card.warn ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-white"}`}
-          >
-            <p className={`text-2xl font-semibold ${card.warn ? "text-amber-700" : "text-slate-900"}`}>{card.value}</p>
-            <p className="mt-1 text-xs text-slate-500">{card.label}</p>
-          </div>
-        ))}
+        {summaryCards.map((card) => {
+          const body = (
+            <Card
+              tone={card.warn ? "warn" : "default"}
+              className={`rounded-lg ${card.href ? "transition-colors hover:border-slate-400 hover:bg-slate-50" : ""}`}
+            >
+              <p className={`text-2xl font-semibold ${card.warn ? "text-amber-700" : "text-slate-900"}`}>{card.value}</p>
+              <p className="mt-1 text-xs text-slate-500">{card.label}</p>
+            </Card>
+          );
+          return card.href ? (
+            <Link key={card.label} href={card.href} className="block">
+              {body}
+            </Link>
+          ) : (
+            <div key={card.label}>{body}</div>
+          );
+        })}
       </div>
 
       {backupStatus && (
-        <div
-          className={`mt-3 rounded-md border px-4 py-2 text-sm ${
-            backupStatus.isOverdue ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"
-          }`}
-        >
-          {backupStatus.lastBackup ? (
-            <>
-              Last backup: {new Date(backupStatus.lastBackup.createdAt).toLocaleString()} (
-              {backupStatus.hoursSinceLastBackup !== null ? `${backupStatus.hoursSinceLastBackup.toFixed(1)}h ago` : "—"})
-              {backupStatus.isOverdue && " — overdue (RPO target: 24h)"}
-            </>
-          ) : (
-            "No backups found yet — run `npm run backup` or schedule it (see CLAUDE.md)."
-          )}
-        </div>
+        <Card tone={backupStatus.isOverdue ? "danger" : "default"} className="mt-3 py-2 text-sm">
+          <span className={backupStatus.isOverdue ? "text-red-700" : "text-emerald-700"}>
+            {backupStatus.lastBackup ? (
+              <>
+                Last backup: {new Date(backupStatus.lastBackup.createdAt).toLocaleString()} (
+                {backupStatus.hoursSinceLastBackup !== null ? `${backupStatus.hoursSinceLastBackup.toFixed(1)}h ago` : "—"})
+                {backupStatus.isOverdue && " — overdue (RPO target: 24h)"}
+              </>
+            ) : (
+              "No backups found yet — run `npm run backup` or schedule it (see CLAUDE.md)."
+            )}
+          </span>
+        </Card>
       )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         {user.role.canCreateArchive && (
-          <Link href="/archives/new" className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white">
+          <Button href="/archives/new" variant="primary" size="lg">
             + Create archive
-          </Link>
+          </Button>
         )}
-        <Link href="/inbox" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+        <Button href="/inbox" variant="secondary" size="lg">
           Migration Inbox
-        </Link>
-        <Link href="/search" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+        </Button>
+        <Button href="/search" variant="secondary" size="lg">
           Search
-        </Link>
+        </Button>
         {user.role.canGenerateReport && (
-          <Link href="/reports" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/reports" variant="secondary" size="lg">
             Reports
-          </Link>
+          </Button>
         )}
         {user.role.canManageSettings && (
-          <Link href="/settings/folder-templates" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/settings/folder-templates" variant="secondary" size="lg">
             Folder templates
-          </Link>
+          </Button>
         )}
         {user.role.canManageSettings && (
-          <Link href="/settings/integrations" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/settings/integrations" variant="secondary" size="lg">
             Integrations
-          </Link>
+          </Button>
         )}
         {user.role.canManageSettings && (
-          <Link href="/settings/workflow" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/settings/workflow" variant="secondary" size="lg">
             Workflow
-          </Link>
+          </Button>
         )}
         {user.role.canManageSettings && (
-          <Link href="/settings/security" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/settings/security" variant="secondary" size="lg">
             Security
-          </Link>
+          </Button>
         )}
         {user.role.canManageUsers && (
-          <Link href="/audit-log" className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium">
+          <Button href="/audit-log" variant="secondary" size="lg">
             Audit trail
-          </Link>
+          </Button>
         )}
       </div>
 
@@ -145,52 +153,36 @@ export default async function DashboardPage() {
               View all →
             </Link>
           </div>
-          <div className="mt-2 overflow-x-auto rounded-md border border-slate-200">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Archive</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Health</th>
-                </tr>
-              </thead>
+          <div className="mt-2">
+            <Table>
+              <TableHead>
+                <Th>Date</Th>
+                <Th>Archive</Th>
+                <Th>Type</Th>
+                <Th>Status</Th>
+                <Th>Health</Th>
+              </TableHead>
               <tbody>
                 {recentArchives.map((archive) => (
-                  <tr key={archive.id} className="border-b border-slate-100">
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-500">
-                      {archive.createdAt.toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2">
+                  <TableRow key={archive.id}>
+                    <Td className="text-slate-500">{archive.createdAt.toLocaleDateString()}</Td>
+                    <Td className="whitespace-normal">
                       <Link href={`/archives/${archive.id}`} className="font-medium hover:underline">
                         {archive.name}
                       </Link>
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-500">
-                      {archive.category?.name ?? "Uncategorized"}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2">
-                      <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[archive.status] ?? STATUS_BADGE_CLASSES.Draft}`}
-                      >
-                        {archive.status}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2">
+                    </Td>
+                    <Td className="text-slate-500">{archive.category?.name ?? "Uncategorized"}</Td>
+                    <Td>
+                      <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
+                    </Td>
+                    <Td>
                       <HealthBadge health={archive.health} />
-                    </td>
-                  </tr>
+                    </Td>
+                  </TableRow>
                 ))}
-                {recentArchives.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-4 text-center text-slate-400">
-                      No archives yet.
-                    </td>
-                  </tr>
-                )}
+                {recentArchives.length === 0 && <TableEmptyState colSpan={5} message="No archives yet." />}
               </tbody>
-            </table>
+            </Table>
           </div>
         </div>
 
@@ -216,13 +208,10 @@ export default async function DashboardPage() {
           <h2 className="mt-6 text-sm font-medium text-slate-700">Archive by Category</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {categories.map((category) => (
-              <span
-                key={category.id}
-                className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700"
-              >
+              <Badge key={category.id} tone="neutral" className="border-slate-300 bg-white text-slate-700">
                 {category.name}
                 <span className="ml-1 text-slate-400">{category._count.archives}</span>
-              </span>
+              </Badge>
             ))}
           </div>
         </div>

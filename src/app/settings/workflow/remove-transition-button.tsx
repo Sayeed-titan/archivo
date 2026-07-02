@@ -1,11 +1,12 @@
 "use client";
 
 import { removeWorkflowTransition } from "@/app/actions/workflow";
+import { Button } from "@/components/ui";
 
 export function RemoveTransitionButton({ transitionId }: { transitionId: string }) {
   return (
-    <button onClick={() => removeWorkflowTransition(transitionId)} className="text-xs text-slate-400 hover:text-red-600">
+    <Button onClick={() => removeWorkflowTransition(transitionId)} variant="danger-ghost" size="inline">
       remove
-    </button>
+    </Button>
   );
 }

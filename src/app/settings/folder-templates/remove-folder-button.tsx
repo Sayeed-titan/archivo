@@ -1,14 +1,12 @@
 "use client";
 
 import { removeFolderTemplate } from "@/app/actions/folder-templates";
+import { Button } from "@/components/ui";
 
 export function RemoveFolderButton({ folderTemplateId }: { folderTemplateId: string }) {
   return (
-    <button
-      onClick={() => removeFolderTemplate(folderTemplateId)}
-      className="text-xs text-slate-400 hover:text-red-600"
-    >
+    <Button onClick={() => removeFolderTemplate(folderTemplateId)} variant="danger-ghost" size="inline">
       remove
-    </button>
+    </Button>
   );
 }

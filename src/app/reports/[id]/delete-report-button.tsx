@@ -2,19 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { deleteReportTemplate } from "@/app/actions/reports";
+import { Button } from "@/components/ui";
 
 export function DeleteReportButton({ templateId }: { templateId: string }) {
   const router = useRouter();
 
   return (
-    <button
+    <Button
       onClick={async () => {
         await deleteReportTemplate(templateId);
         router.push("/reports");
       }}
-      className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-700"
+      variant="danger-outline"
     >
       Delete
-    </button>
+    </Button>
   );
 }

@@ -1,10 +1,17 @@
-import { HEALTH_BADGE_CLASSES, type ArchiveHealth } from "@/lib/archive-health";
+import { Badge } from "@/components/ui/badge";
+import type { ArchiveHealth, ArchiveHealthLevel } from "@/lib/archive-health";
+
+const TONE_BY_LEVEL: Record<ArchiveHealthLevel, "success" | "warning" | "danger"> = {
+  healthy: "success",
+  needs_attention: "warning",
+  critical: "danger",
+};
 
 export function HealthBadge({ health }: { health: ArchiveHealth }) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${HEALTH_BADGE_CLASSES[health.level]}`}>
+    <Badge tone={TONE_BY_LEVEL[health.level]} className="font-medium">
       {health.label}
       {health.missingMandatoryFolders > 0 && ` (${health.missingMandatoryFolders} missing)`}
-    </span>
+    </Badge>
   );
 }

@@ -335,3 +335,71 @@ video thumbnails/duration → email notifications → mobile-responsive pass.
   page; wide tables still scroll correctly within their own bounded
   region.
 
+## Shared UI component library (`src/components/ui/`)
+
+Built after an audit found ~15 near-duplicate hand-rolled button class
+strings (inconsistent padding, disabled handling), 3 competing input
+padding scales, and 4 near-identical badge/pill patterns across the app.
+All new UI should use these instead of hand-rolling Tailwind classes —
+import from `@/components/ui` (barrel export in `index.ts`).
+
+- **`Button`** (`button.tsx`) — `variant`: `primary`/`secondary`/
+  `danger-outline`/`danger-solid`/`ghost`/`danger-ghost`; `size`: `sm`/
+  `md`/`lg`/`inline` (`inline` = no padding/radius, for bare text triggers
+  in dense rows like a settings-list "remove" link — pair with
+  `danger-ghost`). Renders as `<Link>` when given `href`, otherwise
+  `<button>`. Has `loading`/`loadingText` props for the
+  `useActionState`-pending pattern used everywhere
+  (`pending ? "Saving..." : "Save"` no longer needs to be written by hand).
+- **`TextField`/`SelectField`/`TextareaField`/`CheckboxField`**
+  (`form-field.tsx`) — label + control + error/hint slot in one component.
+  `compact` prop switches to the smaller `px-2 py-1` padding used in dense
+  inline forms (folder-template add-row, search/audit-log filter bars,
+  workflow settings) vs. the default `px-3 py-2` for standalone forms.
+  `label` accepts `ReactNode`, not just `string` (needed for labels with
+  embedded hint text or quoted field names).
+- **`Badge`** (`badge.tsx`) — `tone`: `neutral`/`success`/`warning`/
+  `danger`/`info`; `pill` (default `true`) toggles between a rounded pill
+  (status badges) and plain colored text (`pill={false}`, for small inline
+  tags like "required"/"initial"/"terminal"/"default template").
+  `HealthBadge` (`src/components/health-badge.tsx`) is a thin wrapper
+  mapping `ArchiveHealthLevel` → tone — the old
+  `HEALTH_BADGE_CLASSES` export was removed, nothing else referenced it.
+- **`Card`** (`card.tsx`) — `tone`: `default`/`danger`/`warn`. Replaces
+  every hand-rolled `rounded-md border ... p-4` panel. Pass
+  `className="p-0"` when the card's children need their own internal
+  padding structure (e.g. a folder card with a bordered header + list +
+  upload zone, each with different padding) rather than the default `p-4`.
+- **`PageHeader`** (`page-header.tsx`) — `backHref`/`backLabel` (both
+  optional — omit for pages with no back link, e.g. dashboard/login)/
+  `title`/`subtitle`/`actions` (right-aligned slot, accepts any
+  `ReactNode` — used for action buttons AND for non-button content like a
+  `HealthBadge` on the archive detail page).
+- **`Table`/`TableHead`/`Th`/`Td`/`TableRow`/`TableEmptyState`**
+  (`table.tsx`) — standardizes the `overflow-x-auto` wrapper (required —
+  see the mobile-responsive-pass note above on why every table needs
+  this) + shell markup used on the dashboard, report run pages, and audit
+  log.
+- **`cn()`** (`src/lib/cn.ts`) — `clsx` + `tailwind-merge`, for merging a
+  component's default classes with a caller-supplied `className` override
+  without class-conflict bugs.
+
+**Explicit decision, don't revisit without a reason**: no custom CSS color
+tokens (`--color-surface`, etc.) were introduced even though the
+wireframe (`ngo-archive-wireframe.html`) defines its own hex palette —
+the existing app already uses Tailwind's built-in `slate`/`emerald`/
+`amber`/`red`/`blue` palette in 30+ files. Consistency here comes from
+routing all UI through these shared components (which use a fixed,
+documented set of Tailwind classes internally), not from a parallel
+token system that would require migrating every existing color class.
+
+**Intentionally NOT migrated to `Button`**: bare inline text triggers
+with no box model at all inside already-dense rows — e.g.
+`folder-upload.tsx`'s "Drag files here or click to upload" trigger, and
+`file-row.tsx`'s inline metadata-row links. Forcing `Button` (which
+always adds `inline-flex`, padding, and `rounded-md`) onto these would
+visibly change their sizing inside dense `text-xs` rows. Use judgment
+here rather than mechanically converting every `<button>`/`<a>` in the
+codebase — the goal is consistency where things are visually the same
+kind of control, not a 100%-component-coverage mandate.
+

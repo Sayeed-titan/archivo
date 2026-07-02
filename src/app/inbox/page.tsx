@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { InboxUploadForm } from "./inbox-upload-form";
+import { PageHeader } from "@/components/ui";
 
 export default async function InboxPage() {
   const user = await getCurrentUser();
@@ -18,10 +19,10 @@ export default async function InboxPage() {
 
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
-      <h1 className="text-xl font-semibold">Migration Inbox</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Drop old or backlog files here with zero metadata — sort them into real archives later.
-      </p>
+      <PageHeader
+        title="Migration Inbox"
+        subtitle="Drop old or backlog files here with zero metadata — sort them into real archives later."
+      />
 
       {user.role.canUpload && <InboxUploadForm />}
 

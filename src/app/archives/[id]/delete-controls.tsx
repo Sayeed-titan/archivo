@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { softDeleteArchive, hardDeleteArchive } from "@/app/actions/archives";
+import { Button, TextField, Card } from "@/components/ui";
 
 export function DeleteControls({
   archiveId,
@@ -17,53 +18,41 @@ export function DeleteControls({
   if (!canDelete && !canHardDelete) return null;
 
   return (
-    <div className="mt-8 space-y-3 rounded-md border border-red-200 bg-red-50 p-4">
+    <Card tone="danger" className="mt-8 space-y-3">
       <h2 className="text-sm font-medium text-red-800">Danger zone</h2>
 
       {canDelete && (
-        <button
-          onClick={() => softDeleteArchive(archiveId)}
-          className="rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm text-red-700"
-        >
+        <Button onClick={() => softDeleteArchive(archiveId)} variant="danger-outline">
           Delete (recoverable)
-        </button>
+        </Button>
       )}
 
       {canHardDelete && !confirmingHardDelete && (
-        <button
-          onClick={() => setConfirmingHardDelete(true)}
-          className="ml-2 rounded-md bg-red-700 px-3 py-1.5 text-sm text-white"
-        >
+        <Button onClick={() => setConfirmingHardDelete(true)} variant="danger-solid" className="ml-2">
           Permanently delete
-        </button>
+        </Button>
       )}
 
       {canHardDelete && confirmingHardDelete && (
         <form action={hardDeleteArchive} className="mt-2 space-y-2">
           <input type="hidden" name="archiveId" value={archiveId} />
-          <label className="block text-xs font-medium text-red-800">
-            Reason for permanent deletion (required, logged in the audit trail)
-          </label>
-          <input
+          <TextField
             name="reason"
             required
-            className="w-full rounded-md border border-red-300 px-2 py-1 text-sm"
+            compact
+            label="Reason for permanent deletion (required, logged in the audit trail)"
             placeholder="e.g. duplicate created by mistake"
           />
           <div className="flex gap-2">
-            <button type="submit" className="rounded-md bg-red-700 px-3 py-1.5 text-sm text-white">
+            <Button type="submit" variant="danger-solid">
               Confirm permanent delete
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingHardDelete(false)}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
-            >
+            </Button>
+            <Button type="button" onClick={() => setConfirmingHardDelete(false)} variant="secondary">
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       )}
-    </div>
+    </Card>
   );
 }

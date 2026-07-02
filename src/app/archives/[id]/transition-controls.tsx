@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { transitionArchiveStatus } from "@/app/actions/archives";
+import { Button, Card } from "@/components/ui";
 
 type TransitionOption = {
   toState: string;
@@ -14,12 +15,12 @@ export function TransitionControls({ archiveId, transitions }: { archiveId: stri
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="mt-3 rounded-md border border-slate-200 p-3">
+    <Card className="mt-3 p-3">
       <h2 className="text-sm font-medium text-slate-700">Move to next status</h2>
       <div className="mt-2 space-y-2">
         {transitions.map((t) => (
           <div key={t.toState} className="flex items-start gap-3">
-            <button
+            <Button
               disabled={!t.allowed || isPending}
               onClick={() =>
                 startTransition(async () => {
@@ -31,10 +32,9 @@ export function TransitionControls({ archiveId, transitions }: { archiveId: stri
                   }
                 })
               }
-              className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               → {t.toState}
-            </button>
+            </Button>
             {t.checks.length > 0 && (
               <ul className="text-xs text-slate-500">
                 {t.checks.map((c) => (
@@ -48,6 +48,6 @@ export function TransitionControls({ archiveId, transitions }: { archiveId: stri
         ))}
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-    </div>
+    </Card>
   );
 }

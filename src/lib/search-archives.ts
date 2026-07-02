@@ -11,6 +11,16 @@ export type SearchParams = {
   month?: string; // "1".."12"
   year?: string;
   docType?: string; // filters to archives containing at least one file of this type
+  group?: string; // dashboard summary grouping: "events" | "programs" (spans multiple categories)
+};
+
+// Keep in sync with getDashboardSummary() in dashboard-data.ts — the
+// dashboard "Events Archived" / "Programs Archived" counts split the same
+// archive set by these category-name groups, so drilling in from a card
+// must use the same definition.
+const CATEGORY_GROUPS: Record<string, string[]> = {
+  events: ["Events", "Conferences", "Campaigns"],
+  programs: ["NGO Projects"],
 };
 
 // SRS.md FR-7.1/7.2: search by event/program name, date, year, location,
@@ -42,6 +52,9 @@ export async function searchArchives(user: User & { role: Role }, params: Search
     });
   }
 
+  if (params.group && CATEGORY_GROUPS[params.group]) {
+    and.push({ category: { name: { in: CATEGORY_GROUPS[params.group] } } });
+  }
   if (params.categoryId) and.push({ categoryId: params.categoryId });
   if (params.status) and.push({ status: params.status });
   if (params.projectName) and.push({ projectName: params.projectName });

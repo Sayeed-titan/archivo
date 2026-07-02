@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
@@ -12,6 +11,7 @@ import { DeleteControls } from "./delete-controls";
 import { FolderUpload } from "./folder-upload";
 import { FileRow } from "./file-row";
 import { TransitionControls } from "./transition-controls";
+import { PageHeader, Badge, Card } from "@/components/ui";
 
 export default async function ArchiveDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -58,19 +58,13 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
-      <Link href="/dashboard" className="text-sm text-slate-500 underline">
-        ← Back to dashboard
-      </Link>
-
-      <div className="mt-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{archive.name}</h1>
-          <p className="text-sm text-slate-500">
-            {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"} · {archive.status}
-          </p>
-        </div>
-        <HealthBadge health={health} />
-      </div>
+      <PageHeader
+        backHref="/dashboard"
+        backLabel="← Back to dashboard"
+        title={archive.name}
+        subtitle={`${archive.archiveNumber} · ${archive.category?.name ?? "Uncategorized"} · ${archive.status}`}
+        actions={<HealthBadge health={health} />}
+      />
 
       {user.role.canEditMetadata && availableTransitions.length > 0 && (
         <TransitionControls
@@ -94,11 +88,15 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
       ) : (
         <div className="mt-2 space-y-3">
           {archive.folders.map((folder) => (
-            <div key={folder.id} className="rounded-md border border-slate-200">
+            <Card key={folder.id} className="p-0">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2 text-sm font-medium">
                 <span>
                   {folder.name}
-                  {folder.isMandatory && <span className="ml-2 text-xs text-amber-600">required</span>}
+                  {folder.isMandatory && (
+                    <Badge tone="warning" pill={false} className="ml-2">
+                      required
+                    </Badge>
+                  )}
                 </span>
                 <span className="text-slate-400">{folder.files.length} files</span>
               </div>
@@ -119,7 +117,7 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
                   <FolderUpload archiveId={archive.id} folderId={folder.id} />
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}
