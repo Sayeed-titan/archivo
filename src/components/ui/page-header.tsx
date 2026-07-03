@@ -22,7 +22,7 @@ export function PageHeader({
       {backHref && (
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-3 type-label-large text-on-surface-variant transition-colors hover:bg-on-surface-8 hover:text-on-surface"
+          className="no-print inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-3 type-label-large text-on-surface-variant transition-colors hover:bg-on-surface-8 hover:text-on-surface"
         >
           <Icon name="arrow_back" size={18} />
           {backLabel}

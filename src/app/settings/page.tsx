@@ -41,6 +41,12 @@ const SECTIONS = [
     title: "Security & watermarking",
     description: "Watermark downloaded images and exported PDF reports.",
   },
+  {
+    href: "/settings/roles",
+    icon: "admin_panel_settings",
+    title: "Roles & permissions",
+    description: "Create roles, set what each can do, and assign them to users.",
+  },
 ];
 
 export default async function SettingsHubPage() {

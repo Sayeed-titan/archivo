@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createArchive, type CreateArchiveState } from "@/app/actions/archives";
-import { TextField, SelectField, Button } from "@/components/ui";
+import { TextField, Combobox, Button } from "@/components/ui";
 import type { Category } from "@/generated/prisma/client";
 
 export function NewArchiveForm({ categories }: { categories: Category[] }) {
@@ -19,22 +19,16 @@ export function NewArchiveForm({ categories }: { categories: Category[] }) {
         error={state?.errors?.name?.[0]}
       />
 
-      <SelectField
-        id="categoryId"
+      <Combobox
         name="categoryId"
         label={
           <>
             Category <span className="text-on-surface-variant/70">(optional — sets up folders automatically)</span>
           </>
         }
-      >
-        <option value="">No category yet</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </SelectField>
+        placeholder="No category yet"
+        options={categories.map((c) => ({ value: c.id, label: c.name }))}
+      />
 
       {state?.message && <p className="type-body-medium text-error">{state.message}</p>}
 

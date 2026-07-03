@@ -63,6 +63,37 @@ export async function addFolderTemplate(_state: AddFolderState, formData: FormDa
   revalidatePath("/settings/folder-templates");
 }
 
+// Reorders every folder template in a category to match `orderedIds`,
+// always renumbering the whole set (0..n-1) rather than swapping two
+// values — existing `order` values aren't guaranteed contiguous after
+// past deletions, so a sparse update could collide or leave gaps.
+export async function reorderFolderTemplates(categoryId: string, orderedIds: string[]) {
+  const user = await getCurrentUser();
+  requirePermission(user.role, "canManageSettings", "manage folder templates");
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.folderTemplate.update({
+        where: { id, categoryId, organizationId: user.organizationId },
+        data: { order: index },
+      })
+    )
+  );
+
+  await prisma.auditLog.create({
+    data: {
+      organizationId: user.organizationId,
+      actorId: user.id,
+      action: "edit",
+      entityType: "FolderTemplate",
+      entityId: categoryId,
+      note: "reordered folder templates",
+    },
+  });
+
+  revalidatePath("/settings/folder-templates");
+}
+
 export async function removeFolderTemplate(folderTemplateId: string) {
   const user = await getCurrentUser();
   requirePermission(user.role, "canManageSettings", "manage folder templates");

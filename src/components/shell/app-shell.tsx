@@ -1,12 +1,15 @@
 import { NotificationBell, type NotificationItem } from "@/components/notification-bell";
+import { CommandPalette, type QuickAction } from "@/components/command-palette/command-palette";
 import { NavRail, MobileNav, BrandMark, type NavItem } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 import type { ThemeMode } from "@/lib/theme/css";
 
 type ShellUser = {
+  id: string;
   name: string;
   email: string;
+  avatarPath: string | null;
   role: {
     name: string;
     canCreateArchive: boolean;
@@ -41,18 +44,29 @@ export function AppShell({
   ];
   const fabHref = user.role.canCreateArchive ? "/archives/new" : null;
 
+  const quickActions: QuickAction[] = [
+    ...navItems.map((item) => ({ id: item.href, label: item.label, icon: item.icon, href: item.href })),
+    ...(fabHref ? [{ id: "new-archive", label: "New archive", icon: "add", href: fabHref }] : []),
+    { id: "profile", label: "My profile", icon: "account_circle", href: "/profile" },
+  ];
+
   return (
     <div className="flex min-h-dvh">
-      <NavRail items={navItems} fabHref={fabHref} />
+      <div className="no-print contents">
+        <NavRail items={navItems} fabHref={fabHref} />
+      </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-outline-variant/60 bg-surface">
+        <header className="no-print sticky top-0 z-30 border-b border-outline-variant/60 bg-surface">
           <div className="flex items-center gap-2 px-3 py-2 sm:px-5">
             <MobileNav items={navItems} fabHref={fabHref} orgName={user.organization.name} />
             <BrandMark orgName={user.organization.name} />
+            <div className="mx-auto max-w-md flex-1">
+              <CommandPalette quickActions={quickActions} />
+            </div>
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle mode={resolvedMode} />
               <NotificationBell notifications={notifications} />
-              <UserMenu name={user.name} email={user.email} roleName={user.role.name} />
+              <UserMenu userId={user.id} name={user.name} email={user.email} roleName={user.role.name} avatarPath={user.avatarPath} />
             </div>
           </div>
         </header>

@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
 import { resolveArchiveHealth } from "@/lib/workflow/health";
-import { getAvailableTransitions } from "@/lib/workflow/engine";
+import { getAvailableTransitions, getOrgWorkflow } from "@/lib/workflow/engine";
 import { describeRequirement } from "@/lib/workflow/requirements";
 import { HealthBadge } from "@/components/health-badge";
 import { MetadataForm } from "./metadata-form";
@@ -11,8 +11,10 @@ import { DeleteControls } from "./delete-controls";
 import { FolderUpload } from "./folder-upload";
 import { FileRow } from "./file-row";
 import { TransitionControls } from "./transition-controls";
-import { PageHeader, Badge, Card } from "@/components/ui";
-import { Icon } from "@/components/icon";
+import { PageHeader } from "@/components/ui";
+import { TreeRoot, TreeFolderNode } from "@/components/tree-view";
+import { TreeSelectionProvider } from "@/components/tree-view-selection";
+import { BulkSelectionBar } from "@/components/bulk-selection-bar";
 
 export default async function ArchiveDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,9 +42,10 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
   }
 
   const missingMandatoryFolders = archive.folders.filter((f) => f.isMandatory && f.files.length === 0).length;
-  const [health, availableTransitions] = await Promise.all([
+  const [health, availableTransitions, workflow] = await Promise.all([
     resolveArchiveHealth(user.organizationId, archive.status, missingMandatoryFolders),
     getAvailableTransitions(archive),
+    getOrgWorkflow(user.organizationId),
   ]);
 
   const [donorList, projectList, org] = await Promise.all([
@@ -67,9 +70,11 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
         actions={<HealthBadge health={health} />}
       />
 
-      {user.role.canEditMetadata && availableTransitions.length > 0 && (
+      {user.role.canEditMetadata && workflow.states.length > 0 && (
         <TransitionControls
           archiveId={archive.id}
+          currentStatus={archive.status}
+          states={workflow.states.map((s) => ({ name: s.name, order: s.order }))}
           transitions={availableTransitions.map((t) => ({
             toState: t.toState,
             allowed: t.allowed,
@@ -87,46 +92,40 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
           No folders yet — assign a category to auto-provision the standard folder set.
         </p>
       ) : (
-        <div className="mt-2 space-y-3">
-          {archive.folders.map((folder) => (
-            <Card key={folder.id} className="p-0">
-              <div className="flex items-center justify-between border-b border-outline-variant/60 bg-surface-container-low px-4 py-2.5">
-                <span className="flex items-center gap-2 type-title-small text-on-surface">
-                  <Icon
-                    name={folder.files.length > 0 ? "folder" : "folder_open"}
-                    size={20}
-                    className={folder.isMandatory && folder.files.length === 0 ? "text-warning" : "text-on-surface-variant"}
-                  />
-                  {folder.name}
-                  {folder.isMandatory && (
-                    <Badge tone="warning" pill={false}>
-                      required
-                    </Badge>
+        <div className="mt-2">
+          <TreeSelectionProvider>
+            <TreeRoot
+              label={archive.name}
+              icon="folder_open"
+              allFileIds={user.role.canDownload ? archive.folders.flatMap((f) => f.files.map((file) => file.id)) : undefined}
+            >
+              {archive.folders.map((folder) => (
+                <TreeFolderNode
+                  key={folder.id}
+                  id={folder.id}
+                  name={folder.name}
+                  isMandatory={folder.isMandatory}
+                  fileCount={folder.files.length}
+                  fileIds={user.role.canDownload ? folder.files.map((file) => file.id) : undefined}
+                  headerActions={user.role.canUpload ? <FolderUpload archiveId={archive.id} folderId={folder.id} /> : undefined}
+                >
+                  {folder.files.length > 0 && (
+                    <ul className="divide-y divide-outline-variant/50">
+                      {folder.files.map((file) => (
+                        <FileRow
+                          key={file.id}
+                          file={file}
+                          canDownload={user.role.canDownload}
+                          docEditorProvider={org.docEditorProvider}
+                        />
+                      ))}
+                    </ul>
                   )}
-                </span>
-                <span className="type-body-small text-on-surface-variant">
-                  {folder.files.length} {folder.files.length === 1 ? "file" : "files"}
-                </span>
-              </div>
-              {folder.files.length > 0 && (
-                <ul className="divide-y divide-outline-variant/50">
-                  {folder.files.map((file) => (
-                    <FileRow
-                      key={file.id}
-                      file={file}
-                      canDownload={user.role.canDownload}
-                      docEditorProvider={org.docEditorProvider}
-                    />
-                  ))}
-                </ul>
-              )}
-              {user.role.canUpload && (
-                <div className="p-2">
-                  <FolderUpload archiveId={archive.id} folderId={folder.id} />
-                </div>
-              )}
-            </Card>
-          ))}
+                </TreeFolderNode>
+              ))}
+            </TreeRoot>
+            {user.role.canDownload && <BulkSelectionBar />}
+          </TreeSelectionProvider>
         </div>
       )}
 

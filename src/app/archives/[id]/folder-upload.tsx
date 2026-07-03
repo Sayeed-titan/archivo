@@ -1,26 +1,20 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
-import { uploadToFolder, type UploadFilesState } from "@/app/actions/files";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useFileUpload } from "@/components/upload/use-file-upload";
+import { UploadProgressList } from "@/components/upload/upload-progress-list";
 
 export function FolderUpload({ archiveId, folderId }: { archiveId: string; folderId: string }) {
-  const [state, action, pending] = useActionState<UploadFilesState, FormData>(uploadToFolder, undefined);
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { items, uploadFiles, dismiss } = useFileUpload({ onUploaded: () => router.refresh() });
 
-  function submitFiles(fileList: FileList) {
-    if (!formRef.current || !inputRef.current) return;
-    const dataTransfer = new DataTransfer();
-    Array.from(fileList).forEach((f) => dataTransfer.items.add(f));
-    inputRef.current.files = dataTransfer.files;
-    formRef.current.requestSubmit();
-  }
+  const target = { isInbox: false as const, archiveId, folderId };
 
   return (
-    <form
-      ref={formRef}
-      action={action}
+    <div
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -29,31 +23,32 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
       onDrop={(e) => {
         e.preventDefault();
         setIsDragging(false);
-        if (e.dataTransfer.files.length > 0) submitFiles(e.dataTransfer.files);
+        if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files, target);
       }}
       className={`rounded-sm border border-dashed px-3 py-2 type-body-small transition-colors ${
         isDragging ? "border-primary bg-primary-8" : "border-outline"
       }`}
     >
-      <input type="hidden" name="archiveId" value={archiveId} />
-      <input type="hidden" name="folderId" value={folderId} />
       <input
         ref={inputRef}
         type="file"
-        name="files"
         multiple
         className="hidden"
-        onChange={(e) => e.target.files && e.target.files.length > 0 && formRef.current?.requestSubmit()}
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            uploadFiles(e.target.files, target);
+            e.target.value = "";
+          }
+        }}
       />
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        disabled={pending}
-        className="text-on-surface-variant underline hover:text-primary disabled:opacity-50"
+        className="text-on-surface-variant underline hover:text-primary"
       >
-        {pending ? "Uploading..." : "Drag files here or click to upload"}
+        Drag files here or click to upload
       </button>
-      {state?.message && <p className="mt-1 text-error">{state.message}</p>}
-    </form>
+      <UploadProgressList items={items} onDismiss={dismiss} />
+    </div>
   );
 }

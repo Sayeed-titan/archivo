@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { addWorkflowTransition, type AddTransitionState } from "@/app/actions/workflow";
 import { getRequirableFields } from "@/lib/workflow/requirements";
-import { SelectField, CheckboxField, Button, Card } from "@/components/ui";
+import { Combobox, CheckboxField, Button, Card } from "@/components/ui";
 
 export function AddTransitionForm({ states }: { states: string[] }) {
   const [state, action, pending] = useActionState<AddTransitionState, FormData>(addWorkflowTransition, undefined);
@@ -17,21 +17,23 @@ export function AddTransitionForm({ states }: { states: string[] }) {
     <form action={action} className="mt-3">
       <Card className="space-y-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <SelectField name="fromState" defaultValue={states[0]} compact className="min-w-0 flex-1">
-            {states.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </SelectField>
+          <Combobox
+            name="fromState"
+            defaultValue={states[0]}
+            compact
+            clearable={false}
+            className="min-w-0 flex-1"
+            options={states.map((s) => ({ value: s, label: s }))}
+          />
           <span>→</span>
-          <SelectField name="toState" defaultValue={states[1]} compact className="min-w-0 flex-1">
-            {states.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </SelectField>
+          <Combobox
+            name="toState"
+            defaultValue={states[1]}
+            compact
+            clearable={false}
+            className="min-w-0 flex-1"
+            options={states.map((s) => ({ value: s, label: s }))}
+          />
         </div>
 
         <div>

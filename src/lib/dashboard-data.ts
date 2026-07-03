@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
 import { getOrgStorageBytes } from "@/lib/storage-usage";
 import type { User, Role } from "@/generated/prisma/client";
@@ -9,6 +9,11 @@ import type { User, Role } from "@/generated/prisma/client";
 // "Events" vs "Programs" isn't a schema distinction in this data model
 // (both are just archives under different categories), so both roll up
 // from the same visibility-scoped archive set, split by category name.
+//
+// Every query here runs inside withConnectionRetry (see src/lib/prisma.ts)
+// — the dashboard fires many of these concurrently via Promise.all, which
+// is exactly the load pattern that trips the local dev embedded
+// database's occasional dropped-connection behavior.
 export async function getDashboardSummary(user: User & { role: Role }) {
   const archiveWhere = { ...archiveVisibilityWhere(user), isMigrationInbox: false };
 
@@ -20,16 +25,20 @@ export async function getDashboardSummary(user: User & { role: Role }) {
     reportCount,
     storageBytes,
   ] = await Promise.all([
-    prisma.archive.count({ where: { ...archiveWhere, category: { name: { in: ["Events", "Conferences", "Campaigns"] } } } }),
-    prisma.archive.count({ where: { ...archiveWhere, category: { name: { in: ["NGO Projects"] } } } }),
-    prisma.archive.count({ where: { ...archiveWhere, status: "Pending Review" } }),
-    prisma.file.groupBy({
-      by: ["fileType"],
-      where: { isLatest: true, deletedAt: null, folder: { archive: archiveWhere } },
-      _count: { _all: true },
-    }),
-    prisma.reportTemplate.count({ where: { organizationId: user.organizationId } }),
-    getOrgStorageBytes(user.organizationId),
+    withConnectionRetry(() =>
+      prisma.archive.count({ where: { ...archiveWhere, category: { name: { in: ["Events", "Conferences", "Campaigns"] } } } })
+    ),
+    withConnectionRetry(() => prisma.archive.count({ where: { ...archiveWhere, category: { name: { in: ["NGO Projects"] } } } })),
+    withConnectionRetry(() => prisma.archive.count({ where: { ...archiveWhere, status: "Pending Review" } })),
+    withConnectionRetry(() =>
+      prisma.file.groupBy({
+        by: ["fileType"],
+        where: { isLatest: true, deletedAt: null, folder: { archive: archiveWhere } },
+        _count: { _all: true },
+      })
+    ),
+    withConnectionRetry(() => prisma.reportTemplate.count({ where: { organizationId: user.organizationId } })),
+    withConnectionRetry(() => getOrgStorageBytes(user.organizationId)),
   ]);
 
   const countByType = (types: string[]) =>
@@ -61,25 +70,28 @@ export function formatBytes(bytes: bigint | number): string {
 }
 
 export async function getRecentUploads(user: User & { role: Role }, take = 8) {
-  return prisma.file.findMany({
-    where: { deletedAt: null, folder: { archive: archiveVisibilityWhere(user) } },
-    orderBy: { uploadedAt: "desc" },
-    take,
-    include: { uploadedBy: true, folder: { include: { archive: true } } },
-  });
+  return withConnectionRetry(() =>
+    prisma.file.findMany({
+      where: { deletedAt: null, folder: { archive: archiveVisibilityWhere(user) } },
+      orderBy: { uploadedAt: "desc" },
+      take,
+      include: { uploadedBy: true, folder: { include: { archive: true } } },
+    })
+  );
 }
 
 export async function getCategoryCounts(user: User & { role: Role }) {
-  const categories = await prisma.category.findMany({
-    where: { organizationId: user.organizationId, isActive: true },
-    orderBy: { order: "asc" },
-    include: {
-      _count: {
-        select: {
-          archives: { where: { ...archiveVisibilityWhere(user), isMigrationInbox: false } },
+  return withConnectionRetry(() =>
+    prisma.category.findMany({
+      where: { organizationId: user.organizationId, isActive: true },
+      orderBy: { order: "asc" },
+      include: {
+        _count: {
+          select: {
+            archives: { where: { ...archiveVisibilityWhere(user), isMigrationInbox: false } },
+          },
         },
       },
-    },
-  });
-  return categories;
+    })
+  );
 }

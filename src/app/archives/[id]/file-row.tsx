@@ -3,6 +3,9 @@ import type { File as PrismaFile, User } from "@/generated/prisma/client";
 import { OpenInEditorButton } from "./open-in-editor-button";
 import { Icon } from "@/components/icon";
 import { fileTypeIcon } from "@/lib/file-icon";
+import { FilePreviewButton } from "@/components/file-preview/file-preview-dialog";
+import { FileShareButton } from "@/components/file-share/file-share-dialog";
+import { TreeFileCheckbox } from "@/components/tree-view";
 
 type FileWithUploader = PrismaFile & { uploadedBy: User };
 
@@ -47,6 +50,7 @@ export async function FileRow({
     <li className="px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="flex min-w-0 items-center gap-2">
+          {canDownload && <TreeFileCheckbox fileId={file.id} filename={file.filename} />}
           {file.fileType === "video" && file.thumbnailPath ? (
             // eslint-disable-next-line @next/next/no-img-element -- server-generated preview, not worth next/image's optimization pipeline
             <img
@@ -73,6 +77,18 @@ export async function FileRow({
             </a>
           )}
         </span>
+        {canDownload && (
+          <span className="flex items-center gap-0.5">
+            <FilePreviewButton
+              fileId={file.id}
+              filename={file.filename}
+              fileType={file.fileType}
+              canOpenInEditor={canOpenInEditor}
+              openInEditorSlot={canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} />}
+            />
+            <FileShareButton fileId={file.id} filename={file.filename} />
+          </span>
+        )}
       </div>
 
       {history.length > 1 && (

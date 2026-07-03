@@ -39,9 +39,14 @@ const badgeVariants = cva("inline-flex items-center gap-1 font-medium", {
 
 export type BadgeProps = VariantProps<typeof badgeVariants> & {
   className?: string;
+  title?: string;
   children: ReactNode;
 };
 
-export function Badge({ tone, pill, className, children }: BadgeProps) {
-  return <span className={cn(badgeVariants({ tone, pill }), className)}>{children}</span>;
+export function Badge({ tone, pill, className, title, children }: BadgeProps) {
+  return (
+    <span title={title} className={cn(badgeVariants({ tone, pill }), className)}>
+      {children}
+    </span>
+  );
 }

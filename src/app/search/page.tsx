@@ -1,15 +1,8 @@
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { searchArchives } from "@/lib/search-archives";
-import { PageHeader, TextField, SelectField, Button, Badge, EmptyState } from "@/components/ui";
-import { Icon } from "@/components/icon";
-
-const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
-  Archived: "success",
-  "Pending Review": "warning",
-  Draft: "neutral",
-};
+import { PageHeader, ClearableSearchField, TextField, Combobox, Button } from "@/components/ui";
+import { SearchResultsTable } from "./search-results-table";
 
 export default async function SearchPage({
   searchParams,
@@ -51,61 +44,70 @@ export default async function SearchPage({
 
       <form action="/search" className="mt-4 space-y-3">
         {params.group && <input type="hidden" name="group" value={params.group} />}
-        <div className="relative">
-          <Icon name="search" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-          <TextField name="q" defaultValue={params.q ?? ""} placeholder="Search archives…" className="pl-10" />
-        </div>
+        <ClearableSearchField name="q" defaultValue={params.q ?? ""} placeholder="Search archives…" />
 
-        <div className="flex flex-wrap items-center gap-3">
-          <SelectField name="categoryId" defaultValue={params.categoryId ?? ""} compact>
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </SelectField>
+        <div className="flex flex-wrap items-start gap-3">
+          <Combobox
+            name="categoryId"
+            defaultValue={params.categoryId ?? ""}
+            placeholder="All categories"
+            compact
+            className="w-44"
+            options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          />
 
-          <SelectField name="status" defaultValue={params.status ?? ""} compact>
-            <option value="">All statuses</option>
-            <option value="Draft">Draft</option>
-            <option value="Pending Review">Pending Review</option>
-            <option value="Archived">Archived</option>
-          </SelectField>
+          <Combobox
+            name="status"
+            defaultValue={params.status ?? ""}
+            placeholder="All statuses"
+            compact
+            className="w-44"
+            options={[
+              { value: "Draft", label: "Draft" },
+              { value: "Pending Review", label: "Pending Review" },
+              { value: "Archived", label: "Archived" },
+            ]}
+          />
 
-          <SelectField name="projectName" defaultValue={params.projectName ?? ""} compact>
-            <option value="">All projects</option>
-            {projectList?.items.map((p) => (
-              <option key={p.id} value={p.value}>
-                {p.value}
-              </option>
-            ))}
-          </SelectField>
+          <Combobox
+            name="projectName"
+            defaultValue={params.projectName ?? ""}
+            placeholder="All projects"
+            compact
+            className="w-44"
+            options={(projectList?.items ?? []).map((p) => ({ value: p.value, label: p.value }))}
+          />
 
-          <SelectField name="month" defaultValue={params.month ?? ""} compact>
-            <option value="">Any month</option>
-            {months.map((m, i) => (
-              <option key={m} value={i + 1}>
-                {m}
-              </option>
-            ))}
-          </SelectField>
+          <Combobox
+            name="month"
+            defaultValue={params.month ?? ""}
+            placeholder="Any month"
+            compact
+            className="w-40"
+            options={months.map((m, i) => ({ value: String(i + 1), label: m }))}
+          />
 
           <TextField name="year" defaultValue={params.year ?? ""} placeholder="Year" compact className="w-20" />
 
-          <SelectField name="docType" defaultValue={params.docType ?? ""} compact>
-            <option value="">Any doc type</option>
-            <option value="pdf">PDF</option>
-            <option value="word">Word</option>
-            <option value="excel">Excel</option>
-            <option value="powerpoint">PowerPoint</option>
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-            <option value="audio">Audio</option>
-            <option value="zip">ZIP</option>
-          </SelectField>
+          <Combobox
+            name="docType"
+            defaultValue={params.docType ?? ""}
+            placeholder="Any doc type"
+            compact
+            className="w-40"
+            options={[
+              { value: "pdf", label: "PDF" },
+              { value: "word", label: "Word" },
+              { value: "excel", label: "Excel" },
+              { value: "powerpoint", label: "PowerPoint" },
+              { value: "image", label: "Image" },
+              { value: "video", label: "Video" },
+              { value: "audio", label: "Audio" },
+              { value: "zip", label: "ZIP" },
+            ]}
+          />
 
-          <Button type="submit" size="sm" icon="search">
+          <Button type="submit" size="sm" icon="search" className="mt-0.5">
             Search
           </Button>
         </div>
@@ -114,36 +116,21 @@ export default async function SearchPage({
       <h2 className="mt-6 type-title-small text-on-surface-variant">
         {results.length} {results.length === 1 ? "result" : "results"}
       </h2>
-      <div className="mt-2 overflow-hidden rounded-md border border-outline-variant bg-surface">
-        {results.length > 0 ? (
-          <ul className="divide-y divide-outline-variant/60">
-            {results.map((archive) => (
-              <li key={archive.id}>
-                <Link
-                  href={`/archives/${archive.id}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-on-surface-8"
-                >
-                  <Icon name="folder_open" size={22} className="shrink-0 text-on-surface-variant" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate type-body-large text-on-surface">{archive.name}</span>
-                    <span className="block truncate type-body-small text-on-surface-variant">
-                      {archive.archiveNumber} · {archive.category?.name ?? "Uncategorized"}
-                      {archive.donor && ` · ${archive.donor}`}
-                    </span>
-                  </span>
-                  <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
-                  <Icon name="chevron_right" size={20} className="shrink-0 text-on-surface-variant" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon="search_off"
-            title="No matching archives"
-            description="Try fewer filters, or a different keyword — search also covers venue, organizer, donor, and filenames."
-          />
-        )}
+      <div className="mt-2">
+        <SearchResultsTable
+          rows={results.map((archive) => ({
+            id: archive.id,
+            name: archive.name,
+            archiveNumber: archive.archiveNumber,
+            category: archive.category?.name ?? "Uncategorized",
+            donor: archive.donor ?? "—",
+            status: archive.status,
+            createdAt: archive.createdAt.toLocaleDateString(),
+          }))}
+          exportQuery={new URLSearchParams(
+            Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]
+          ).toString()}
+        />
       </div>
     </main>
   );

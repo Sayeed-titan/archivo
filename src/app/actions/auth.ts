@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { createSession, deleteSession } from "@/lib/session";
 import { LoginFormSchema, type LoginFormState } from "@/lib/definitions";
 
@@ -18,9 +18,11 @@ export async function login(_state: LoginFormState, formData: FormData): Promise
 
   const { email, password } = validatedFields.data;
 
-  const user = await prisma.user.findFirst({
-    where: { email, isActive: true },
-  });
+  const user = await withConnectionRetry(() =>
+    prisma.user.findFirst({
+      where: { email, isActive: true },
+    })
+  );
 
   if (!user) {
     return { message: "Invalid email or password." };

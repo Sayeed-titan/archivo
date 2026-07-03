@@ -1,15 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { PageHeader, SelectField, Button, Badge, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
-
-const ACTION_TONE: Record<string, "success" | "info" | "danger" | "neutral"> = {
-  create: "success",
-  edit: "info",
-  delete: "danger",
-  hard_delete: "danger",
-  download: "neutral",
-};
+import { queryAuditLog, toAuditLogRow } from "@/lib/audit-log-query";
+import { PageHeader, Combobox, Button } from "@/components/ui";
+import { AuditLogTable } from "./audit-log-table";
 
 export default async function AuditLogPage({
   searchParams,
@@ -24,17 +18,7 @@ export default async function AuditLogPage({
   const { actorId, entityType, action } = await searchParams;
 
   const [entries, users] = await Promise.all([
-    prisma.auditLog.findMany({
-      where: {
-        organizationId: user.organizationId,
-        ...(actorId ? { actorId } : {}),
-        ...(entityType ? { entityType } : {}),
-        ...(action ? { action } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-      include: { actor: true },
-    }),
+    queryAuditLog(user.organizationId, { actorId, entityType, action }),
     prisma.user.findMany({ where: { organizationId: user.organizationId } }),
   ]);
 
@@ -45,63 +29,51 @@ export default async function AuditLogPage({
         subtitle="Every create, edit, delete, and download action, logged."
       />
 
-      <form className="mt-4 flex flex-wrap items-center gap-3" action="/audit-log">
-        <SelectField name="actorId" defaultValue={actorId ?? ""} compact>
-          <option value="">All users</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </SelectField>
+      <form className="mt-4 flex flex-wrap items-start gap-3" action="/audit-log">
+        <Combobox
+          name="actorId"
+          defaultValue={actorId ?? ""}
+          placeholder="All users"
+          compact
+          className="w-56"
+          options={users.map((u) => ({ value: u.id, label: u.name, description: u.department ?? undefined }))}
+        />
 
-        <SelectField name="entityType" defaultValue={entityType ?? ""} compact>
-          <option value="">All entity types</option>
-          <option value="Archive">Archive</option>
-          <option value="File">File</option>
-          <option value="FolderTemplate">Folder Template</option>
-        </SelectField>
+        <Combobox
+          name="entityType"
+          defaultValue={entityType ?? ""}
+          placeholder="All entity types"
+          compact
+          className="w-48"
+          options={[
+            { value: "Archive", label: "Archive" },
+            { value: "File", label: "File" },
+            { value: "FolderTemplate", label: "Folder Template" },
+          ]}
+        />
 
-        <SelectField name="action" defaultValue={action ?? ""} compact>
-          <option value="">All actions</option>
-          <option value="create">Create</option>
-          <option value="edit">Edit</option>
-          <option value="delete">Delete</option>
-          <option value="hard_delete">Hard delete</option>
-          <option value="download">Download</option>
-        </SelectField>
+        <Combobox
+          name="action"
+          defaultValue={action ?? ""}
+          placeholder="All actions"
+          compact
+          className="w-40"
+          options={[
+            { value: "create", label: "Create" },
+            { value: "edit", label: "Edit" },
+            { value: "delete", label: "Delete" },
+            { value: "hard_delete", label: "Hard delete" },
+            { value: "download", label: "Download" },
+          ]}
+        />
 
-        <Button type="submit" size="sm" icon="filter_alt">
+        <Button type="submit" size="sm" icon="filter_alt" className="mt-0.5">
           Filter
         </Button>
       </form>
 
       <div className="mt-6">
-        <Table>
-          <TableHead>
-            <Th>When</Th>
-            <Th>Who</Th>
-            <Th>Action</Th>
-            <Th>Entity</Th>
-            <Th>Note</Th>
-          </TableHead>
-          <tbody>
-            {entries.map((entry) => (
-              <TableRow key={entry.id}>
-                <Td className="text-on-surface-variant">{entry.createdAt.toLocaleString()}</Td>
-                <Td>{entry.actor.name}</Td>
-                <Td>
-                  <Badge tone={ACTION_TONE[entry.action] ?? "neutral"}>{entry.action}</Badge>
-                </Td>
-                <Td className="text-on-surface-variant">
-                  {entry.entityType} · {entry.entityId.slice(0, 8)}…
-                </Td>
-                <Td className="text-on-surface-variant">{entry.note ?? "—"}</Td>
-              </TableRow>
-            ))}
-            {entries.length === 0 && <TableEmptyState colSpan={5} message="No matching audit entries." />}
-          </tbody>
-        </Table>
+        <AuditLogTable rows={entries.map(toAuditLogRow)} filters={{ actorId, entityType, action }} />
       </div>
     </main>
   );

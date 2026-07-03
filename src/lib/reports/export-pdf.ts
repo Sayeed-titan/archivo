@@ -1,7 +1,7 @@
 import "server-only";
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
-import { getFieldDef } from "./fields";
 import type { ReportRow } from "./execute";
+import type { ExportColumn } from "./export-excel";
 
 const PAGE_WIDTH = 841.89; // A4 landscape
 const PAGE_HEIGHT = 595.28;
@@ -30,9 +30,10 @@ function drawWatermark(page: import("pdf-lib").PDFPage, font: import("pdf-lib").
   }
 }
 
+// Field-agnostic: takes explicit {key, label} columns (see export-excel.ts).
 export async function buildPdfReport(
   title: string,
-  fields: string[],
+  columns: ExportColumn[],
   rows: ReportRow[],
   watermarkText?: string
 ): Promise<Buffer> {
@@ -40,10 +41,11 @@ export async function buildPdfReport(
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
 
-  const columnWidth = (PAGE_WIDTH - MARGIN * 2) / fields.length;
+  const columnWidth = (PAGE_WIDTH - MARGIN * 2) / columns.length;
   const rowsPerPage = Math.floor((PAGE_HEIGHT - MARGIN * 2 - 60) / ROW_HEIGHT);
 
-  const labels = fields.map((key) => getFieldDef(key)?.label ?? key);
+  const labels = columns.map((c) => c.label);
+  const keys = columns.map((c) => c.key);
 
   function drawHeader(page: import("pdf-lib").PDFPage, y: number) {
     if (watermarkText) drawWatermark(page, boldFont, watermarkText);
@@ -77,7 +79,7 @@ export async function buildPdfReport(
       rowsOnPage = 0;
     }
 
-    fields.forEach((key, i) => {
+    keys.forEach((key, i) => {
       const value = row[key];
       const text = value === null || value === undefined ? "-" : String(value);
       page.drawText(text.slice(0, 40), { x: MARGIN + i * columnWidth, y, size: FONT_SIZE, font });

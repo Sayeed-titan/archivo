@@ -34,6 +34,22 @@ sibling `ngo-archive/` folder at the repo root:
   `migrate resolve` in this environment — use `prisma db push` for local
   iteration; the versioned migration in `prisma/migrations/` was generated
   via `prisma migrate diff` and is what real Postgres deployments should use.
+  **It also intermittently drops live connections under concurrent load**
+  ("Server has closed the connection" / `ConnectionClosed`) — this is a
+  characteristic of the embedded engine itself, not app-level pool
+  exhaustion. `withConnectionRetry()` in `src/lib/prisma.ts` wraps the
+  hottest call sites (`getCurrentUser`/`getShellUser`/login, the
+  dashboard's concurrent `Promise.all` queries) with a backoff retry —
+  wrap any new high-fan-out query the same way rather than re-debugging
+  this. Separately: **never hard-kill (`taskkill /F`) the `next dev`
+  process in a tight loop** — repeated ungraceful kills within seconds of
+  each other can wedge the separate, long-running `prisma dev` engine
+  process itself (not just the app's pool), requiring a manual restart of
+  `prisma dev` and clearing a stale lock at
+  `%LOCALAPPDATA%\prisma-dev-nodejs\Data\durable-streams\default\`. One
+  clean restart per change, with normal wait times, is fine — a rapid
+  restart loop during testing is what causes this, confirmed by
+  reproducing and fixing it in this session.
 
 ## Demo login (after `npm run db:seed`)
 - `admin@demo-ngo.org` / `Password123!` (Administrator)
@@ -457,4 +473,299 @@ opt-out, theme note, identity card).
   theme toggle → appearance reseed → mobile). `playwright` is a
   devDependency; screenshots go to the session scratchpad. Reuse/extend
   them for future UI verification.
+
+## UX/product upgrade pass (2026-07-03, same day as the MD3 build)
+
+A large "make it feel like a real product" pass, all built on the MD3
+system above — no new design language, just more capable components and
+a few closed feature gaps. New dependencies: `@dnd-kit/core` +
+`@dnd-kit/sortable` + `@dnd-kit/modifiers` + `@dnd-kit/utilities` (drag +
+keyboard reorder), `archiver` (v8 API — `new ZipArchive({...})` +
+`.file()`/`.finalize()`, **not** the old `archiver('zip')` factory
+function; already present transitively via `exceljs` so this was a
+near-zero-cost promotion to a direct dependency).
+
+### Combobox — replaces every `<SelectField>` (`src/components/ui/combobox.tsx`)
+Hand-rolled on `Menu.tsx`'s outside-click/Escape skeleton (deliberately
+not a headless library — matches how Dialog/Menu/Snackbar were already
+built). Searchable, clearable (✕ icon or Backspace/Delete when the input
+shows a selected value verbatim), keyboard nav, optional `renderOption`
+for richer per-row info. Renders a hidden `<input type="hidden">`
+alongside the visible text input so it drop-in replaces `SelectField` in
+existing native-form-submission pages with zero server-side changes.
+`SelectField` itself still exists (unused now, kept as a plain-`<select>`
+primitive) — don't reintroduce raw `<select>` call sites, use `Combobox`.
+
+**Two real bugs found and fixed here, both worth knowing about if this
+component acts up again:**
+1. **Never pass a Server Component function prop (e.g. a custom
+   `renderOption` closure) into `Combobox` from a Server Component** —
+   it's a Client Component, and passing a function across that boundary
+   crashes the page with "Functions cannot be passed directly to Client
+   Components." (Hit on the audit-log actor filter; fixed by relying on
+   Combobox's built-in default `description` rendering instead of a
+   custom `renderOption`.)
+2. **The input used to open its dropdown `onFocus`, not just on click/
+   type/ArrowDown.** Harmless standalone, but native `<dialog>` elements
+   auto-focus their first focusable child on `showModal()` — so any
+   Combobox that happened to be the first focusable element inside a
+   `Dialog` popped its dropdown open immediately, sometimes covering the
+   dialog's own submit button (hit building the file-share dialog's
+   "Link expires" field). Fixed by moving the open-trigger to `onClick`
+   only; typing (`onChange`) and ArrowDown still open it as before.
+
+### DataTable — pagination/columns/export (`src/components/ui/data-table.tsx`, `src/hooks/use-data-table.ts`)
+Built once, composed on top of the existing `Table` primitives (which
+stay untouched elsewhere). Client-side pagination over the full fetched
+row set — not server-side LIMIT/OFFSET — matching current data volumes
+(audit-log, reports, search all cap well under 1000 rows); revisit if
+an org's data grows much past that. Column show/hide + drag/keyboard
+reorder via a `DataTableColumnPicker` popover (dnd-kit, not draggable
+`<th>` elements). Export is deliberately NOT built into the component —
+`buildExcelReport`/`buildPdfReport` (`src/lib/reports/export-*.ts`) were
+generalized to take `{key, label}[]` columns instead of report-specific
+field lookups, and each consuming page owns a tiny export route
+(`src/app/{audit-log,search}/export/route.ts`) that reruns its own query
+— no single "god route" for every entity type. Retrofitted into
+audit-log (dropped the old hard `take: 100`), the reports run page, and
+search (previously a bare `<ul>`, first real use of `Table` there).
+Dashboard's "Recent Archives" widget was deliberately **not** converted —
+it's a hard-capped 10-row preview with its own "View all → Search" link,
+not a data-management view.
+
+### Tree view + bulk zip download (`src/components/tree-view.tsx`, `tree-view-selection.tsx`)
+Two-level tree (Archive → Folders → Files) replacing the old flat
+folder-card list on the archive detail page — intentionally not a
+generic n-depth component, since `Folder` has no `parentFolderId` in the
+schema. `TreeSelectionProvider` holds a flat `Set<fileId>` as the single
+source of truth; folder/archive-level checkboxes derive
+checked/indeterminate from their descendant file ids
+(`useGroupCheckState`) rather than tracking their own state.
+`TriStateCheckbox` (`src/components/tri-state-checkbox.tsx`) sets the
+native `indeterminate` DOM property via a ref, since React has no prop
+for it. Selecting files shows a floating `BulkSelectionBar`
+(`src/components/bulk-selection-bar.tsx`) → POSTs to
+`/api/files/bulk-download`, which re-validates every file id against the
+current user's org scoping server-side (never trusts the client list)
+and streams a `ZipArchive` response. One summary `AuditLog` row per bulk
+request, but still one `FileDownload` row per file so per-file download
+counts stay accurate elsewhere.
+
+### Workflow stepper (`src/components/workflow/workflow-stepper.tsx`)
+Visualizes the org's `WorkflowState` sequence (by `order`) as a
+horizontal stepper on the archive detail page, replacing the old flat
+list of transition buttons — past states filled/checked, current
+highlighted, reachable-next-state(s) clickable. **Deliberately linear**:
+the underlying `WorkflowTransition` graph can technically connect any two
+states, not just adjacent ones in `order`, but this draws states 1..N in
+sequence regardless and just marks whichever are currently reachable —
+not a general graph layout. The settings-page editor
+(`src/app/settings/workflow/{workflow-state-editor,transition-graph}.tsx`)
+reuses the same simplification: states are a dnd-kit reorderable list,
+transitions between adjacent states render as an inline edge (click to
+see/change requirements), non-adjacent transitions list separately below
+as "Other transitions."
+
+### Reorder-and-persist pattern (folder templates, workflow states, DataTable columns)
+The same shape three times: dnd-kit `DndContext` (pointer + keyboard
+sensor) wrapping a `SortableContext`, `onDragEnd` computes the new order
+client-side for instant feedback, then a server action does a full
+`0..n-1` renumber of the whole set (`reorderFolderTemplates`,
+`reorderWorkflowStates` in their respective `src/app/actions/*.ts`) —
+never a sparse two-item swap, since `order` values aren't guaranteed
+contiguous after past deletions.
+
+**Gotcha (found and fixed this session): every `DndContext` needs an
+explicit, stable `id` prop.** dnd-kit's `useUniqueId()` falls back to a
+module-level mutable counter when no `id` is given, which increments
+differently on the server (resets every request) vs. the client
+(persists across client-side navigations) — mounting a second
+`DndContext` anywhere in the same browser session produces a
+server/client `aria-describedby` mismatch and a full **hydration error**
+that discards and re-renders the whole subtree. Confirmed by reproducing
+it (navigate folder-templates → workflow settings client-side) and
+fixing it by passing a stable id to every `DndContext`
+(`"workflow-states"`, `` `folder-templates-${categoryId}` ``, and for
+`DataTableColumnPicker`, `` `${storageKey}-columns` `` threaded through
+from `DataTable`). If a new `DndContext` is added anywhere, give it an
+explicit id from the start.
+
+### Upload progress (`src/components/upload/{use-file-upload,upload-progress-list}.tsx`)
+Server Actions can't expose upload progress (no XHR/fetch-upload-progress
+event reaches them), so the old `uploadToInbox`/`uploadToFolder` Server
+Actions were deleted and replaced with `POST /api/upload`
+(`src/app/api/upload/route.ts`) called via `XMLHttpRequest` specifically
+(not `fetch` — `xhr.upload.onprogress` is the reliable cross-browser
+signal), one XHR per file so each gets its own progress bar and
+completion checkmark rather than one aggregate bar. The shared
+folder-resolution/save/notify/storage-check logic that used to live in
+those two actions is now `processUpload()` in `src/lib/file-storage.ts`,
+called by the new route.
+
+### File preview (`src/components/file-preview/file-preview-dialog.tsx`, `/api/files/[id]/preview`)
+New inline-disposition route mirroring the download route's auth/org
+scoping and `canDownload` gate, but — like the existing thumbnail route —
+does **not** write a `FileDownload`/audit row (viewing isn't downloading).
+Per-type: image/video/audio render natively, PDF via `<iframe>` with a
+direct-link fallback, Office kinds show the file icon + existing "Open in
+editor" button when configured, everything else is download-only. No new
+embed capability for Office files beyond what the Google/Microsoft
+connector already provided — a generic in-browser Office viewer was
+explicitly descoped as a much bigger integration.
+
+### File sharing (`src/app/share/[token]/`, `/api/share/[token]/download`, `ShareLink` model)
+Public, unauthenticated link sharing, per-file only (not folder/archive —
+that's what bulk zip download covers for the authenticated case). New
+`ShareLink` model: `token` (unique, public), optional `expiresAt`/
+`maxDownloads`, `downloadCount`. The public page and download route need
+no proxy.ts changes — `protectedRoutes` only ever listed `/dashboard`,
+and `layout.tsx` already renders chrome-free for any request with no
+session cookie (same as `/login`). Download-limit enforcement is
+race-safe: the download route does `updateMany({ where: { downloadCount:
+{ lt: maxDownloads } } })` so two simultaneous requests at the last slot
+can't both succeed. Share dialog on each file row generates the link
+plus zero-dependency `wa.me`/`mailto:` share buttons (Material Symbols
+has no WhatsApp brand glyph, so a generic `chat` icon + text label is
+used instead of sourcing a one-off asset).
+
+### Roles & Permissions (`/settings/roles`, `src/app/actions/roles.ts`)
+UI for the 10 existing `Role` boolean flags — no schema change, no new
+granular permission model. Page itself gates on `canManageSettings`
+(consistent with every other `/settings/*` page); the user-role-
+assignment table additionally requires `canManageUsers` on the action
+side, since assigning a person to a role is more of a user-management
+action than a settings-shape one. Deleting a role that still has users
+assigned is blocked with a specific count in the message
+(`prisma.user.count({ where: { roleId } })` guard) rather than letting
+the required FK constraint throw. No user creation/deactivation was
+added — only role CRUD and assigning *existing* users to roles.
+
+### Profile: password change + avatar (`src/app/profile/`, `User.avatarPath`)
+`changePassword` verifies the current password via the same
+`bcrypt.compare` pattern as login, hashes the new one at the same cost
+factor `prisma/seed.ts` uses (10). `uploadAvatar`/`saveAvatar` (in
+`file-storage.ts`) is a simpler sibling of `saveUploadedFile` — no
+versioning chain, resizes to a 256×256 JPEG via `sharp` (already a
+dependency, used for watermarking) so avatars never balloon storage
+regardless of what's uploaded, stored under `storage/avatars/` (parallel
+to `storage/uploads/`). Served via `/api/users/[id]/avatar` (no audit
+write, same precedent as the thumbnail route). Shows in both the profile
+page and the top-bar `UserMenu` avatar button (falls back to computed
+initials when `avatarPath` is null, same as before).
+
+### Print-friendly reports
+Same-route approach, not a separate `/print` page: a `.no-print` utility
+class (`@media print { .no-print { display: none !important } }` in
+`globals.css`) hides the app shell's nav rail/top bar
+(`AppShell`/`PageHeader`'s back-link) and the DataTable's own toolbar/
+pager, a `PrintButton` calls `window.print()`. No page-break-per-row
+logic — browsers handle table breaking reasonably on their own.
+
+### Verification note
+Every item above was verified live (not just `tsc`/lint), including
+generating a real share link and downloading it from a completely
+separate unauthenticated `BrowserContext`, inspecting a downloaded zip's
+actual contents via `unzip -l`, and checking pixel content of a resized
+avatar via `sharp`. Two of the bugs above (Server→Client function prop,
+Combobox focus-opens-in-dialog) were caught specifically because of this
+— they wouldn't have shown up in type-checking alone.
+
+## Dashboard redesign + global ⌘K command palette (2026-07-03, same day, user-requested)
+
+### Dashboard (`src/app/dashboard/page.tsx`)
+Restructured for clearer visual hierarchy without touching
+`dashboard-data.ts`'s query shape: widened to `max-w-7xl`; header is now a
+greeting (`Good morning/afternoon/evening, {firstName}`) + org name with a
+role-gated **quick-actions row** (`Button` pills: New Archive, Migration
+Inbox, Search, Reports, Audit Log, Settings — same gating booleans as
+`AppShell`'s nav items, not duplicated logic, just re-derived per page).
+Stat cards now use a tonal icon chip (`bg-primary-container`/
+`bg-warning-container` circle) instead of a bare icon in the corner, for
+clearer scannability at a glance. Recent Archives / Recent Uploads /
+Archive by Category are now wrapped in `Card variant="elevated"` with a
+bordered header row, instead of a bare `<h2>` floating directly on the
+page background — makes the sections read as distinct panels rather than
+a continuous list. Recent Uploads now calls `fileTypeIcon()` (was
+hardcoding a single `draft` icon for every file) so it's consistent with
+the file-row and tree-view icon treatment. Backup status banner switched
+from `variant` default (outlined) to `filled` when healthy, keeping
+`outlined`+danger tone only for the overdue case, so it reads as a status
+strip rather than a full alert box on the common/healthy path.
+
+**Follow-up fix (same day): Recent Archives overflowed its card.** The
+first version kept Recent Archives as a `Date/Archive/Status/Health`
+`Table` inside a `1.6fr` column of a `grid-cols-[1.6fr_1fr]` layout. CSS
+Grid tracks (unlike flex children) don't get an implicit `min-width: 0`,
+so once the table's natural content width (four columns of badges/text,
+~530-680px depending on content) exceeded the ~370px the grid gave that
+column, the *grid track itself* expanded to fit it — pushing the card
+past the Recent Uploads column and breaking the whole row, not just
+causing an internal scrollbar. Adding `min-w-0` to the card stopped the
+grid-track blowout, but that just revealed the second problem: a 4-column
+badge-heavy table simply doesn't fit in ~370px, so the table needed
+internal horizontal scroll to reach the Health column — bad UX for a
+dashboard summary panel someone should be able to scan without touching
+it. Fixed by replacing the table with a stacked list (same pattern as
+Recent Uploads: name + date on one line, category/status/health badges
+wrapping naturally underneath) — no fixed columns, so it can't overflow
+at any width. `HealthBadge` gained a `compact` prop (drops the "(N
+missing)" suffix into a `title` tooltip) for any future dense context,
+though the list layout ended up not needing it here since badges wrap.
+
+**How to apply:** any time a `Table` (or other fixed-width content) sits
+inside a CSS Grid column — not a flex child — add `min-w-0` to the grid
+item, and check whether the column is actually wide enough for the
+content instead of assuming `overflow-x-auto` alone will fix it. A
+scrollable-inside-a-card table is an acceptable pattern for a primary/
+full-width data view (audit log, search results) but a poor one for a
+secondary dashboard summary panel — prefer a list/card layout there
+instead of fighting column widths.
+
+### Global search (`⌘K` / `Ctrl+K`, `src/components/command-palette/`)
+`CommandPalette` is mounted once in `AppShell`'s top bar (not per-page),
+so the shortcut works from anywhere in the app. Two-part result set:
+- **Quick actions** — static, role-filtered list of nav destinations
+  (same items as the nav rail, plus "New archive" and "My profile"),
+  substring-matched client-side with zero network cost.
+- **Archives + files** — fetched from a new `GET /api/search/quick`
+  route, org/visibility-scoped exactly like `search-archives.ts`
+  (reuses `archiveVisibilityWhere`), 2-character minimum, 6 results per
+  group, debounced 200ms client-side. Deliberately a separate, smaller
+  endpoint from the full `/search` page's query — this is a "jump
+  somewhere fast" lookup, not the full filterable search experience.
+
+Built on the same native `<dialog>` skeleton as `Dialog.tsx` (Escape/
+backdrop-click to close) but custom-laid-out (top-anchored, wide, no
+actions row) since a search palette isn't a confirm/form dialog. Full
+keyboard support: type to filter/search, Arrow Up/Down to move the
+active row, Enter to navigate, Escape to close.
+
+**Lint-driven refactor worth remembering**: the first draft used
+`useEffect` to (a) reset `archives`/`files` to `[]` when the query got
+too short, and (b) reset `activeIndex` to `0` whenever the result-list
+length changed. Both tripped `react-hooks/set-state-in-effect` — the
+project's ESLint config treats synchronous `setState` inside an effect
+body as an error, not a warning, so this doesn't slip through unnoticed.
+Fixed by deriving instead of syncing: results are stored keyed by the
+query they were fetched for (`{ query, archives, files }`), so a stale/
+too-short query is detected by comparing the stored key against the
+current one rather than needing an effect to clear it; `loading` is
+`trimmedQuery.length >= 2 && resultsFor.query !== trimmedQuery` (derived,
+not a separate boolean that can fall out of sync); and `activeIndex` is
+clamped at read time (`Math.min(activeIndex, items.length - 1)`) instead
+of reset via a second effect that would otherwise race the first. General
+pattern for this codebase: if an effect's only job is "call setState
+because some other state changed," that's almost always a sign the value
+should be computed during render instead.
+
+Also avoided a hydration-mismatch trap similar to the ones in
+[[gotcha-dndkit-combobox-embedded-db]]: the keyboard-shortcut hint label
+was originally going to detect `navigator.platform` (Mac → "⌘K", other →
+"Ctrl K") and `setState` from a mount effect — same class of bug as the
+`DndContext` id issue, since the server has no `navigator` and would
+render one label while the client's effect immediately overwrites it
+with another, and even a lazy `useState` initializer risks a text
+mismatch against server-rendered HTML. Sidestepped entirely by rendering
+a static, platform-agnostic "Ctrl/⌘ K" label instead — not worth the
+hydration risk for a cosmetic hint.
 

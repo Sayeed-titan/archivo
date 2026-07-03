@@ -1,8 +1,9 @@
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { AddFolderForm } from "./add-folder-form";
-import { RemoveFolderButton } from "./remove-folder-button";
-import { PageHeader, Card, Badge } from "@/components/ui";
+import { FolderTemplateList } from "./folder-template-list";
+import { PageHeader, Card } from "@/components/ui";
+import { Icon } from "@/components/icon";
 
 export default async function FolderTemplatesPage() {
   const user = await getCurrentUser();
@@ -21,33 +22,29 @@ export default async function FolderTemplatesPage() {
         backHref="/settings"
         backLabel="Settings"
         title="Folder templates"
-        subtitle="Each category has its own folder set — a Meeting doesn't need Press Release folders."
+        subtitle="Each category has its own folder set — a Meeting doesn't need Press Release folders. Drag the handle (or select it and use arrow keys) to reorder."
       />
 
-      <div className="mt-8 space-y-8">
+      <div className="mt-8 space-y-4">
         {categories.map((category) => (
-          <Card key={category.id}>
-            <h2 className="type-title-medium text-on-surface">{category.name}</h2>
-            <ul className="mt-3 divide-y divide-outline-variant/50">
-              {category.folderTemplates.map((folder) => (
-                <li key={folder.id} className="flex items-center justify-between py-2 type-body-medium text-on-surface">
-                  <span>
-                    {folder.name}
-                    {folder.isMandatory && (
-                      <Badge tone="warning" pill={false} className="ml-2">
-                        required
-                      </Badge>
-                    )}
-                  </span>
-                  {canManage && <RemoveFolderButton folderTemplateId={folder.id} />}
-                </li>
-              ))}
-              {category.folderTemplates.length === 0 && (
-                <li className="py-2 type-body-medium text-on-surface-variant">No folders configured yet.</li>
-              )}
-            </ul>
-
-            {canManage && <AddFolderForm categoryId={category.id} />}
+          <Card key={category.id} className="p-0">
+            <details open className="group">
+              <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3">
+                <Icon name="chevron_right" size={20} className="shrink-0 text-on-surface-variant transition-transform group-open:rotate-90" />
+                <span className="type-title-medium text-on-surface">{category.name}</span>
+                <span className="ml-auto type-body-small text-on-surface-variant">
+                  {category.folderTemplates.length} {category.folderTemplates.length === 1 ? "folder" : "folders"}
+                </span>
+              </summary>
+              <div className="border-t border-outline-variant/60 px-4 pb-4">
+                <FolderTemplateList
+                  categoryId={category.id}
+                  folders={category.folderTemplates.map((f) => ({ id: f.id, name: f.name, isMandatory: f.isMandatory }))}
+                  canManage={canManage}
+                />
+                {canManage && <AddFolderForm categoryId={category.id} />}
+              </div>
+            </details>
           </Card>
         ))}
       </div>

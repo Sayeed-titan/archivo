@@ -4,28 +4,23 @@ import { prisma } from "@/lib/prisma";
 import { getDashboardSummary, getRecentUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
 import { getBackupStatus } from "@/lib/backup-status";
+import { fileTypeIcon } from "@/lib/file-icon";
 import { HealthBadge } from "@/components/health-badge";
 import { Icon } from "@/components/icon";
-import {
-  Badge,
-  Card,
-  LinearProgress,
-  PageHeader,
-  Table,
-  TableHead,
-  Th,
-  Td,
-  TableRow,
-  TableEmptyState,
-  EmptyState,
-  Button,
-} from "@/components/ui";
+import { Badge, Card, LinearProgress, EmptyState, Button } from "@/components/ui";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
   Archived: "success",
   "Pending Review": "warning",
   Draft: "neutral",
 };
+
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -40,6 +35,8 @@ export default async function DashboardPage() {
   ]);
 
   const quotaBytes = org.storageQuotaBytes ? Number(org.storageQuotaBytes) : null;
+  const storageRatio = quotaBytes ? Number(summary.storageBytes) / quotaBytes : null;
+
   const summaryCards: { label: string; value: string | number; icon: string; warn?: boolean; href?: string }[] = [
     { label: "Events Archived", value: summary.eventsCount, icon: "event", href: "/search?group=events" },
     { label: "Programs Archived", value: summary.programsCount, icon: "flag", href: "/search?group=programs" },
@@ -62,46 +59,42 @@ export default async function DashboardPage() {
     { label: "Storage Used", value: formatBytes(summary.storageBytes), icon: "database" },
   ];
 
-  return (
-    <main className="mx-auto max-w-5xl p-4 sm:p-8">
-      <PageHeader
-        title={`Welcome, ${user.name}`}
-        subtitle={`${user.role.name} · ${user.department ?? "No department"}`}
-      />
+  const quickActions: { label: string; icon: string; href: string }[] = [
+    ...(user.role.canCreateArchive ? [{ label: "New Archive", icon: "add_circle", href: "/archives/new" }] : []),
+    { label: "Migration Inbox", icon: "inbox", href: "/inbox" },
+    { label: "Search", icon: "search", href: "/search" },
+    ...(user.role.canGenerateReport ? [{ label: "Reports", icon: "monitoring", href: "/reports" }] : []),
+    ...(user.role.canManageUsers ? [{ label: "Audit Log", icon: "history", href: "/audit-log" }] : []),
+    ...(user.role.canManageSettings ? [{ label: "Settings", icon: "settings", href: "/settings" }] : []),
+  ];
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {summaryCards.map((card) => {
-          const body = (
-            <Card
-              tone={card.warn ? "warn" : "default"}
-              className={`h-full rounded-lg ${card.href ? "transition-shadow hover:shadow-elevation-1" : ""}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className={`type-headline-small ${card.warn ? "" : "text-on-surface"}`}>{card.value}</p>
-                <Icon
-                  name={card.icon}
-                  size={20}
-                  className={card.warn ? "text-on-warning-container" : "text-on-surface-variant"}
-                />
-              </div>
-              <p className={`mt-1 type-body-small ${card.warn ? "" : "text-on-surface-variant"}`}>{card.label}</p>
-              {card.label === "Storage Used" && quotaBytes && (
-                <LinearProgress value={Number(summary.storageBytes) / quotaBytes} className="mt-2" />
-              )}
-            </Card>
-          );
-          return card.href ? (
-            <Link key={card.label} href={card.href} className="block">
-              {body}
-            </Link>
-          ) : (
-            <div key={card.label}>{body}</div>
-          );
-        })}
+  return (
+    <main className="mx-auto max-w-7xl p-4 sm:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="type-body-medium text-on-surface-variant">
+            {greeting()}, {user.name.split(" ")[0]}
+          </p>
+          <h1 className="type-headline-medium text-on-surface">{org.name}</h1>
+          <p className="mt-1 type-body-small text-on-surface-variant">
+            {user.role.name} · {user.department ?? "No department"}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {quickActions.map((action) => (
+            <Button key={action.href} href={action.href} variant="tonal" size="sm" icon={action.icon}>
+              {action.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {backupStatus && (
-        <Card tone={backupStatus.isOverdue ? "danger" : "default"} className="mt-4 flex items-center gap-3 py-3">
+        <Card
+          tone={backupStatus.isOverdue ? "danger" : "default"}
+          variant={backupStatus.isOverdue ? "outlined" : "filled"}
+          className="mt-5 flex items-center gap-3 py-2.5"
+        >
           <Icon
             name={backupStatus.isOverdue ? "gpp_bad" : "verified_user"}
             size={20}
@@ -121,9 +114,45 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <div>
-          <div className="flex items-center justify-between">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {summaryCards.map((card) => {
+          const body = (
+            <Card
+              variant="elevated"
+              tone={card.warn ? "warn" : "default"}
+              className={`h-full rounded-lg! p-4! ${card.href ? "transition-shadow hover:shadow-elevation-2" : ""}`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                    card.warn ? "bg-warning-container text-on-warning-container" : "bg-primary-container text-on-primary-container"
+                  }`}
+                >
+                  <Icon name={card.icon} size={20} />
+                </span>
+                <div className="min-w-0">
+                  <p className={`type-headline-small leading-tight ${card.warn ? "" : "text-on-surface"}`}>{card.value}</p>
+                  <p className={`truncate type-body-small ${card.warn ? "" : "text-on-surface-variant"}`}>{card.label}</p>
+                </div>
+              </div>
+              {card.label === "Storage Used" && storageRatio !== null && (
+                <LinearProgress value={storageRatio} className="mt-3" />
+              )}
+            </Card>
+          );
+          return card.href ? (
+            <Link key={card.label} href={card.href} className="block">
+              {body}
+            </Link>
+          ) : (
+            <div key={card.label}>{body}</div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.6fr_1fr]">
+        <Card variant="elevated" className="min-w-0 p-0!">
+          <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
             <h2 className="type-title-medium text-on-surface">Recent Archives</h2>
             <Link
               href="/search"
@@ -133,47 +162,57 @@ export default async function DashboardPage() {
               <Icon name="arrow_forward" size={14} />
             </Link>
           </div>
-          <div className="mt-2">
-            <Table>
-              <TableHead>
-                <Th>Date</Th>
-                <Th>Archive</Th>
-                <Th>Type</Th>
-                <Th>Status</Th>
-                <Th>Health</Th>
-              </TableHead>
-              <tbody>
-                {recentArchives.map((archive) => (
-                  <TableRow key={archive.id}>
-                    <Td className="text-on-surface-variant">{archive.createdAt.toLocaleDateString()}</Td>
-                    <Td className="whitespace-normal">
-                      <Link href={`/archives/${archive.id}`} className="font-medium text-on-surface hover:text-primary hover:underline">
-                        {archive.name}
-                      </Link>
-                    </Td>
-                    <Td className="text-on-surface-variant">{archive.category?.name ?? "Uncategorized"}</Td>
-                    <Td>
-                      <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
-                    </Td>
-                    <Td>
-                      <HealthBadge health={archive.health} />
-                    </Td>
-                  </TableRow>
-                ))}
-                {recentArchives.length === 0 && <TableEmptyState colSpan={5} message="No archives yet — create the first one." />}
-              </tbody>
-            </Table>
-          </div>
-        </div>
+          {recentArchives.length > 0 ? (
+            <ul className="divide-y divide-outline-variant/60">
+              {recentArchives.map((archive) => (
+                <li key={archive.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <Link
+                      href={`/archives/${archive.id}`}
+                      className="truncate font-medium text-on-surface hover:text-primary hover:underline"
+                    >
+                      {archive.name}
+                    </Link>
+                    <span className="whitespace-nowrap type-body-small text-on-surface-variant">
+                      {archive.createdAt.toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="type-body-small text-on-surface-variant">
+                      {archive.category?.name ?? "Uncategorized"}
+                    </span>
+                    <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
+                    <HealthBadge health={archive.health} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              icon="folder_off"
+              title="No archives yet"
+              description="Create the first one to get started."
+              action={
+                user.role.canCreateArchive ? (
+                  <Button href="/archives/new" variant="tonal" size="sm">
+                    New Archive
+                  </Button>
+                ) : undefined
+              }
+            />
+          )}
+        </Card>
 
-        <div>
-          <h2 className="type-title-medium text-on-surface">Recent Uploads</h2>
-          <div className="mt-2 overflow-hidden rounded-md border border-outline-variant bg-surface">
+        <div className="flex flex-col gap-5">
+          <Card variant="elevated" className="p-0!">
+            <div className="border-b border-outline-variant px-4 py-3">
+              <h2 className="type-title-medium text-on-surface">Recent Uploads</h2>
+            </div>
             {recentUploads.length > 0 ? (
               <ul className="divide-y divide-outline-variant/60">
                 {recentUploads.map((file) => (
-                  <li key={file.id} className="flex items-start gap-3 px-3 py-2.5">
-                    <Icon name="draft" size={20} className="mt-0.5 text-on-surface-variant" />
+                  <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+                    <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 text-on-surface-variant" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate type-body-medium text-on-surface">{file.filename}</span>
@@ -200,17 +239,22 @@ export default async function DashboardPage() {
                 }
               />
             )}
-          </div>
+          </Card>
 
-          <h2 className="mt-6 type-title-medium text-on-surface">Archive by Category</h2>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <Badge key={category.id} tone="neutral">
-                {category.name}
-                <span className="text-on-surface-variant/70">{category._count.archives}</span>
-              </Badge>
-            ))}
-          </div>
+          <Card variant="elevated" className="p-0!">
+            <div className="border-b border-outline-variant px-4 py-3">
+              <h2 className="type-title-medium text-on-surface">Archive by Category</h2>
+            </div>
+            <div className="flex flex-wrap gap-2 p-4">
+              {categories.map((category) => (
+                <Badge key={category.id} tone="neutral">
+                  {category.name}
+                  <span className="text-on-surface-variant/70">{category._count.archives}</span>
+                </Badge>
+              ))}
+              {categories.length === 0 && <p className="type-body-small text-on-surface-variant">No categories yet.</p>}
+            </div>
+          </Card>
         </div>
       </div>
     </main>

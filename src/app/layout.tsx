@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import localFont from "next/font/local";
 import { getShellUser } from "@/lib/dal";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { buildThemeCss, resolveThemeMode, DEFAULT_THEME, normalizeShape, normalizeFontScale } from "@/lib/theme/css";
 import { AppShell } from "@/components/shell/app-shell";
 import { SnackbarProvider } from "@/components/ui/snackbar";
@@ -49,11 +49,13 @@ export default async function RootLayout({
   const resolvedMode = user ? resolveThemeMode(org?.themeMode, user.themePreference) : "system";
 
   const notifications = user
-    ? await prisma.notification.findMany({
-        where: { recipientId: user.id },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      })
+    ? await withConnectionRetry(() =>
+        prisma.notification.findMany({
+          where: { recipientId: user.id },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        })
+      )
     : [];
 
   return (

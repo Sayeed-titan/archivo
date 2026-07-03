@@ -1,19 +1,21 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
 import { resolveArchiveHealthBatch } from "@/lib/workflow/health";
 import type { User, Role } from "@/generated/prisma/client";
 
 export async function getRecentArchivesWithHealth(user: User & { role: Role }, take = 10) {
-  const archives = await prisma.archive.findMany({
-    where: { ...archiveVisibilityWhere(user), isMigrationInbox: false },
-    orderBy: { createdAt: "desc" },
-    take,
-    include: {
-      category: true,
-      folders: { select: { isMandatory: true, files: { where: { isLatest: true, deletedAt: null }, select: { id: true } } } },
-    },
-  });
+  const archives = await withConnectionRetry(() =>
+    prisma.archive.findMany({
+      where: { ...archiveVisibilityWhere(user), isMigrationInbox: false },
+      orderBy: { createdAt: "desc" },
+      take,
+      include: {
+        category: true,
+        folders: { select: { isMandatory: true, files: { where: { isLatest: true, deletedAt: null }, select: { id: true } } } },
+      },
+    })
+  );
 
   const missingCounts = archives.map((archive) => ({
     status: archive.status,

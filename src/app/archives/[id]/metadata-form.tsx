@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { updateArchiveMetadata, type UpdateMetadataState } from "@/app/actions/archives";
 import type { Archive } from "@/generated/prisma/client";
-import { TextField, SelectField, TextareaField, Button, Card } from "@/components/ui";
+import { TextField, Combobox, TextareaField, Button, Card } from "@/components/ui";
 
 export function MetadataForm({
   archive,
@@ -34,22 +34,22 @@ export function MetadataForm({
           <TextField name="venue" label="Venue" defaultValue={archive.venue ?? ""} compact />
           <TextField name="organizer" label="Organizer" defaultValue={archive.organizer ?? ""} compact />
           <TextField name="coordinator" label="Coordinator" defaultValue={archive.coordinator ?? ""} compact />
-          <SelectField name="donor" label="Donor" defaultValue={archive.donor ?? ""} compact>
-            <option value="">—</option>
-            {donors.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </SelectField>
-          <SelectField name="projectName" label="Project" defaultValue={archive.projectName ?? ""} compact>
-            <option value="">—</option>
-            {projects.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </SelectField>
+          <Combobox
+            name="donor"
+            label="Donor"
+            defaultValue={archive.donor ?? ""}
+            compact
+            placeholder="—"
+            options={donors.map((d) => ({ value: d, label: d }))}
+          />
+          <Combobox
+            name="projectName"
+            label="Project"
+            defaultValue={archive.projectName ?? ""}
+            compact
+            placeholder="—"
+            options={projects.map((p) => ({ value: p, label: p }))}
+          />
         </div>
 
         <TextareaField

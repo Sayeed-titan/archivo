@@ -5,7 +5,9 @@ import { runReport } from "@/lib/reports/execute";
 import { getFieldDef } from "@/lib/reports/fields";
 import { parseFilters } from "@/lib/reports/filters";
 import { DeleteReportButton } from "./delete-report-button";
-import { PageHeader, Button, Table, TableHead, Th, Td, TableRow, TableEmptyState } from "@/components/ui";
+import { ReportRunTable } from "./report-run-table";
+import { PrintButton } from "./print-button";
+import { PageHeader, Button } from "@/components/ui";
 
 export default async function ReportRunPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -33,7 +35,8 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
         title={template.name}
         subtitle={template.description}
         actions={
-          <>
+          <span className="no-print flex flex-wrap items-center gap-2">
+            <PrintButton />
             <Button href={`/reports/${template.id}/export?format=excel`} variant="outlined" icon="table_chart">
               Export Excel
             </Button>
@@ -41,7 +44,7 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
               Export PDF
             </Button>
             {!template.isSystemDefault && <DeleteReportButton templateId={template.id} />}
-          </>
+          </span>
         }
       />
 
@@ -50,23 +53,12 @@ export default async function ReportRunPage({ params }: { params: Promise<{ id: 
       </p>
 
       <div className="mt-2">
-        <Table>
-          <TableHead>
-            {fields.map((key) => (
-              <Th key={key}>{getFieldDef(key)?.label ?? key}</Th>
-            ))}
-          </TableHead>
-          <tbody>
-            {rows.map((row, i) => (
-              <TableRow key={i}>
-                {fields.map((key) => (
-                  <Td key={key}>{row[key] ?? "—"}</Td>
-                ))}
-              </TableRow>
-            ))}
-            {rows.length === 0 && <TableEmptyState colSpan={fields.length} message="No matching archives." />}
-          </tbody>
-        </Table>
+        <ReportRunTable
+          rows={rows.map((row, i) => ({ ...row, __rowId: String(i) }))}
+          fields={fields}
+          fieldLabels={Object.fromEntries(fields.map((key) => [key, getFieldDef(key)?.label ?? key]))}
+          storageKey={`report-table:${template.id}`}
+        />
       </div>
     </main>
   );

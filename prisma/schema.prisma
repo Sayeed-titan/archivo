@@ -51,6 +51,7 @@ model Organization {
   notifications   Notification[]
   workflowStates      WorkflowState[]
   workflowTransitions WorkflowTransition[]
+  shareLinks          ShareLink[]
 
   @@map("organizations")
 }
@@ -218,6 +219,9 @@ model User {
   // Per-user light/dark override: "light" | "dark" | "system" | null
   // (null = follow the org's themeMode default). Toggled from the top app bar.
   themePreference String?
+  // Profile photo, stored under storage/avatars/ (see src/lib/file-storage.ts).
+  // Null = fall back to computed initials, same as today.
+  avatarPath     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -230,6 +234,7 @@ model User {
   connectedIntegrations OrgIntegration[]
   reportTemplates   ReportTemplate[]
   notifications     Notification[]
+  shareLinks        ShareLink[]
 
   @@unique([organizationId, email])
   @@map("users")
@@ -399,9 +404,36 @@ model File {
   previousVersion File?          @relation("FileVersionHistory", fields: [previousVersionId], references: [id])
   nextVersion     File?          @relation("FileVersionHistory")
   externalDocLink ExternalDocLink?
+  shareLinks      ShareLink[]
 
   @@index([folderId, isLatest])
   @@map("files")
+}
+
+// Public, unauthenticated file sharing (point 15 of the UI upgrade plan):
+// a token grants access to exactly one File without requiring the
+// recipient to have an Archivo login — meant for sharing via WhatsApp/
+// email to people outside the organization. Scoped to a single file, not
+// a folder/archive (bulk multi-file sharing stays an authenticated,
+// in-app action — see the bulk zip download feature).
+model ShareLink {
+  id             String    @id @default(cuid())
+  organizationId String
+  fileId         String
+  token          String    @unique @default(cuid())
+  createdById    String
+  expiresAt      DateTime?
+  maxDownloads   Int?
+  downloadCount  Int       @default(0)
+  createdAt      DateTime  @default(now())
+  revokedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  file         File         @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([fileId])
+  @@map("share_links")
 }
 
 // Pluggable "open in" integration (Prompt 4): a File can be linked to a

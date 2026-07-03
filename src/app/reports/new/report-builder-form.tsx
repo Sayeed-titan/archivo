@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { saveReportTemplate, type SaveTemplateState } from "@/app/actions/reports";
 import type { ReportFieldDef, ReportFieldType } from "@/lib/reports/fields";
-import { TextField, SelectField, CheckboxField, Button } from "@/components/ui";
+import { TextField, Combobox, CheckboxField, Button } from "@/components/ui";
 
 type FilterRow = { field: string; operator: string; value: string };
 
@@ -83,29 +83,23 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
             const fieldDef = filterableFields.find((f) => f.key === filter.field);
             const type: ReportFieldType = fieldDef?.type ?? "text";
             return (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <SelectField
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <Combobox
                   value={filter.field}
-                  onChange={(e) => updateFilter(i, { field: e.target.value, operator: "equals" })}
+                  onValueChange={(v) => updateFilter(i, { field: v, operator: "equals" })}
                   compact
-                >
-                  {filterableFields.map((f) => (
-                    <option key={f.key} value={f.key}>
-                      {f.label}
-                    </option>
-                  ))}
-                </SelectField>
-                <SelectField
+                  clearable={false}
+                  className="min-w-0 flex-1"
+                  options={filterableFields.map((f) => ({ value: f.key, label: f.label }))}
+                />
+                <Combobox
                   value={filter.operator}
-                  onChange={(e) => updateFilter(i, { operator: e.target.value })}
+                  onValueChange={(v) => updateFilter(i, { operator: v })}
                   compact
-                >
-                  {OPERATORS_BY_TYPE[type].map((op) => (
-                    <option key={op.value} value={op.value}>
-                      {op.label}
-                    </option>
-                  ))}
-                </SelectField>
+                  clearable={false}
+                  className="min-w-0 flex-1"
+                  options={OPERATORS_BY_TYPE[type]}
+                />
                 <TextField
                   value={filter.value}
                   onChange={(e) => updateFilter(i, { value: e.target.value })}
@@ -113,7 +107,7 @@ export function ReportBuilderForm({ fields }: { fields: ReportFieldDef[] }) {
                   compact
                   className="flex-1"
                 />
-                <Button type="button" onClick={() => removeFilter(i)} variant="text-error" size="inline">
+                <Button type="button" onClick={() => removeFilter(i)} variant="text-error" size="inline" className="mt-2.5">
                   remove
                 </Button>
               </div>

@@ -53,6 +53,25 @@ export async function addWorkflowState(_state: AddStateState, formData: FormData
   revalidatePath("/settings/workflow");
 }
 
+// Same full-renumber pattern as reorderFolderTemplates (see
+// src/app/actions/folder-templates.ts) — order values aren't guaranteed
+// contiguous after past deletions, so always renumber the whole set.
+export async function reorderWorkflowStates(orderedIds: string[]) {
+  const user = await getCurrentUser();
+  requirePermission(user.role, "canManageSettings", "manage the workflow");
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.workflowState.update({
+        where: { id, organizationId: user.organizationId },
+        data: { order: index },
+      })
+    )
+  );
+
+  revalidatePath("/settings/workflow");
+}
+
 export async function removeWorkflowState(stateId: string) {
   const user = await getCurrentUser();
   requirePermission(user.role, "canManageSettings", "manage the workflow");

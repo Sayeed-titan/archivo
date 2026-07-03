@@ -12,7 +12,19 @@ function initialsOf(name: string): string {
 }
 
 // Avatar menu: identity header, profile link, sign out.
-export function UserMenu({ name, email, roleName }: { name: string; email: string; roleName: string }) {
+export function UserMenu({
+  userId,
+  name,
+  email,
+  roleName,
+  avatarPath,
+}: {
+  userId: string;
+  name: string;
+  email: string;
+  roleName: string;
+  avatarPath: string | null;
+}) {
   return (
     <Menu
       align="end"
@@ -24,11 +36,16 @@ export function UserMenu({ name, email, roleName }: { name: string; email: strin
           aria-label={`Account: ${name}`}
           aria-expanded={open}
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full bg-primary-container type-label-large text-on-primary-container transition-shadow hover:shadow-elevation-1",
+            "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary-container type-label-large text-on-primary-container transition-shadow hover:shadow-elevation-1",
             open && "outline-2 outline-offset-2 outline-primary"
           )}
         >
-          {initialsOf(name)}
+          {avatarPath ? (
+            // eslint-disable-next-line @next/next/no-img-element -- served from a dynamic API route, not a static asset next/image can optimize
+            <img src={`/api/users/${userId}/avatar`} alt="" className="h-full w-full object-cover" />
+          ) : (
+            initialsOf(name)
+          )}
         </button>
       )}
     >

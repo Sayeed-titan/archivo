@@ -159,3 +159,15 @@ body {
 main {
   min-width: 0;
 }
+
+/* ── Print support ────────────────────────────────────────────────────
+   Elements tagged .no-print (the app shell's nav rail/top bar, and any
+   page-level action row that doesn't belong on paper) are hidden when
+   printing via window.print() — see the report run page's Print button.
+   No page-break-per-row logic is attempted; browser print engines break
+   tables reasonably well on their own. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

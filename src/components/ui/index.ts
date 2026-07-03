@@ -1,10 +1,16 @@
 export { Button, type ButtonProps } from "./button";
 export { IconButton, type IconButtonProps } from "./icon-button";
 export { TextField, TextareaField, SelectField, CheckboxField, SwitchField } from "./form-field";
+export { Combobox, type ComboboxOption } from "./combobox";
+export { ClearableSearchField } from "./clearable-search-field";
 export { Badge, type BadgeProps } from "./badge";
 export { Card, type CardProps } from "./card";
 export { PageHeader } from "./page-header";
 export { Table, TableHead, Th, Td, TableRow, TableEmptyState } from "./table";
+export { DataTable } from "./data-table";
+export type { DataTableColumn } from "@/hooks/use-data-table";
+export { DataTablePager } from "./data-table-pager";
+export { DataTableColumnPicker } from "./data-table-column-picker";
 export { Dialog, ConfirmSubmitButton } from "./dialog";
 export { SnackbarProvider, SnackbarOnMount, useSnackbar } from "./snackbar";
 export { CircularProgress, LinearProgress } from "./progress";
