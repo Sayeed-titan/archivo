@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "concurrently -n db,app -c blue,green --kill-others \"npx prisma dev\" \"next dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -54,6 +55,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",

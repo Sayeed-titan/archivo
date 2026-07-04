@@ -3,6 +3,7 @@ import { CommandPalette, type QuickAction } from "@/components/command-palette/c
 import { NavRail, MobileNav, BrandMark, type NavItem } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
+import { NavDepthTracker } from "@/components/ui/back-link";
 import type { ThemeMode } from "@/lib/theme/css";
 
 type ShellUser = {
@@ -52,6 +53,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh">
+      <NavDepthTracker />
       <div className="no-print contents">
         <NavRail items={navItems} fabHref={fabHref} />
       </div>

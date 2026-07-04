@@ -25,6 +25,8 @@ export default async function AuditLogPage({
   return (
     <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <PageHeader
+        backHref="/dashboard"
+        backLabel="Dashboard"
         title="Audit trail"
         subtitle="Every create, edit, delete, and download action, logged."
       />

@@ -19,6 +19,8 @@ export default async function ReportsPage() {
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <PageHeader
+        backHref="/dashboard"
+        backLabel="Dashboard"
         title="Reports"
         subtitle="Run a saved template, or build a new one from any combination of fields and filters."
         actions={

@@ -43,7 +43,7 @@ type ComboboxProps<T extends ComboboxOption> = {
 const controlClasses =
   "w-full rounded-xs border border-outline bg-surface pl-3 pr-16 py-2 type-body-medium text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:border-on-surface-12 disabled:bg-on-surface-8 disabled:text-on-surface/38";
 const compactControlClasses =
-  "rounded-xs border border-outline bg-surface pl-2 pr-14 py-1 type-body-medium text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
+  "w-full rounded-xs border border-outline bg-surface pl-2 pr-14 py-1 type-body-medium text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
 
 export function Combobox<T extends ComboboxOption>({
   name,

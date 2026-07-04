@@ -22,6 +22,8 @@ export default async function InboxPage() {
   return (
     <main className="mx-auto max-w-2xl p-4 sm:p-8">
       <PageHeader
+        backHref="/dashboard"
+        backLabel="Dashboard"
         title="Migration Inbox"
         subtitle="Drop old or backlog files here with zero metadata — sort them into real archives later."
       />

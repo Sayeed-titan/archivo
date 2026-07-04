@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Icon } from "@/components/icon";
+import { BackLink } from "./back-link";
 import type { ReactNode } from "react";
 
 // Page header: optional back link + MD3 headline + optional supporting
@@ -19,15 +18,7 @@ export function PageHeader({
 }) {
   return (
     <div>
-      {backHref && (
-        <Link
-          href={backHref}
-          className="no-print inline-flex items-center gap-1 rounded-full py-1 pl-1 pr-3 type-label-large text-on-surface-variant transition-colors hover:bg-on-surface-8 hover:text-on-surface"
-        >
-          <Icon name="arrow_back" size={18} />
-          {backLabel}
-        </Link>
-      )}
+      {backHref && <BackLink href={backHref} label={backLabel} />}
       <div className={`flex flex-wrap items-center justify-between gap-3 ${backHref ? "mt-3" : ""}`}>
         <div>
           <h1 className="type-headline-small text-on-surface">{title}</h1>

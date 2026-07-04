@@ -58,6 +58,8 @@ export default async function SettingsHubPage() {
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
       <PageHeader
+        backHref="/dashboard"
+        backLabel="Dashboard"
         title="Settings"
         subtitle="Workspace configuration. Changes here apply to everyone in the organization."
       />

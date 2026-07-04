@@ -38,6 +38,8 @@ export default async function SearchPage({
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
       <PageHeader
+        backHref="/dashboard"
+        backLabel="Dashboard"
         title="Search archives"
         subtitle="Search by event/program name, venue, organizer, donor, project, keyword, or filename."
       />
