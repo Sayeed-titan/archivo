@@ -127,17 +127,20 @@ export function MobileNav({
 export function BrandMark({ orgName }: { orgName: string }) {
   return (
     <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-      {/* White backdrop keeps the dark-ink logo legible on dark surfaces */}
-      <span className="shrink-0 rounded-sm bg-white px-1.5 py-1">
-        <Image
-          src="/spellbound-network-logo.png"
-          alt="Spellbound Network"
-          width={4331}
-          height={2100}
-          priority
-          className="h-7 w-auto"
-        />
-      </span>
+      {/* Logo is a black PNG with no backdrop needed on light surfaces;
+          .brand-logo (globals.css) inverts it to white in dark mode
+          instead of shipping a second asset or a white backdrop plate —
+          this app themes via html[data-theme], not Tailwind's dark:
+          class/media variant, so the invert has to be a plain CSS rule
+          keyed off that attribute. */}
+      <Image
+        src="/spellbound-network-logo.png"
+        alt="Spellbound Network"
+        width={4331}
+        height={2100}
+        priority
+        className="brand-logo h-20 w-auto shrink-0"
+      />
       <span className="hidden min-w-0 flex-col sm:flex">
         <span className="truncate type-title-medium text-on-surface">{orgName}</span>
         <span className="type-label-small uppercase tracking-wide text-on-surface-variant">Archive Management</span>
