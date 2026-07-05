@@ -19,6 +19,7 @@ type TransitionItem = { id: string; fromState: string; toState: string; requirem
 export function TransitionGraph({ states, transitions }: { states: StateItem[]; transitions: TransitionItem[] }) {
   const ordered = [...states].sort((a, b) => a.order - b.order);
   const [openId, setOpenId] = useState<string | null>(null);
+  const openTransition = transitions.find((t) => t.id === openId);
 
   const adjacentEdges: (TransitionItem | undefined)[] = [];
   const nonAdjacent: TransitionItem[] = [];
@@ -61,9 +62,7 @@ export function TransitionGraph({ states, transitions }: { states: StateItem[]; 
         ))}
       </div>
 
-      {openId && (
-        <TransitionDetail transition={transitions.find((t) => t.id === openId)!} />
-      )}
+      {openTransition && <TransitionDetail transition={openTransition} />}
 
       {nonAdjacent.length > 0 && (
         <div>

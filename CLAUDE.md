@@ -769,3 +769,53 @@ mismatch against server-rendered HTML. Sidestepped entirely by rendering
 a static, platform-agnostic "Ctrl/⌘ K" label instead — not worth the
 hydration risk for a cosmetic hint.
 
+## Workflow settings fixes: state pinning, crash fix, row actions (2026-07-05)
+
+**Bug fixed — `TransitionDetail` crash on `t.fromState` of `undefined`**:
+`transition-graph.tsx`'s open-detail-panel state (`openId`) was looked up
+against the live `transitions` list with a trusting `.find(...)!`. Removing
+the currently-open transition left `openId` pointing at a row that no
+longer existed after the server revalidated, so `.find()` returned
+`undefined` and the `!` lied to TypeScript. Fixed by deriving
+`openTransition = transitions.find(...)` once per render (no `!`) and
+conditionally rendering — a stale id now just closes the panel instead of
+crashing. General lesson for this codebase: any client id/ref into a list
+that a server action can delete out from under it needs to tolerate a miss.
+
+**States are now auto-pinned, not just clamped**: initial is always
+rendered first, terminal state(s) always last, and neither is draggable —
+`workflow-state-editor.tsx` filters them out of the `SortableContext`
+entirely (rendered as separate fixed `PinnedStateRow`s with a pin icon
+instead of a drag handle) rather than allowing the drag and clamping the
+drop target, which was a more complex first attempt. `addWorkflowState`
+inserts new states at the matching end automatically (new initial takes
+slot 0 and shifts everything else down; new terminal appends at the end;
+a new plain state inserts just before the first terminal state) and
+rejects a second initial state or a state marked both initial and terminal.
+
+**Row actions**: each state row now reveals a `⋮` icon-button on hover
+(`group-hover`/`group-focus-within`, using the existing `Menu`/`MenuItem`
+primitive from the avatar menu) with Edit / Duplicate / Delete.
+- **Edit** (`edit-state-dialog.tsx`) opens a `Dialog` with name +
+  initial/terminal checkboxes, backed by a new `updateWorkflowState` server
+  action. **Renaming cascades**: `WorkflowTransition.fromState`/`toState`
+  and `Archive.status` are plain strings matched against
+  `WorkflowState.name` (not a foreign key — see the schema comment), so a
+  rename that only touched the `WorkflowState` row would silently orphan
+  every transition and leave existing archives' status unresolvable. The
+  action renames all three in one `$transaction`. Verified live: renaming
+  a state mid-sequence immediately updated its transition edge's label
+  with no reload.
+- **Duplicate** (`duplicateWorkflowState`) copies a state as `"<name>
+  (copy)"` (incrementing on collision), always as a plain non-pinned state
+  regardless of the source's flags — there's no meaningful "duplicate the
+  pin," since initial must stay unique.
+- **Delete** reuses the existing `removeWorkflowState`, restyled
+  (`RemoveStateButton`'s new `asMenuItem` prop) to render as a menu item
+  instead of a standalone text button.
+
+Verified end-to-end via a live Playwright walk (add → hover → menu open →
+duplicate → edit/rename → delete), confirming zero console/page errors and
+correct positioning/cascading at every step, then cleaned up the temporary
+test states from the demo org afterward.
+
