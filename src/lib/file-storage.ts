@@ -5,9 +5,10 @@ import path from "path";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { classifyFileType } from "@/lib/file-type";
-import { extractVideoDuration, generateVideoThumbnail } from "@/lib/video-processing";
+import { extractVideoDuration, extractVideoResolution, generateVideoThumbnail } from "@/lib/video-processing";
 import { notify } from "@/lib/notifications";
 import { checkStorageLimit } from "@/lib/storage-usage";
+import { parseFolderRules, type FolderRules, type FileTypeCategory } from "@/lib/folder-rules";
 import type { User } from "@/generated/prisma/client";
 
 export const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
@@ -16,7 +17,7 @@ export const AVATAR_STORAGE_ROOT = path.join(process.cwd(), "storage", "avatars"
 // SRS.md FR-4.4 (HANDOFF.md point 5): re-uploading a file with the same
 // name in the same folder creates a new version instead of overwriting —
 // the previous version is kept, just no longer flagged isLatest.
-export async function saveUploadedFile(folderId: string, file: File, user: User) {
+export async function saveUploadedFile(folderId: string, file: File, user: User, alternateOptionLabel?: string | null) {
   await mkdir(STORAGE_ROOT, { recursive: true });
 
   const storedName = `${randomUUID()}-${file.name}`;
@@ -58,6 +59,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
           previousVersionId: existing.id,
           durationSeconds,
           thumbnailPath,
+          alternateOptionLabel: alternateOptionLabel || null,
         },
       }),
     ]);
@@ -75,8 +77,74 @@ export async function saveUploadedFile(folderId: string, file: File, user: User)
       uploadedById: user.id,
       durationSeconds,
       thumbnailPath,
+      alternateOptionLabel: alternateOptionLabel || null,
     },
   });
+}
+
+// Checked before saveUploadedFile persists anything, so a rejected upload
+// never touches disk or the DB. Returns null when the file passes every
+// configured rule, or a message describing the first rule it fails.
+// `offerExternalLink` is set only for the size-exceeded case when the
+// folder's rules explicitly allow the link fallback — every other failure
+// is a hard rejection with no alternative.
+type RuleCheckResult = { ok: true } | { ok: false; message: string; offerExternalLink?: true };
+
+async function checkFolderRules(rules: FolderRules, folderId: string, file: File): Promise<RuleCheckResult> {
+  const fileType = classifyFileType(file.name) as FileTypeCategory;
+
+  if (rules.allowedFileTypes?.length && !rules.allowedFileTypes.includes(fileType)) {
+    return { ok: false, message: `This folder only accepts: ${rules.allowedFileTypes.join(", ")}.` };
+  }
+
+  if (rules.maxSizeBytes && file.size > rules.maxSizeBytes) {
+    const maxMb = (rules.maxSizeBytes / (1024 * 1024)).toFixed(1);
+    if (rules.externalLinkFallback?.enabled) {
+      return {
+        ok: false,
+        offerExternalLink: true,
+        message: rules.externalLinkFallback.helpText || `File exceeds the ${maxMb} MB limit for this folder. Share an external link instead.`,
+      };
+    }
+    return { ok: false, message: `File exceeds the ${maxMb} MB limit for this folder.` };
+  }
+
+  if (rules.minResolution && (fileType === "image" || fileType === "video")) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    let resolution: { width: number; height: number } | null = null;
+
+    if (fileType === "image") {
+      try {
+        const metadata = await sharp(buffer).metadata();
+        if (metadata.width && metadata.height) resolution = { width: metadata.width, height: metadata.height };
+      } catch {
+        resolution = null;
+      }
+    } else {
+      const tempPath = path.join(STORAGE_ROOT, `${randomUUID()}-${file.name}`);
+      await mkdir(STORAGE_ROOT, { recursive: true });
+      await writeFile(tempPath, buffer);
+      resolution = await extractVideoResolution(tempPath);
+      await unlink(tempPath).catch(() => {});
+    }
+
+    if (!resolution || resolution.width < rules.minResolution.width || resolution.height < rules.minResolution.height) {
+      return {
+        ok: false,
+        message: `Minimum resolution for this folder is ${rules.minResolution.width}×${rules.minResolution.height}.`,
+      };
+    }
+  }
+
+  const maxCount = rules.counts?.[fileType]?.max;
+  if (maxCount !== undefined) {
+    const currentCount = await prisma.file.count({ where: { folderId, fileType, isLatest: true, deletedAt: null } });
+    if (currentCount >= maxCount) {
+      return { ok: false, message: `This folder already has the maximum of ${maxCount} ${fileType} file(s).` };
+    }
+  }
+
+  return { ok: true };
 }
 
 export type ProcessUploadTarget =
@@ -85,7 +153,7 @@ export type ProcessUploadTarget =
 
 export type ProcessUploadResult =
   | { ok: true }
-  | { ok: false; message: string };
+  | { ok: false; message: string; offerExternalLink?: true };
 
 // Shared single-file upload pipeline used by both the legacy form-action
 // path (src/app/actions/files.ts) and the progress-capable API route
@@ -95,7 +163,12 @@ export type ProcessUploadResult =
 // upload-completed notification + storage-limit check uploadToFolder
 // always has. One file per call so the API route can report progress
 // and per-file completion independently.
-export async function processUpload(target: ProcessUploadTarget, file: File, user: User): Promise<ProcessUploadResult> {
+export async function processUpload(
+  target: ProcessUploadTarget,
+  file: File,
+  user: User,
+  alternateOptionLabel?: string | null
+): Promise<ProcessUploadResult> {
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, message: "Empty or invalid file." };
   }
@@ -126,7 +199,7 @@ export async function processUpload(target: ProcessUploadTarget, file: File, use
   } else {
     const folder = await prisma.folder.findFirst({
       where: { id: target.folderId, archive: { id: target.archiveId, organizationId: user.organizationId } },
-      include: { archive: true },
+      include: { archive: true, folderTemplate: true },
     });
     if (!folder) {
       return { ok: false, message: "Folder not found." };
@@ -136,10 +209,34 @@ export async function processUpload(target: ProcessUploadTarget, file: File, use
     folderName = folder.name;
     archiveCreatedById = folder.archive.createdById;
     archiveName = folder.archive.name;
+
+    // Rules are looked up live from the linked FolderTemplate — folders
+    // with no link (pre-existing archives, or the inbox's Unsorted folder)
+    // simply have nothing to enforce.
+    if (folder.folderTemplate) {
+      const rules = parseFolderRules(folder.folderTemplate.rules);
+      const check = await checkFolderRules(rules, folderId, file);
+      if (!check.ok) {
+        return { ok: false, message: check.message, offerExternalLink: check.offerExternalLink };
+      }
+    }
   }
 
-  const created = await saveUploadedFile(folderId, file, user);
+  const created = await saveUploadedFile(folderId, file, user, alternateOptionLabel);
 
+  await recordUploadCompletion(created, user, { archiveId, archiveCreatedById, archiveName, folderName, isFolderTarget: target.kind === "folder" });
+
+  return { ok: true };
+}
+
+// Shared by processUpload and submitExternalFileLink so the audit log +
+// upload-completed notification + storage-limit check aren't duplicated
+// across the two upload paths.
+async function recordUploadCompletion(
+  created: { id: string; version: number },
+  user: User,
+  ctx: { archiveId: string | null; archiveCreatedById: string | null; archiveName: string; folderName: string; isFolderTarget: boolean }
+) {
   await prisma.auditLog.create({
     data: {
       organizationId: user.organizationId,
@@ -151,19 +248,86 @@ export async function processUpload(target: ProcessUploadTarget, file: File, use
     },
   });
 
-  if (target.kind === "folder" && archiveId && archiveCreatedById && archiveCreatedById !== user.id) {
+  if (ctx.isFolderTarget && ctx.archiveId && ctx.archiveCreatedById && ctx.archiveCreatedById !== user.id) {
     await notify(
       user.organizationId,
-      archiveCreatedById,
+      ctx.archiveCreatedById,
       "upload_completed",
-      `${user.name} uploaded 1 file(s) to "${archiveName}" / ${folderName}`,
-      `/archives/${archiveId}`
+      `${user.name} uploaded 1 file(s) to "${ctx.archiveName}" / ${ctx.folderName}`,
+      `/archives/${ctx.archiveId}`
     );
   }
 
-  if (target.kind === "folder") {
+  if (ctx.isFolderTarget) {
     await checkStorageLimit(user.organizationId);
   }
+}
+
+export type SubmitExternalLinkResult = { ok: true } | { ok: false; message: string };
+
+// Fallback for FolderRules.externalLinkFallback: creates a real File row
+// with isExternalLink instead of storing bytes on disk — still subject to
+// the same per-type count rules as a normal upload, and shows up in the
+// folder/tree-view as a link-out row (see file-row.tsx).
+export async function submitExternalFileLink(
+  archiveId: string,
+  folderId: string,
+  url: string,
+  user: User,
+  label?: string | null
+): Promise<SubmitExternalLinkResult> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { ok: false, message: "Please enter a valid URL." };
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return { ok: false, message: "Please enter a valid http(s) URL." };
+  }
+
+  const folder = await prisma.folder.findFirst({
+    where: { id: folderId, archive: { id: archiveId, organizationId: user.organizationId } },
+    include: { archive: true, folderTemplate: true },
+  });
+  if (!folder) {
+    return { ok: false, message: "Folder not found." };
+  }
+
+  const fileType: FileTypeCategory = "other";
+  if (folder.folderTemplate) {
+    const rules = parseFolderRules(folder.folderTemplate.rules);
+    const maxCount = rules.counts?.[fileType]?.max;
+    if (maxCount !== undefined) {
+      const currentCount = await prisma.file.count({ where: { folderId, fileType, isLatest: true, deletedAt: null } });
+      if (currentCount >= maxCount) {
+        return { ok: false, message: `This folder already has the maximum of ${maxCount} ${fileType} file(s).` };
+      }
+    }
+  }
+
+  const created = await prisma.file.create({
+    data: {
+      folderId,
+      filename: label?.trim() || parsed.hostname,
+      fileType,
+      mimeType: "",
+      sizeBytes: 0,
+      storagePath: "",
+      uploadedById: user.id,
+      isExternalLink: true,
+      externalUrl: url,
+      alternateOptionLabel: label || null,
+    },
+  });
+
+  await recordUploadCompletion(created, user, {
+    archiveId: folder.archiveId,
+    archiveCreatedById: folder.archive.createdById,
+    archiveName: folder.archive.name,
+    folderName: folder.name,
+    isFolderTarget: true,
+  });
 
   return { ok: true };
 }

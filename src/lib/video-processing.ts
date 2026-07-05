@@ -34,6 +34,32 @@ export async function extractVideoDuration(videoPath: string): Promise<number | 
   }
 }
 
+// Unlike extractVideoDuration/generateVideoThumbnail (best-effort, never
+// block the upload), this backs a hard FolderRules.minResolution gate — a
+// probe failure here must be treated as "resolution unknown, reject" by the
+// caller rather than silently passing, since the caller can't otherwise
+// distinguish "below minimum" from "couldn't check."
+export async function extractVideoResolution(videoPath: string): Promise<{ width: number; height: number } | null> {
+  try {
+    const { stdout } = await execFileAsync(ffprobePath, [
+      "-v",
+      "error",
+      "-select_streams",
+      "v:0",
+      "-show_entries",
+      "stream=width,height",
+      "-of",
+      "csv=s=x:p=0",
+      videoPath,
+    ]);
+    const [width, height] = stdout.trim().split("x").map(Number);
+    return Number.isFinite(width) && Number.isFinite(height) ? { width, height } : null;
+  } catch (e) {
+    console.error("[video-processing] extractVideoResolution failed:", e);
+    return null;
+  }
+}
+
 export async function generateVideoThumbnail(videoPath: string): Promise<string | null> {
   if (!ffmpegPath) return null;
 

@@ -50,8 +50,10 @@ export async function FileRow({
     <li className="px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span className="flex min-w-0 items-center gap-2">
-          {canDownload && <TreeFileCheckbox fileId={file.id} filename={file.filename} />}
-          {file.fileType === "video" && file.thumbnailPath ? (
+          {canDownload && !file.isExternalLink && <TreeFileCheckbox fileId={file.id} filename={file.filename} />}
+          {file.isExternalLink ? (
+            <Icon name="link" size={18} className="shrink-0 text-on-surface-variant" />
+          ) : file.fileType === "video" && file.thumbnailPath ? (
             // eslint-disable-next-line @next/next/no-img-element -- server-generated preview, not worth next/image's optimization pipeline
             <img
               src={`/api/files/${file.id}/thumbnail`}
@@ -62,22 +64,31 @@ export async function FileRow({
             <Icon name={fileTypeIcon(file.fileType)} size={18} className="shrink-0 text-on-surface-variant" />
           )}
           <span className="break-all type-body-medium text-on-surface">{file.filename}</span>
+          {file.alternateOptionLabel && (
+            <span className="type-label-small text-on-surface-variant">({file.alternateOptionLabel})</span>
+          )}
           {file.version > 1 && <span className="ml-2 type-label-small text-on-surface-variant">v{file.version}</span>}
           {file.fileType === "video" && file.durationSeconds !== null && (
             <span className="type-label-small text-on-surface-variant">{formatDuration(file.durationSeconds)}</span>
           )}
         </span>
         <span className="flex flex-wrap items-center gap-3 type-body-small text-on-surface-variant">
-          {file.fileType} · {(file.sizeBytes / 1024).toFixed(0)} KB · {file.uploadedBy.name} ·{" "}
-          {file.uploadedAt.toLocaleDateString()}
+          {file.isExternalLink ? "external link" : `${file.fileType} · ${(file.sizeBytes / 1024).toFixed(0)} KB`} ·{" "}
+          {file.uploadedBy.name} · {file.uploadedAt.toLocaleDateString()}
           {canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} />}
-          {canDownload && (
-            <a href={`/api/files/${file.id}/download`} className="text-primary underline hover:text-primary-hover">
-              download
+          {file.isExternalLink ? (
+            <a href={file.externalUrl ?? "#"} target="_blank" rel="noreferrer" className="text-primary underline hover:text-primary-hover">
+              open link
             </a>
+          ) : (
+            canDownload && (
+              <a href={`/api/files/${file.id}/download`} className="text-primary underline hover:text-primary-hover">
+                download
+              </a>
+            )
           )}
         </span>
-        {canDownload && (
+        {canDownload && !file.isExternalLink && (
           <span className="flex items-center gap-0.5">
             <FilePreviewButton
               fileId={file.id}

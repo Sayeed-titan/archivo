@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { generateArchiveNumber } from "@/lib/archive-number";
 import { notifyAdmins } from "@/lib/notifications";
+import { submitExternalFileLink as submitExternalFileLinkImpl } from "@/lib/file-storage";
 
 const CreateArchiveSchema = z.object({
   name: z.string().trim().min(1, { error: "Name is required." }),
@@ -63,6 +64,7 @@ export async function createArchive(_state: CreateArchiveState, formData: FormDa
           name: t.name,
           order: t.order,
           isMandatory: t.isMandatory,
+          folderTemplateId: t.id,
         })),
       });
     }
@@ -144,6 +146,28 @@ export async function updateArchiveMetadata(
   revalidatePath(`/archives/${archiveId}`);
 }
 
+export type SubmitExternalLinkState = { message?: string } | undefined;
+
+// FolderRules.externalLinkFallback (a sub-folder's upload rules) lets the
+// uploader paste a link instead of a file that's too large to upload —
+// see submitExternalFileLink() in file-storage.ts for the File-row shape.
+export async function submitExternalFileLink(
+  archiveId: string,
+  folderId: string,
+  url: string,
+  label?: string
+): Promise<SubmitExternalLinkState> {
+  const user = await getCurrentUser();
+  requirePermission(user.role, "canUpload", "upload files");
+
+  const result = await submitExternalFileLinkImpl(archiveId, folderId, url, user, label);
+  if (!result.ok) {
+    return { message: result.message };
+  }
+
+  revalidatePath(`/archives/${archiveId}`);
+}
+
 // Move an archive to the next state in its org's configured workflow
 // (Prompt 7 / HANDOFF.md point 7). Requirements are re-checked here, not
 // just trusted from the client — the "allowed" flag shown in the UI is a
@@ -155,7 +179,7 @@ export async function transitionArchiveStatus(archiveId: string, toState: string
   const archive = await prisma.archive.findFirst({
     where: { id: archiveId, organizationId: user.organizationId, deletedAt: null },
     include: {
-      folders: { include: { files: { where: { isLatest: true, deletedAt: null } } } },
+      folders: { include: { files: { where: { isLatest: true, deletedAt: null } }, folderTemplate: true } },
     },
   });
   if (!archive) {

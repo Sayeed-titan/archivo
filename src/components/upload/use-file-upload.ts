@@ -16,6 +16,10 @@ export type UploadItem = {
   status: "uploading" | "done" | "error";
   error?: string;
   etaSeconds: number | null;
+  // Set when the folder's rules allow an external-link fallback and this
+  // file failed only because it exceeded the size cap — the UI can offer
+  // the link-instead-of-upload path rather than just showing a dead end.
+  offerExternalLink?: boolean;
 };
 
 type UploadTarget = { isInbox: true } | { isInbox: false; archiveId: string; folderId: string };
@@ -29,7 +33,7 @@ export function useFileUpload({ onUploaded }: { onUploaded?: () => void } = {}) 
   }, []);
 
   const uploadOne = useCallback(
-    (file: File, target: UploadTarget) => {
+    (file: File, target: UploadTarget, alternateOptionLabel?: string) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
       startTimes.current.set(id, Date.now());
       setItems((prev) => [...prev, { id, file, progress: 0, status: "uploading", etaSeconds: null }]);
@@ -42,6 +46,7 @@ export function useFileUpload({ onUploaded }: { onUploaded?: () => void } = {}) 
         formData.set("archiveId", target.archiveId);
         formData.set("folderId", target.folderId);
       }
+      if (alternateOptionLabel) formData.set("alternateOptionLabel", alternateOptionLabel);
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/upload");
@@ -62,12 +67,15 @@ export function useFileUpload({ onUploaded }: { onUploaded?: () => void } = {}) 
           onUploaded?.();
         } else {
           let message = "Upload failed.";
+          let offerExternalLink = false;
           try {
-            message = JSON.parse(xhr.responseText).message ?? message;
+            const body = JSON.parse(xhr.responseText);
+            message = body.message ?? message;
+            offerExternalLink = Boolean(body.offerExternalLink);
           } catch {
             // non-JSON error body — keep the generic message
           }
-          patchItem(id, { status: "error", error: message });
+          patchItem(id, { status: "error", error: message, offerExternalLink });
         }
       };
 
@@ -79,10 +87,10 @@ export function useFileUpload({ onUploaded }: { onUploaded?: () => void } = {}) 
   );
 
   const uploadFiles = useCallback(
-    (files: FileList | File[], target: UploadTarget) => {
+    (files: FileList | File[], target: UploadTarget, alternateOptionLabel?: string) => {
       Array.from(files)
         .filter((f) => f.size > 0)
-        .forEach((f) => uploadOne(f, target));
+        .forEach((f) => uploadOne(f, target, alternateOptionLabel));
     },
     [uploadOne]
   );

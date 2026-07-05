@@ -1,10 +1,14 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { parseRequirements, type WorkflowRequirement } from "./requirements";
-import type { Archive, Folder, File as PrismaFile } from "@/generated/prisma/client";
+import { parseFolderRules } from "@/lib/folder-rules";
+import type { Archive, Folder, FolderTemplate, File as PrismaFile } from "@/generated/prisma/client";
 
 type ArchiveWithFolders = Archive & {
-  folders: (Folder & { files: Pick<PrismaFile, "id">[] })[];
+  folders: (Folder & {
+    files: Pick<PrismaFile, "id" | "fileType">[];
+    folderTemplate?: Pick<FolderTemplate, "rules"> | null;
+  })[];
 };
 
 export type RequirementCheck = {
@@ -15,6 +19,17 @@ export type RequirementCheck = {
 export function evaluateRequirement(archive: ArchiveWithFolders, requirement: WorkflowRequirement): boolean {
   if (requirement.kind === "mandatoryFoldersFilled") {
     return archive.folders.every((f) => !f.isMandatory || f.files.length > 0);
+  }
+  if (requirement.kind === "folderTypeCountsSatisfied") {
+    return archive.folders.every((f) => {
+      const counts = f.folderTemplate ? parseFolderRules(f.folderTemplate.rules).counts : undefined;
+      if (!counts) return true;
+      return Object.entries(counts).every(([fileType, rule]) => {
+        if (rule?.min === undefined) return true;
+        const actual = f.files.filter((file) => file.fileType === fileType).length;
+        return actual >= rule.min;
+      });
+    });
   }
   if (requirement.kind === "fieldRequired") {
     const value = (archive as unknown as Record<string, unknown>)[requirement.field];

@@ -10,8 +10,13 @@
 
 export type MandatoryFoldersRequirement = { kind: "mandatoryFoldersFilled" };
 export type FieldRequiredRequirement = { kind: "fieldRequired"; field: string };
+// Every folder that has a FolderRules.counts[type].min configured (via its
+// linked FolderTemplate) must have at least that many non-deleted,
+// isLatest files of that type — see src/lib/folder-rules.ts and
+// evaluateRequirement() in ./engine.ts for how this is checked.
+export type FolderTypeCountsRequirement = { kind: "folderTypeCountsSatisfied" };
 
-export type WorkflowRequirement = MandatoryFoldersRequirement | FieldRequiredRequirement;
+export type WorkflowRequirement = MandatoryFoldersRequirement | FieldRequiredRequirement | FolderTypeCountsRequirement;
 
 const REQUIRABLE_FIELDS = [
   { key: "department", label: "Department" },
@@ -32,6 +37,7 @@ export function isValidRequirement(r: unknown): r is WorkflowRequirement {
   if (typeof r !== "object" || r === null) return false;
   const candidate = r as Record<string, unknown>;
   if (candidate.kind === "mandatoryFoldersFilled") return true;
+  if (candidate.kind === "folderTypeCountsSatisfied") return true;
   if (candidate.kind === "fieldRequired") return typeof candidate.field === "string";
   return false;
 }
@@ -43,6 +49,7 @@ export function parseRequirements(json: unknown): WorkflowRequirement[] {
 
 export function describeRequirement(req: WorkflowRequirement): string {
   if (req.kind === "mandatoryFoldersFilled") return "All mandatory folders must have at least one file";
+  if (req.kind === "folderTypeCountsSatisfied") return "All configured per-type minimum file counts must be met";
   const label = REQUIRABLE_FIELDS.find((f) => f.key === req.field)?.label ?? req.field;
   return `"${label}" must be filled in`;
 }

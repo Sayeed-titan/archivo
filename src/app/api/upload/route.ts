@@ -23,10 +23,11 @@ export async function POST(request: NextRequest) {
   const target: ProcessUploadTarget = isInbox
     ? { kind: "inbox" }
     : { kind: "folder", archiveId: String(formData.get("archiveId") ?? ""), folderId: String(formData.get("folderId") ?? "") };
+  const alternateOptionLabel = formData.get("alternateOptionLabel");
 
-  const result = await processUpload(target, file, user);
+  const result = await processUpload(target, file, user, typeof alternateOptionLabel === "string" ? alternateOptionLabel : undefined);
   if (!result.ok) {
-    return NextResponse.json({ message: result.message }, { status: 400 });
+    return NextResponse.json({ message: result.message, offerExternalLink: result.offerExternalLink }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });

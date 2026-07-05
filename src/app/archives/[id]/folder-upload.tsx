@@ -2,16 +2,28 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFileUpload } from "@/components/upload/use-file-upload";
+import { useFileUpload, type UploadItem } from "@/components/upload/use-file-upload";
 import { UploadProgressList } from "@/components/upload/upload-progress-list";
+import { submitExternalFileLink } from "@/app/actions/archives";
+import type { FolderRules } from "@/lib/folder-rules";
 
-export function FolderUpload({ archiveId, folderId }: { archiveId: string; folderId: string }) {
+export function FolderUpload({ archiveId, folderId, rules }: { archiveId: string; folderId: string; rules?: FolderRules }) {
   const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { items, uploadFiles, dismiss } = useFileUpload({ onUploaded: () => router.refresh() });
+  const [alternateOptionLabel, setAlternateOptionLabel] = useState("");
 
   const target = { isInbox: false as const, archiveId, folderId };
+  const altOptions = rules?.alternateOptions?.enabled ? rules.alternateOptions.options : [];
+
+  async function handleExternalLink(item: UploadItem, url: string) {
+    const result = await submitExternalFileLink(archiveId, folderId, url, alternateOptionLabel || undefined);
+    if (!result?.message) {
+      dismiss(item.id);
+      router.refresh();
+    }
+  }
 
   return (
     <div
@@ -23,12 +35,26 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
       onDrop={(e) => {
         e.preventDefault();
         setIsDragging(false);
-        if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files, target);
+        if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files, target, alternateOptionLabel || undefined);
       }}
       className={`rounded-sm border border-dashed px-3 py-2 type-body-small transition-colors ${
         isDragging ? "border-primary bg-primary-8" : "border-outline"
       }`}
     >
+      {altOptions.length > 0 && (
+        <select
+          value={alternateOptionLabel}
+          onChange={(e) => setAlternateOptionLabel(e.target.value)}
+          className="mb-1.5 rounded-xs border border-outline bg-surface px-2 py-1 type-body-small text-on-surface"
+        >
+          <option value="">Which document is this?</option>
+          {altOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      )}
       <input
         ref={inputRef}
         type="file"
@@ -36,7 +62,7 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
         className="hidden"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            uploadFiles(e.target.files, target);
+            uploadFiles(e.target.files, target, alternateOptionLabel || undefined);
             e.target.value = "";
           }
         }}
@@ -48,7 +74,7 @@ export function FolderUpload({ archiveId, folderId }: { archiveId: string; folde
       >
         Drag files here or click to upload
       </button>
-      <UploadProgressList items={items} onDismiss={dismiss} />
+      <UploadProgressList items={items} onDismiss={dismiss} onSubmitExternalLink={handleExternalLink} />
     </div>
   );
 }

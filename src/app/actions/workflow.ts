@@ -106,6 +106,9 @@ export async function addWorkflowTransition(_state: AddTransitionState, formData
   if (formData.get("req_mandatoryFolders") === "on") {
     requirements.push({ kind: "mandatoryFoldersFilled" });
   }
+  if (formData.get("req_folderTypeCounts") === "on") {
+    requirements.push({ kind: "folderTypeCountsSatisfied" });
+  }
   for (const field of formData.getAll("req_field")) {
     requirements.push({ kind: "fieldRequired", field: String(field) });
   }

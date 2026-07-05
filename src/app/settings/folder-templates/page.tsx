@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { AddFolderForm } from "./add-folder-form";
 import { FolderTemplateList } from "./folder-template-list";
+import { parseFolderRules } from "@/lib/folder-rules";
 import { PageHeader, Card } from "@/components/ui";
 import { Icon } from "@/components/icon";
 
@@ -28,7 +29,7 @@ export default async function FolderTemplatesPage() {
       <div className="mt-8 space-y-4">
         {categories.map((category) => (
           <Card key={category.id} className="p-0">
-            <details open className="group">
+            <details className="group">
               <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3">
                 <Icon name="chevron_right" size={20} className="shrink-0 text-on-surface-variant transition-transform group-open:rotate-90" />
                 <span className="type-title-medium text-on-surface">{category.name}</span>
@@ -39,7 +40,12 @@ export default async function FolderTemplatesPage() {
               <div className="border-t border-outline-variant/60 px-4 pb-4">
                 <FolderTemplateList
                   categoryId={category.id}
-                  folders={category.folderTemplates.map((f) => ({ id: f.id, name: f.name, isMandatory: f.isMandatory }))}
+                  folders={category.folderTemplates.map((f) => ({
+                    id: f.id,
+                    name: f.name,
+                    isMandatory: f.isMandatory,
+                    rules: parseFolderRules(f.rules),
+                  }))}
                   canManage={canManage}
                 />
                 {canManage && <AddFolderForm categoryId={category.id} />}

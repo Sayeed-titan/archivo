@@ -1,6 +1,7 @@
 "use client";
 
-import { LinearProgress } from "@/components/ui";
+import { useState } from "react";
+import { LinearProgress, TextField, Button } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { fileTypeIcon } from "@/lib/file-icon";
 import { classifyFileType } from "@/lib/file-type";
@@ -19,7 +20,39 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function UploadProgressList({ items, onDismiss }: { items: UploadItem[]; onDismiss: (id: string) => void }) {
+function ExternalLinkPrompt({ onSubmit }: { onSubmit: (url: string) => void }) {
+  const [url, setUrl] = useState("");
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <TextField
+        placeholder="Paste an external link (Google Drive, etc.)"
+        compact
+        className="flex-1"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+      />
+      <Button
+        variant="tonal"
+        size="sm"
+        type="button"
+        disabled={!url.trim()}
+        onClick={() => onSubmit(url.trim())}
+      >
+        Use link
+      </Button>
+    </div>
+  );
+}
+
+export function UploadProgressList({
+  items,
+  onDismiss,
+  onSubmitExternalLink,
+}: {
+  items: UploadItem[];
+  onDismiss: (id: string) => void;
+  onSubmitExternalLink?: (item: UploadItem, url: string) => void;
+}) {
   if (items.length === 0) return null;
 
   return (
@@ -54,6 +87,9 @@ export function UploadProgressList({ items, onDismiss }: { items: UploadItem[]; 
             </div>
           )}
           {item.status === "error" && <p className="mt-1 type-body-small text-error">{item.error}</p>}
+          {item.status === "error" && item.offerExternalLink && onSubmitExternalLink && (
+            <ExternalLinkPrompt onSubmit={(url) => onSubmitExternalLink(item, url)} />
+          )}
         </div>
       ))}
     </div>

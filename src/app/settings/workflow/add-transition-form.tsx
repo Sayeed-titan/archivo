@@ -45,6 +45,13 @@ export function AddTransitionForm({ states }: { states: string[] }) {
               compact
             />
           </div>
+          <div className="mt-1">
+            <CheckboxField
+              name="req_folderTypeCounts"
+              label="All configured per-type minimum file counts must be met"
+              compact
+            />
+          </div>
           {requirableFields.map((field) => (
             <div key={field.key} className="mt-1">
               <CheckboxField

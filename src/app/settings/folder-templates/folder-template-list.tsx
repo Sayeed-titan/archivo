@@ -19,14 +19,18 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { reorderFolderTemplates } from "@/app/actions/folder-templates";
 import { RemoveFolderButton } from "./remove-folder-button";
+import { FolderRulesEditor } from "./folder-rules-editor";
+import { RenameFolderForm } from "./rename-folder-form";
+import type { FolderRules } from "@/lib/folder-rules";
 import { Badge } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { cn } from "@/lib/cn";
 
-type FolderTemplateItem = { id: string; name: string; isMandatory: boolean };
+type FolderTemplateItem = { id: string; name: string; isMandatory: boolean; rules: FolderRules };
 
 function SortableFolderRow({ folder, canManage }: { folder: FolderTemplateItem; canManage: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
+  const [editing, setEditing] = useState(false);
 
   return (
     <li
@@ -48,15 +52,37 @@ function SortableFolderRow({ folder, canManage }: { folder: FolderTemplateItem; 
           <Icon name="drag_indicator" size={18} />
         </button>
       )}
-      <span className="min-w-0 flex-1 truncate">
-        {folder.name}
-        {folder.isMandatory && (
-          <Badge tone="warning" pill={false} className="ml-2">
-            required
-          </Badge>
-        )}
-      </span>
-      {canManage && <RemoveFolderButton folderTemplateId={folder.id} />}
+      {editing ? (
+        <RenameFolderForm
+          folderTemplateId={folder.id}
+          name={folder.name}
+          isMandatory={folder.isMandatory}
+          onDone={() => setEditing(false)}
+        />
+      ) : (
+        <>
+          <span className="min-w-0 flex-1 truncate">
+            {folder.name}
+            {folder.isMandatory && (
+              <Badge tone="warning" pill={false} className="ml-2">
+                required
+              </Badge>
+            )}
+          </span>
+          {canManage && (
+            <button
+              type="button"
+              aria-label={`Rename ${folder.name}`}
+              onClick={() => setEditing(true)}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8"
+            >
+              <Icon name="edit" size={16} />
+            </button>
+          )}
+          {canManage && <FolderRulesEditor folderTemplateId={folder.id} folderName={folder.name} rules={folder.rules} />}
+          {canManage && <RemoveFolderButton folderTemplateId={folder.id} />}
+        </>
+      )}
     </li>
   );
 }

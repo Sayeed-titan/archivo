@@ -5,6 +5,7 @@ import { archiveVisibilityWhere } from "@/lib/visibility";
 import { resolveArchiveHealth } from "@/lib/workflow/health";
 import { getAvailableTransitions, getOrgWorkflow } from "@/lib/workflow/engine";
 import { describeRequirement } from "@/lib/workflow/requirements";
+import { parseFolderRules } from "@/lib/folder-rules";
 import { HealthBadge } from "@/components/health-badge";
 import { MetadataForm } from "./metadata-form";
 import { DeleteControls } from "./delete-controls";
@@ -32,6 +33,7 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
             orderBy: { uploadedAt: "desc" },
             include: { uploadedBy: true },
           },
+          folderTemplate: true,
         },
       },
     },
@@ -97,7 +99,11 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
             <TreeRoot
               label={archive.name}
               icon="folder_open"
-              allFileIds={user.role.canDownload ? archive.folders.flatMap((f) => f.files.map((file) => file.id)) : undefined}
+              allFileIds={
+                user.role.canDownload
+                  ? archive.folders.flatMap((f) => f.files.filter((file) => !file.isExternalLink).map((file) => file.id))
+                  : undefined
+              }
             >
               {archive.folders.map((folder) => (
                 <TreeFolderNode
@@ -106,8 +112,18 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
                   name={folder.name}
                   isMandatory={folder.isMandatory}
                   fileCount={folder.files.length}
-                  fileIds={user.role.canDownload ? folder.files.map((file) => file.id) : undefined}
-                  headerActions={user.role.canUpload ? <FolderUpload archiveId={archive.id} folderId={folder.id} /> : undefined}
+                  fileIds={
+                    user.role.canDownload ? folder.files.filter((file) => !file.isExternalLink).map((file) => file.id) : undefined
+                  }
+                  headerActions={
+                    user.role.canUpload ? (
+                      <FolderUpload
+                        archiveId={archive.id}
+                        folderId={folder.id}
+                        rules={folder.folderTemplate ? parseFolderRules(folder.folderTemplate.rules) : undefined}
+                      />
+                    ) : undefined
+                  }
                 >
                   {folder.files.length > 0 && (
                     <ul className="divide-y divide-outline-variant/50">

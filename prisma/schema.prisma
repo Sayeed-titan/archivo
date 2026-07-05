@@ -293,9 +293,15 @@ model FolderTemplate {
   name           String // e.g. "01 Proposal"
   order          Int
   isMandatory    Boolean @default(false)
+  // Upload rules (allowed types, min resolution, max size, per-type min/max
+  // counts, alternate document options, external-link fallback) — parsed/
+  // validated by src/lib/folder-rules.ts. JSON so new rule kinds don't need
+  // a migration, same pattern as WorkflowTransition.requirements.
+  rules          Json    @default("{}")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category     Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  folders      Folder[]
 
   @@unique([categoryId, name])
   @@map("folder_templates")
@@ -360,14 +366,21 @@ model Archive {
 }
 
 model Folder {
-  id          String  @id @default(cuid())
-  archiveId   String
-  name        String
-  order       Int
-  isMandatory Boolean @default(false)
+  id               String  @id @default(cuid())
+  archiveId        String
+  name             String
+  order            Int
+  isMandatory      Boolean @default(false)
+  // Links back to the FolderTemplate this folder was instantiated from, so
+  // upload rules can be looked up live (rules aren't re-snapshotted onto
+  // Folder). Null for archives created before this field existed, or for
+  // folders with no originating template (e.g. the inbox's "Unsorted") —
+  // uploads into those folders simply have no rules enforced.
+  folderTemplateId String?
 
-  archive Archive @relation(fields: [archiveId], references: [id], onDelete: Cascade)
-  files   File[]
+  archive        Archive         @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  folderTemplate FolderTemplate? @relation(fields: [folderTemplateId], references: [id], onDelete: SetNull)
+  files          File[]
 
   @@unique([archiveId, name])
   @@map("folders")
@@ -394,6 +407,16 @@ model File {
   // if extraction failed (e.g. corrupt upload) — never blocks the upload.
   thumbnailPath   String?
   durationSeconds Int?
+  // Which configured FolderRules.alternateOptions.options label (e.g.
+  // "Tender" vs "TOR") this upload satisfies; null when the folder has no
+  // alternate-options rule configured.
+  alternateOptionLabel String?
+  // External-link fallback (FolderRules.externalLinkFallback): used when a
+  // file exceeds the folder's max size. storagePath/mimeType are empty
+  // placeholders and sizeBytes is 0 in this case — externalUrl is the real
+  // payload. Still counts toward that file type's min/max counts.
+  isExternalLink  Boolean   @default(false)
+  externalUrl     String?
   uploadedById  String
   uploadedAt    DateTime  @default(now())
   deletedAt     DateTime? // soft delete

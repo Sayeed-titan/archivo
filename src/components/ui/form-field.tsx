@@ -119,13 +119,13 @@ export function SwitchField({ label, description, className, ...rest }: SwitchFi
         <span className="block type-body-large text-on-surface">{label}</span>
         {description && <span className="mt-0.5 block type-body-medium text-on-surface-variant">{description}</span>}
       </span>
-      <span className="relative inline-block h-8 w-[52px] shrink-0">
+      <span className="relative inline-block h-8 w-13 shrink-0">
         <input type="checkbox" className="peer sr-only" {...rest} />
         <span
           className="absolute inset-0 rounded-full border-2 border-outline bg-surface-container-highest transition-colors
             peer-checked:border-primary peer-checked:bg-primary
-            after:absolute after:left-[6px] after:top-1/2 after:h-4 after:w-4 after:-translate-y-1/2 after:rounded-full after:bg-outline after:transition-all after:content-['']
-            peer-checked:after:left-[24px] peer-checked:after:h-6 peer-checked:after:w-6 peer-checked:after:bg-on-primary
+            after:absolute after:left-1.5 after:top-1/2 after:h-4 after:w-4 after:-translate-y-1/2 after:rounded-full after:bg-outline after:transition-all after:content-['']
+            peer-checked:after:left-6 peer-checked:after:h-6 peer-checked:after:w-6 peer-checked:after:bg-on-primary
             peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary"
         />
       </span>
