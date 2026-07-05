@@ -6,7 +6,16 @@ export { ClearableSearchField } from "./clearable-search-field";
 export { Badge, type BadgeProps } from "./badge";
 export { Card, type CardProps } from "./card";
 export { PageHeader } from "./page-header";
-export { Table, TableHead, Th, Td, TableRow, TableEmptyState } from "./table";
+export {
+  Table,
+  TableHead,
+  Th,
+  Td,
+  TableRow,
+  TableEmptyState,
+  STICKY_FIRST_COL_HEAD_CLASS,
+  STICKY_FIRST_COL_BODY_CLASS,
+} from "./table";
 export { DataTable } from "./data-table";
 export type { DataTableColumn } from "@/hooks/use-data-table";
 export { DataTablePager } from "./data-table-pager";

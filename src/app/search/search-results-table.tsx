@@ -22,7 +22,7 @@ const COLUMNS: DataTableColumn<SearchResultRow>[] = [
     key: "filename",
     label: "File",
     render: (row) => (
-      <Link href={`/archives/${row.archiveId}`} className="flex items-center gap-2 text-on-surface hover:text-primary hover:underline">
+      <Link href={`/archives/${row.archiveId}`} className="flex min-w-0 items-center gap-2 text-on-surface hover:text-primary hover:underline">
         <Icon name={fileTypeIcon(row.fileType)} size={18} className="shrink-0 text-on-surface-variant" />
         <span className="truncate">{row.filename}</span>
       </Link>

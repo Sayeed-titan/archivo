@@ -1,6 +1,15 @@
 "use client";
 
-import { Table, TableHead, Th, Td, TableRow, TableEmptyState } from "./table";
+import {
+  Table,
+  TableHead,
+  Th,
+  Td,
+  TableRow,
+  TableEmptyState,
+  STICKY_FIRST_COL_HEAD_CLASS,
+  STICKY_FIRST_COL_BODY_CLASS,
+} from "./table";
 import { Menu, MenuItem } from "./menu";
 import { IconButton } from "./icon-button";
 import { DataTablePager } from "./data-table-pager";
@@ -65,15 +74,17 @@ export function DataTable<TRow>({
 
       <Table>
         <TableHead>
-          {visibleColumns.map((col) => (
-            <Th key={col.key}>{col.label}</Th>
+          {visibleColumns.map((col, i) => (
+            <Th key={col.key} className={i === 0 ? STICKY_FIRST_COL_HEAD_CLASS : undefined}>
+              {col.label}
+            </Th>
           ))}
         </TableHead>
         <tbody>
           {pageRows.map((row) => (
             <TableRow key={getRowKey(row)}>
-              {visibleColumns.map((col) => (
-                <Td key={col.key}>
+              {visibleColumns.map((col, i) => (
+                <Td key={col.key} className={i === 0 ? STICKY_FIRST_COL_BODY_CLASS : undefined}>
                   {col.render ? col.render(row) : String((row as Record<string, unknown>)[col.key] ?? "—")}
                 </Td>
               ))}
