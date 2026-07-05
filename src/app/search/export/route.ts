@@ -27,22 +27,22 @@ export async function POST(request: NextRequest) {
   };
 
   const results = await searchArchives(user, searchParams);
-  const rows = results.map((archive) => ({
-    name: archive.name,
-    archiveNumber: archive.archiveNumber,
-    category: archive.category?.name ?? "Uncategorized",
-    donor: archive.donor ?? "—",
-    status: archive.status,
-    createdAt: archive.createdAt.toLocaleDateString(),
+  const rows = results.map((file) => ({
+    filename: file.filename,
+    fileType: file.fileType,
+    archiveName: file.folder.archive.name,
+    donor: file.folder.archive.donor ?? "—",
+    uploadedBy: file.uploadedBy.name,
+    uploadedAt: file.uploadedAt.toLocaleDateString(),
   }));
 
   const columns = [
-    { key: "name", label: "Archive" },
-    { key: "archiveNumber", label: "Archive #" },
-    { key: "category", label: "Category" },
+    { key: "filename", label: "File" },
+    { key: "fileType", label: "Type" },
+    { key: "archiveName", label: "Archive" },
     { key: "donor", label: "Donor" },
-    { key: "status", label: "Status" },
-    { key: "createdAt", label: "Created" },
+    { key: "uploadedBy", label: "Uploaded by" },
+    { key: "uploadedAt", label: "Date" },
   ];
 
   const { buffer, contentType, filename } = await exportDataTable(format, "Search Results", columns, rows);

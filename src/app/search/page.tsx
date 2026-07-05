@@ -120,14 +120,15 @@ export default async function SearchPage({
       </h2>
       <div className="mt-2">
         <SearchResultsTable
-          rows={results.map((archive) => ({
-            id: archive.id,
-            name: archive.name,
-            archiveNumber: archive.archiveNumber,
-            category: archive.category?.name ?? "Uncategorized",
-            donor: archive.donor ?? "—",
-            status: archive.status,
-            createdAt: archive.createdAt.toLocaleDateString(),
+          rows={results.map((file) => ({
+            id: file.id,
+            filename: file.filename,
+            fileType: file.fileType,
+            archiveId: file.folder.archive.id,
+            archiveName: file.folder.archive.name,
+            donor: file.folder.archive.donor ?? "—",
+            uploadedBy: file.uploadedBy.name,
+            uploadedAt: file.uploadedAt.toLocaleDateString(),
           }))}
           exportQuery={new URLSearchParams(
             Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]

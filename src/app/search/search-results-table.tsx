@@ -1,46 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { DataTable, Badge, type DataTableColumn } from "@/components/ui";
+import { DataTable, type DataTableColumn } from "@/components/ui";
 import { Icon } from "@/components/icon";
+import { fileTypeIcon } from "@/lib/file-icon";
 import { useSnackbar } from "@/components/ui/snackbar";
 
 export type SearchResultRow = {
   id: string;
-  name: string;
-  archiveNumber: string;
-  category: string;
+  filename: string;
+  fileType: string;
+  archiveId: string;
+  archiveName: string;
   donor: string;
-  status: string;
-  createdAt: string;
-};
-
-const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
-  Archived: "success",
-  "Pending Review": "warning",
-  Draft: "neutral",
+  uploadedBy: string;
+  uploadedAt: string;
 };
 
 const COLUMNS: DataTableColumn<SearchResultRow>[] = [
   {
-    key: "name",
-    label: "Archive",
+    key: "filename",
+    label: "File",
     render: (row) => (
-      <Link href={`/archives/${row.id}`} className="flex items-center gap-2 text-on-surface hover:text-primary hover:underline">
-        <Icon name="folder_open" size={18} className="shrink-0 text-on-surface-variant" />
-        <span className="truncate">{row.name}</span>
+      <Link href={`/archives/${row.archiveId}`} className="flex items-center gap-2 text-on-surface hover:text-primary hover:underline">
+        <Icon name={fileTypeIcon(row.fileType)} size={18} className="shrink-0 text-on-surface-variant" />
+        <span className="truncate">{row.filename}</span>
       </Link>
     ),
   },
-  { key: "archiveNumber", label: "Archive #" },
-  { key: "category", label: "Category" },
-  { key: "donor", label: "Donor" },
+  { key: "fileType", label: "Type" },
   {
-    key: "status",
-    label: "Status",
-    render: (row) => <Badge tone={STATUS_TONE[row.status] ?? "neutral"}>{row.status}</Badge>,
+    key: "archiveName",
+    label: "Archive",
+    render: (row) => (
+      <Link href={`/archives/${row.archiveId}`} className="text-on-surface hover:text-primary hover:underline">
+        {row.archiveName}
+      </Link>
+    ),
   },
-  { key: "createdAt", label: "Created" },
+  { key: "donor", label: "Donor" },
+  { key: "uploadedBy", label: "Uploaded by" },
+  { key: "uploadedAt", label: "Date" },
 ];
 
 export function SearchResultsTable({ rows, exportQuery }: { rows: SearchResultRow[]; exportQuery: string }) {
@@ -66,8 +66,8 @@ export function SearchResultsTable({ rows, exportQuery }: { rows: SearchResultRo
       rows={rows}
       columns={COLUMNS}
       getRowKey={(row) => row.id}
-      emptyMessage="No matching archives."
-      storageKey="search-results-table"
+      emptyMessage="No matching files."
+      storageKey="search-results-table-files"
       onExport={handleExport}
     />
   );
