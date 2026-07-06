@@ -95,7 +95,7 @@ export async function FileRow({
               filename={file.filename}
               fileType={file.fileType}
               canOpenInEditor={canOpenInEditor}
-              openInEditorSlot={canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} />}
+              openInEditorSlot={canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} mode="embed" />}
             />
             <FileShareButton fileId={file.id} filename={file.filename} />
           </span>

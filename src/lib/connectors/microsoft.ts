@@ -26,4 +26,8 @@ export const microsoftConnector: DocEditorConnector = {
   async getOpenUrl(): Promise<string> {
     throw new Error("Microsoft 365 connector is not implemented yet.");
   },
+
+  async shareWithUser(): Promise<void> {
+    throw new Error("Microsoft 365 connector is not implemented yet.");
+  },
 };

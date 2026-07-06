@@ -68,6 +68,34 @@ export async function changePassword(_state: ChangePasswordState, formData: Form
   return { success: true };
 }
 
+const GoogleEmailSchema = z.object({
+  googleEmail: z.union([z.literal(""), z.email({ error: "Enter a valid email address." })]),
+});
+
+export type GoogleEmailState = { message?: string; success?: boolean } | undefined;
+
+// Links the user's own Google account, used to grant them per-user Drive
+// edit access when embedding Office files opened via the Google connector
+// (see src/lib/connectors/google.ts shareWithUser). Clearing the field
+// (empty string) unlinks it — existing ExternalDocShare grants on Drive
+// are not revoked, only future embeds stop auto-sharing to it.
+export async function updateGoogleEmail(_state: GoogleEmailState, formData: FormData): Promise<GoogleEmailState> {
+  const user = await getCurrentUser();
+
+  const validated = GoogleEmailSchema.safeParse({ googleEmail: formData.get("googleEmail") });
+  if (!validated.success) {
+    return { message: validated.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { googleEmail: validated.data.googleEmail || null },
+  });
+
+  revalidatePath("/profile");
+  return { success: true };
+}
+
 export type AvatarUploadState = { message?: string } | undefined;
 
 export async function uploadAvatar(_state: AvatarUploadState, formData: FormData): Promise<AvatarUploadState> {

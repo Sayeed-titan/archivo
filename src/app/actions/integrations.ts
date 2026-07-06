@@ -33,10 +33,12 @@ export async function openInExternalEditor(fileId: string) {
 
   const connector = getConnector(org.docEditorProvider as "google" | "microsoft");
 
+  let externalId: string;
   let openUrl: string;
 
   if (file.externalDocLink) {
-    openUrl = await connector.getOpenUrl(file.externalDocLink.externalId);
+    externalId = file.externalDocLink.externalId;
+    openUrl = await connector.getOpenUrl(externalId);
   } else {
     const buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
     const result = await connector.openOrCreate({
@@ -58,6 +60,7 @@ export async function openInExternalEditor(fileId: string) {
       },
     });
 
+    externalId = result.externalId;
     openUrl = result.externalUrl;
   }
 
@@ -72,5 +75,42 @@ export async function openInExternalEditor(fileId: string) {
     },
   });
 
-  return { openUrl };
+  return { openUrl, externalId, provider: org.docEditorProvider };
+}
+
+export type EmbedEditorResult = { embedUrl: string } | { needsGoogleAccount: true };
+
+// Embedded (in-app iframe) variant of the above: additionally ensures the
+// current user has been personally granted edit access on the provider's
+// side (Drive permissions.create), tracked via ExternalDocShare so repeat
+// opens don't re-call the sharing API. Requires the user to have linked
+// their own Google account at /profile first — the org's OAuth connection
+// only grants the *app* Drive access, not this specific person.
+export async function openInEmbeddedEditor(fileId: string): Promise<EmbedEditorResult> {
+  const user = await getCurrentUser();
+  const { openUrl, externalId, provider } = await openInExternalEditor(fileId);
+
+  if (provider === "google") {
+    if (!user.googleEmail) {
+      return { needsGoogleAccount: true };
+    }
+
+    const existingShare = await prisma.externalDocShare.findFirst({
+      where: { userId: user.id, externalDocLink: { externalId } },
+    });
+
+    if (!existingShare) {
+      const connector = getConnector("google");
+      await connector.shareWithUser(externalId, user.organizationId, user.googleEmail);
+
+      const link = await prisma.externalDocLink.findFirst({ where: { externalId } });
+      if (link) {
+        await prisma.externalDocShare.create({
+          data: { externalDocLinkId: link.id, userId: user.id },
+        });
+      }
+    }
+  }
+
+  return { embedUrl: openUrl };
 }

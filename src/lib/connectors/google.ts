@@ -99,4 +99,19 @@ export const googleConnector: DocEditorConnector = {
   async getOpenUrl(externalId) {
     return `https://drive.google.com/open?id=${externalId}`;
   },
+
+  async shareWithUser(externalId, organizationId, userEmail) {
+    const auth = await getAuthorizedClient(organizationId);
+    const drive = google.drive({ version: "v3", auth });
+
+    await drive.permissions.create({
+      fileId: externalId,
+      sendNotificationEmail: false,
+      requestBody: {
+        type: "user",
+        role: "writer",
+        emailAddress: userEmail,
+      },
+    });
+  },
 };

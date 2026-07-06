@@ -222,6 +222,14 @@ model User {
   // Profile photo, stored under storage/avatars/ (see src/lib/file-storage.ts).
   // Null = fall back to computed initials, same as today.
   avatarPath     String?
+  // The user's own Google account email, self-linked at /profile. Required
+  // for embedded per-user editing of Office files opened via the Google
+  // connector — Drive permissions.create needs a real Google account to
+  // share the file with (the org's OAuth connection alone only grants the
+  // *app* access, not this specific person). Not validated against Google
+  // at save time; a bad address just fails the first share attempt with a
+  // visible error.
+  googleEmail    String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -235,6 +243,7 @@ model User {
   reportTemplates   ReportTemplate[]
   notifications     Notification[]
   shareLinks        ShareLink[]
+  externalDocShares ExternalDocShare[]
 
   @@unique([organizationId, email])
   @@map("users")
@@ -472,10 +481,27 @@ model ExternalDocLink {
   createdById  String
   createdAt    DateTime @default(now())
 
-  file      File @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  createdBy User @relation(fields: [createdById], references: [id])
+  file      File               @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  createdBy User               @relation(fields: [createdById], references: [id])
+  shares    ExternalDocShare[]
 
   @@map("external_doc_links")
+}
+
+// Tracks which users have already been granted per-user Drive/Graph access
+// to a given ExternalDocLink, so embedding the editor doesn't re-call the
+// provider's sharing API on every open — only the first time for each user.
+model ExternalDocShare {
+  id                String   @id @default(cuid())
+  externalDocLinkId String
+  userId            String
+  createdAt         DateTime @default(now())
+
+  externalDocLink ExternalDocLink @relation(fields: [externalDocLinkId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([externalDocLinkId, userId])
+  @@map("external_doc_shares")
 }
 
 model FileDownload {

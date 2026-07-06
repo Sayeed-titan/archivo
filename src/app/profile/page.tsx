@@ -2,6 +2,7 @@ import { getCurrentUser, getShellUser } from "@/lib/dal";
 import { EmailPreferenceForm } from "./email-preference-form";
 import { ChangePasswordForm } from "./change-password-form";
 import { AvatarUploadForm } from "./avatar-upload-form";
+import { GoogleAccountForm } from "./google-account-form";
 import { PageHeader, Card, Badge } from "@/components/ui";
 import { Icon } from "@/components/icon";
 
@@ -69,6 +70,9 @@ export default async function ProfilePage() {
 
       <h2 className="mt-8 type-title-medium text-on-surface">Notifications</h2>
       <EmailPreferenceForm emailNotificationsEnabled={user.emailNotificationsEnabled} />
+
+      <h2 className="mt-8 type-title-medium text-on-surface">Google account</h2>
+      <GoogleAccountForm googleEmail={user.googleEmail} />
 
       <h2 className="mt-8 type-title-medium text-on-surface">Password</h2>
       <ChangePasswordForm />
