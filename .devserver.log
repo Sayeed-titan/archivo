@@ -68,3 +68,71 @@
   40 |       "Content-Disposition": `inline; filename="${file.filename}"`,
  GET /api/files/cmrerorj400062w20s9ax6acs/preview 500 in 484ms (next.js: 48ms, application-code: 437ms)
  GET /api/files/cmrerorn800082w20iin3wvcz/preview 200 in 516ms (next.js: 36ms, application-code: 480ms)
+✓ Compiled in 378ms
+✓ Compiled in 118ms
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 2.3s (next.js: 1791ms, proxy.ts: 116ms, application-code: 360ms)
+✓ Compiled in 952ms
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 2.5s (next.js: 1746ms, proxy.ts: 130ms, application-code: 630ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 449ms (next.js: 27ms, proxy.ts: 14ms, application-code: 408ms)
+✓ Compiled in 234ms
+ GET /login 200 in 431ms (next.js: 72ms, proxy.ts: 5ms, application-code: 354ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 307ms (next.js: 176ms, application-code: 131ms)
+ GET /dashboard 200 in 675ms (next.js: 79ms, proxy.ts: 10ms, application-code: 586ms)
+ POST /login 303 in 910ms (next.js: 7ms, proxy.ts: 9ms, application-code: 894ms)
+  └─ ƒ login(undefined, {}) in 135ms src/app/actions/auth.ts
+ GET /archives/cmr28w4xq0055j020n9rduxk1 200 in 473ms (next.js: 30ms, proxy.ts: 12ms, application-code: 431ms)
+⨯ TypeError: Cannot convert argument to a ByteString because the character at index 18 has a value of 2437 which is greater than 255.
+    at GET (src\app\api\files\[id]\preview\route.ts:37:10)
+  35 |   const buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
+  36 |
+> 37 |   return new Response(new Uint8Array(buffer), {
+     |          ^
+  38 |     headers: {
+  39 |       "Content-Type": file.mimeType,
+  40 |       "Content-Disposition": `inline; filename="${file.filename}"`,
+ GET /api/files/cmrerorj400062w20s9ax6acs/preview 500 in 332ms (next.js: 89ms, application-code: 243ms)
+ GET /api/files/cmrakn0th000lrk205925oxfa/preview 200 in 239ms (next.js: 8ms, application-code: 231ms)
+ GET /api/files/cmrerorn800082w20iin3wvcz/preview 200 in 354ms (next.js: 75ms, application-code: 279ms)
+⨯ TypeError: Cannot convert argument to a ByteString because the character at index 18 has a value of 2437 which is greater than 255.
+    at GET (src\app\api\files\[id]\preview\route.ts:37:10)
+  35 |   const buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
+  36 |
+> 37 |   return new Response(new Uint8Array(buffer), {
+     |          ^
+  38 |     headers: {
+  39 |       "Content-Type": file.mimeType,
+  40 |       "Content-Disposition": `inline; filename="${file.filename}"`,
+ GET /api/files/cmrerorj400062w20s9ax6acs/preview 500 in 303ms (next.js: 33ms, application-code: 270ms)
+ GET /api/files/cmrakn0th000lrk205925oxfa/preview 200 in 315ms (next.js: 47ms, application-code: 268ms)
+ GET /api/files/cmrerorn800082w20iin3wvcz/preview 200 in 335ms (next.js: 24ms, application-code: 311ms)
+ GET /search 200 in 203ms (next.js: 53ms, proxy.ts: 12ms, application-code: 138ms)
+ GET /dashboard 200 in 269ms (next.js: 5ms, proxy.ts: 11ms, application-code: 253ms)
+ GET /search 200 in 118ms (next.js: 5ms, proxy.ts: 11ms, application-code: 102ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 209ms (next.js: 25ms, proxy.ts: 7ms, application-code: 178ms)
+ GET /archives/cmraklr530000rk20gomrthyr/access 200 in 181ms (next.js: 60ms, proxy.ts: 6ms, application-code: 115ms)
+ POST /api/upload 200 in 230ms (next.js: 85ms, application-code: 145ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 341ms (next.js: 54ms, proxy.ts: 12ms, application-code: 275ms)
+ POST /archives/cmraklr530000rk20gomrthyr 200 in 1366ms (next.js: 21ms, proxy.ts: 7ms, application-code: 1337ms)
+  └─ ƒ setFolderColor("cmraklr7l0001rk20q01zwgxe", "success") in 113ms src/app/actions/explorer.ts
+ GET /archives/cmraklr530000rk20gomrthyr/access 200 in 161ms (next.js: 21ms, proxy.ts: 17ms, application-code: 123ms)
+ GET /search 200 in 136ms (next.js: 6ms, proxy.ts: 7ms, application-code: 123ms)
+ GET /dashboard 200 in 249ms (next.js: 5ms, proxy.ts: 10ms, application-code: 233ms)
+ GET /search?group=events 200 in 141ms (next.js: 6ms, proxy.ts: 7ms, application-code: 127ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 244ms (next.js: 30ms, proxy.ts: 8ms, application-code: 206ms)
+ GET /search?group=events&q=&categoryId=&status=&projectName=&dateFrom=2026-07-10&dateFromEnd=2026-07-10&docType= 200 in 451ms (next.js: 6ms, proxy.ts: 11ms, application-code: 434ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 126ms (next.js: 53ms, application-code: 73ms)
+ GET /search?group=events 200 in 262ms (next.js: 5ms, proxy.ts: 12ms, application-code: 245ms)
+ GET /dashboard 200 in 276ms (next.js: 7ms, proxy.ts: 8ms, application-code: 261ms)
+ GET /archives/new 200 in 1875ms (next.js: 1790ms, proxy.ts: 6ms, application-code: 79ms)
+Failed to send notification email to admin@demo-ngo.org: Error: connect ECONNREFUSED ::1:1025
+    at <unknown> (Error: connect ECONNREFUSED ::1:1025) {
+  errno: -4078,
+  code: 'ESOCKET',
+  syscall: 'connect',
+  address: '::1',
+  port: 1025,
+  command: 'CONN'
+}
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 285ms (next.js: 22ms, proxy.ts: 8ms, application-code: 255ms)
+ POST /archives/new 303 in 642ms (next.js: 10ms, proxy.ts: 8ms, application-code: 624ms)
+  └─ ƒ createArchive(undefined, {}) in 314ms src/app/actions/archives.ts
