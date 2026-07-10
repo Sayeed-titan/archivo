@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { parseRequirements, type WorkflowRequirement } from "./requirements";
 import { parseFolderRules } from "@/lib/folder-rules";
 import type { Archive, Folder, FolderTemplate, File as PrismaFile } from "@/generated/prisma/client";
@@ -47,8 +47,8 @@ export function evaluateRequirements(archive: ArchiveWithFolders, requirements: 
 
 export async function getOrgWorkflow(organizationId: string) {
   const [states, transitions] = await Promise.all([
-    prisma.workflowState.findMany({ where: { organizationId }, orderBy: { order: "asc" } }),
-    prisma.workflowTransition.findMany({ where: { organizationId } }),
+    withConnectionRetry(() => prisma.workflowState.findMany({ where: { organizationId }, orderBy: { order: "asc" } })),
+    withConnectionRetry(() => prisma.workflowTransition.findMany({ where: { organizationId } })),
   ]);
   return { states, transitions };
 }
@@ -57,9 +57,11 @@ export async function getOrgWorkflow(organizationId: string) {
 // requirements for each currently met? Used to render the transition UI
 // and to gate the actual status-change action server-side.
 export async function getAvailableTransitions(archive: ArchiveWithFolders) {
-  const transitions = await prisma.workflowTransition.findMany({
-    where: { organizationId: archive.organizationId, fromState: archive.status },
-  });
+  const transitions = await withConnectionRetry(() =>
+    prisma.workflowTransition.findMany({
+      where: { organizationId: archive.organizationId, fromState: archive.status },
+    })
+  );
 
   return transitions.map((t) => {
     const requirements = parseRequirements(t.requirements);

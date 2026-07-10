@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { getDashboardSummary, getRecentUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
 import { getBackupStatus } from "@/lib/backup-status";
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     getRecentUploads(user),
     getCategoryCounts(user),
     user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
-    prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
+    withConnectionRetry(() => prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } })),
   ]);
 
   const quotaBytes = org.storageQuotaBytes ? Number(org.storageQuotaBytes) : null;

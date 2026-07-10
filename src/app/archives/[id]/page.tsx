@@ -1,45 +1,51 @@
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/dal";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
+import { resolveArchiveAccess, canViewFolder, canUploadToFolder } from "@/lib/access";
 import { resolveArchiveHealth } from "@/lib/workflow/health";
 import { getAvailableTransitions, getOrgWorkflow } from "@/lib/workflow/engine";
 import { describeRequirement } from "@/lib/workflow/requirements";
 import { parseFolderRules } from "@/lib/folder-rules";
+import { getVersionHistory } from "./file-version-history";
 import { HealthBadge } from "@/components/health-badge";
 import { MetadataForm } from "./metadata-form";
 import { DeleteControls } from "./delete-controls";
-import { FolderUpload } from "./folder-upload";
-import { FileRow } from "./file-row";
 import { TransitionControls } from "./transition-controls";
-import { PageHeader } from "@/components/ui";
-import { TreeRoot, TreeFolderNode } from "@/components/tree-view";
-import { TreeSelectionProvider } from "@/components/tree-view-selection";
-import { BulkSelectionBar } from "@/components/bulk-selection-bar";
+import { PageHeader, Button } from "@/components/ui";
+import { FileExplorer } from "@/components/explorer/file-explorer";
+import type { ExplorerFolder, ExplorerFileWithHistory } from "@/components/explorer/types";
 
 export default async function ArchiveDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
 
-  const archive = await prisma.archive.findFirst({
-    where: { id, ...archiveVisibilityWhere(user) },
-    include: {
-      category: true,
-      folders: {
-        orderBy: { order: "asc" },
-        include: {
-          files: {
-            where: { deletedAt: null, isLatest: true },
-            orderBy: { uploadedAt: "desc" },
-            include: { uploadedBy: true },
+  const archive = await withConnectionRetry(() =>
+    prisma.archive.findFirst({
+      where: { id, ...archiveVisibilityWhere(user) },
+      include: {
+        category: true,
+        folders: {
+          orderBy: { order: "asc" },
+          include: {
+            files: {
+              where: { deletedAt: null, isLatest: true },
+              orderBy: { uploadedAt: "desc" },
+              include: { uploadedBy: true },
+            },
+            folderTemplate: true,
           },
-          folderTemplate: true,
         },
       },
-    },
-  });
+    })
+  );
 
   if (!archive) {
+    notFound();
+  }
+
+  const access = await resolveArchiveAccess(user, archive.id);
+  if (!access) {
     notFound();
   }
 
@@ -51,25 +57,64 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
   ]);
 
   const [donorList, projectList, org] = await Promise.all([
-    prisma.lookupList.findFirst({
-      where: { organizationId: user.organizationId, key: "donor" },
-      include: { items: { where: { isActive: true } } },
-    }),
-    prisma.lookupList.findFirst({
-      where: { organizationId: user.organizationId, key: "project" },
-      include: { items: { where: { isActive: true } } },
-    }),
-    prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } }),
+    withConnectionRetry(() =>
+      prisma.lookupList.findFirst({
+        where: { organizationId: user.organizationId, key: "donor" },
+        include: { items: { where: { isActive: true } } },
+      })
+    ),
+    withConnectionRetry(() =>
+      prisma.lookupList.findFirst({
+        where: { organizationId: user.organizationId, key: "project" },
+        include: { items: { where: { isActive: true } } },
+      })
+    ),
+    withConnectionRetry(() => prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } })),
   ]);
 
+  // Per-file version-history fan-out (only for files with version > 1) —
+  // wrapped the same way as the dashboard's own concurrent Promise.all
+  // queries, since this page now issues noticeably more concurrent
+  // queries than before the file-explorer rewrite.
+  const explorerFolders: ExplorerFolder[] = await Promise.all(
+    archive.folders.map(async (folder) => {
+      const files: ExplorerFileWithHistory[] = await Promise.all(
+        folder.files.map(async (file) => ({
+          ...file,
+          history: file.version > 1 ? await withConnectionRetry(() => getVersionHistory(file.id)) : [file],
+        }))
+      );
+
+      return {
+        id: folder.id,
+        name: folder.name,
+        isMandatory: folder.isMandatory,
+        color: folder.color,
+        canView: canViewFolder(access, folder.id),
+        canUpload: user.role.canUpload && canUploadToFolder(access, folder.id),
+        files,
+        rules: folder.folderTemplate ? parseFolderRules(folder.folderTemplate.rules) : undefined,
+      };
+    })
+  );
+
   return (
-    <main className="mx-auto max-w-2xl p-4 sm:p-8">
+    <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <PageHeader
         backHref="/dashboard"
         backLabel="Dashboard"
         title={archive.name}
         subtitle={`${archive.archiveNumber} · ${archive.category?.name ?? "Uncategorized"} · ${archive.status}`}
-        actions={<HealthBadge health={health} />}
+        actions={
+          <>
+            <HealthBadge health={health} />
+            {user.role.canManageUsers && (
+              <Button href={`/archives/${archive.id}/access`} variant="outlined" size="sm" icon="admin_panel_settings">
+                Access
+              </Button>
+            )}
+          </>
+        }
       />
 
       {user.role.canEditMetadata && workflow.states.length > 0 && (
@@ -95,53 +140,15 @@ export default async function ArchiveDetailPage({ params }: { params: Promise<{ 
         </p>
       ) : (
         <div className="mt-2">
-          <TreeSelectionProvider>
-            <TreeRoot
-              label={archive.name}
-              icon="folder_open"
-              allFileIds={
-                user.role.canDownload
-                  ? archive.folders.flatMap((f) => f.files.filter((file) => !file.isExternalLink).map((file) => file.id))
-                  : undefined
-              }
-            >
-              {archive.folders.map((folder) => (
-                <TreeFolderNode
-                  key={folder.id}
-                  id={folder.id}
-                  name={folder.name}
-                  isMandatory={folder.isMandatory}
-                  fileCount={folder.files.length}
-                  fileIds={
-                    user.role.canDownload ? folder.files.filter((file) => !file.isExternalLink).map((file) => file.id) : undefined
-                  }
-                  headerActions={
-                    user.role.canUpload ? (
-                      <FolderUpload
-                        archiveId={archive.id}
-                        folderId={folder.id}
-                        rules={folder.folderTemplate ? parseFolderRules(folder.folderTemplate.rules) : undefined}
-                      />
-                    ) : undefined
-                  }
-                >
-                  {folder.files.length > 0 && (
-                    <ul className="divide-y divide-outline-variant/50">
-                      {folder.files.map((file) => (
-                        <FileRow
-                          key={file.id}
-                          file={file}
-                          canDownload={user.role.canDownload}
-                          docEditorProvider={org.docEditorProvider}
-                        />
-                      ))}
-                    </ul>
-                  )}
-                </TreeFolderNode>
-              ))}
-            </TreeRoot>
-            {user.role.canDownload && <BulkSelectionBar />}
-          </TreeSelectionProvider>
+          <FileExplorer
+            archiveId={archive.id}
+            archiveName={archive.name}
+            folders={explorerFolders}
+            canDownload={user.role.canDownload}
+            canEditMetadata={user.role.canEditMetadata}
+            canManageAccess={user.role.canManageUsers}
+            docEditorProvider={org.docEditorProvider}
+          />
         </div>
       )}
 

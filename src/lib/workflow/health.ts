@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { computeArchiveHealth, type ArchiveHealth } from "@/lib/archive-health";
 
 // Resolves an archive's plain-string status against its org's configured
@@ -13,9 +13,11 @@ export async function resolveArchiveHealth(
   status: string,
   missingMandatoryFolders: number
 ): Promise<ArchiveHealth> {
-  const state = await prisma.workflowState.findUnique({
-    where: { organizationId_name: { organizationId, name: status } },
-  });
+  const state = await withConnectionRetry(() =>
+    prisma.workflowState.findUnique({
+      where: { organizationId_name: { organizationId, name: status } },
+    })
+  );
 
   return computeArchiveHealth({
     missingMandatoryFolders,

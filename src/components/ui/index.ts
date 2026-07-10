@@ -2,6 +2,7 @@ export { Button, type ButtonProps } from "./button";
 export { IconButton, type IconButtonProps } from "./icon-button";
 export { TextField, TextareaField, SelectField, CheckboxField, SwitchField } from "./form-field";
 export { Combobox, type ComboboxOption } from "./combobox";
+export { DateRangePicker } from "./date-range-picker";
 export { ClearableSearchField } from "./clearable-search-field";
 export { Badge, type BadgeProps } from "./badge";
 export { Card, type CardProps } from "./card";

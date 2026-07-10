@@ -8,8 +8,8 @@ export type SearchParams = {
   categoryId?: string;
   status?: string;
   projectName?: string;
-  month?: string; // "1".."12"
-  year?: string;
+  dateFrom?: string; // "YYYY-MM-DD" — inclusive
+  dateFromEnd?: string; // "YYYY-MM-DD" — inclusive; same as dateFrom for a single-day filter (DateRangePicker's paired field)
   docType?: string; // filters to archives containing at least one file of this type
   group?: string; // dashboard summary grouping: "events" | "programs" (spans multiple categories)
 };
@@ -42,15 +42,14 @@ export async function searchArchives(user: User & { role: Role }, params: Search
   if (params.categoryId) and.push({ categoryId: params.categoryId });
   if (params.status) and.push({ status: params.status });
   if (params.projectName) and.push({ projectName: params.projectName });
-  if (params.month || params.year) {
-    const now = new Date();
-    const year = params.year ? Number(params.year) : now.getFullYear();
-    if (params.month) {
-      const month = Number(params.month) - 1;
-      and.push({ eventDate: { gte: new Date(year, month, 1), lt: new Date(year, month + 1, 1) } });
-    } else {
-      and.push({ eventDate: { gte: new Date(year, 0, 1), lt: new Date(year + 1, 0, 1) } });
-    }
+  if (params.dateFrom || params.dateFromEnd) {
+    // Overlap test against each archive's own [eventDate, eventEndDate ??
+    // eventDate] span, so a multi-day archive matches a filter range that
+    // only partially overlaps it, not just an exact containment.
+    const from = params.dateFrom ? new Date(params.dateFrom) : null;
+    const to = params.dateFromEnd ? new Date(`${params.dateFromEnd}T23:59:59.999`) : from ? new Date(`${params.dateFrom}T23:59:59.999`) : null;
+    if (from) and.push({ OR: [{ eventEndDate: { gte: from } }, { eventEndDate: null, eventDate: { gte: from } }] });
+    if (to) and.push({ eventDate: { lte: to } });
   }
 
   const scopedArchiveWhere: Prisma.ArchiveWhereInput = {

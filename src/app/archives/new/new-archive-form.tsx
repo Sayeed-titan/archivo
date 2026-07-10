@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createArchive, type CreateArchiveState } from "@/app/actions/archives";
-import { TextField, Combobox, Button } from "@/components/ui";
+import { TextField, Combobox, DateRangePicker, Button } from "@/components/ui";
 import type { Category } from "@/generated/prisma/client";
 
 export function NewArchiveForm({ categories }: { categories: Category[] }) {
@@ -28,6 +28,15 @@ export function NewArchiveForm({ categories }: { categories: Category[] }) {
         }
         placeholder="No category yet"
         options={categories.map((c) => ({ value: c.id, label: c.name }))}
+      />
+
+      <DateRangePicker
+        name="eventDate"
+        label={
+          <>
+            Event date <span className="text-on-surface-variant/70">(optional — turn on &quot;Multiple days&quot; for a date range)</span>
+          </>
+        }
       />
 
       {state?.message && <p className="type-body-medium text-error">{state.message}</p>}

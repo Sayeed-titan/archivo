@@ -3,7 +3,12 @@
 import { useActionState } from "react";
 import { updateArchiveMetadata, type UpdateMetadataState } from "@/app/actions/archives";
 import type { Archive } from "@/generated/prisma/client";
-import { TextField, Combobox, TextareaField, Button, Card } from "@/components/ui";
+import { TextField, Combobox, DateRangePicker, TextareaField, Button, Card } from "@/components/ui";
+
+function toDateInputValue(d: Date | null): string {
+  if (!d) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export function MetadataForm({
   archive,
@@ -27,6 +32,14 @@ export function MetadataForm({
           defaultValue={archive.name}
           compact
           error={state?.errors?.name?.[0]}
+        />
+
+        <DateRangePicker
+          name="eventDate"
+          label="Event date"
+          compact
+          defaultStart={toDateInputValue(archive.eventDate)}
+          defaultEnd={toDateInputValue(archive.eventEndDate)}
         />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

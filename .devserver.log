@@ -1,466 +1,70 @@
-
-> archivo@0.1.0 dev
-> next dev
-
 ▲ Next.js 16.2.9 (Turbopack)
-- Local:         http://localhost:3000
-- Network:       http://10.140.11.8:3000
+- Local:         http://localhost:3003
+- Network:       http://192.168.10.130:3003
 - Environments: .env
-✓ Ready in 1429ms
+✓ Ready in 663ms
 - Experiments (use with caution):
   · serverActions
 
- GET /dashboard 200 in 4.9s (next.js: 911ms, application-code: 4.0s)
- GET /login 200 in 211ms (next.js: 80ms, application-code: 131ms)
- GET / 307 in 182ms (next.js: 60ms, application-code: 122ms)
- GET /dashboard 307 in 135ms (next.js: 7ms, application-code: 127ms)
- GET /login 200 in 193ms (next.js: 8ms, application-code: 185ms)
- GET /dashboard 200 in 498ms (next.js: 8ms, application-code: 490ms)
- POST /login 303 in 870ms (next.js: 11ms, application-code: 858ms)
-  └─ ƒ login(undefined, {}) in 222ms src/app/actions/auth.ts
-✓ Compiled in 304ms
- GET /login 200 in 1839ms (next.js: 346ms, application-code: 1493ms)
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, {imported module ./nodemodules/next/headers.js}["cookies"])()).get("session")?.value;
-  759 const session = await (0, {imported module ./src/lib/session.ts}["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async RootLayout (src\app\layout.tsx:40:16)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '481841126'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:775:305
-
-  772 });
-  773 const getCurrentUser = (0, {imported module ./nodemodules/next/dist/server/route-modules/app-page/vendored/rsc/react.js}["cache"])(async ()=>{
-  774     const session = await verifySession();
-→ 775     const user = await (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:46:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async (src\lib\dal.ts:45:16)
-    at async DashboardPage (src\app\dashboard\page.tsx:26:16)
-  44 |
-  45 |   const user = await withConnectionRetry(() =>
-> 46 |     prisma.user.findFirst({
-     |                 ^
-  47 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  48 |       include: { role: true },
-  49 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '1503403247'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, {imported module ./nodemodules/next/headers.js}["cookies"])()).get("session")?.value;
-  759 const session = await (0, {imported module ./src/lib/session.ts}["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async RootLayout (src\app\layout.tsx:40:16)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '481841126'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:775:305
-
-  772 });
-  773 const getCurrentUser = (0, {imported module ./nodemodules/next/dist/server/route-modules/app-page/vendored/rsc/react.js}["cache"])(async ()=>{
-  774     const session = await verifySession();
-→ 775     const user = await (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:46:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async (src\lib\dal.ts:45:16)
-    at async DashboardPage (src\app\dashboard\page.tsx:26:16)
-  44 |
-  45 |   const user = await withConnectionRetry(() =>
-> 46 |     prisma.user.findFirst({
-     |                 ^
-  47 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  48 |       include: { role: true },
-  49 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '1503403247'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, {imported module ./nodemodules/next/headers.js}["cookies"])()).get("session")?.value;
-  759 const session = await (0, {imported module ./src/lib/session.ts}["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async RootLayout (src\app\layout.tsx:40:16)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '481841126'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:775:305
-
-  772 });
-  773 const getCurrentUser = (0, {imported module ./nodemodules/next/dist/server/route-modules/app-page/vendored/rsc/react.js}["cache"])(async ()=>{
-  774     const session = await verifySession();
-→ 775     const user = await (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:46:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async (src\lib\dal.ts:45:16)
-    at async DashboardPage (src\app\dashboard\page.tsx:26:16)
-  44 |
-  45 |   const user = await withConnectionRetry(() =>
-> 46 |     prisma.user.findFirst({
-     |                 ^
-  47 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  48 |       include: { role: true },
-  49 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '1503403247'
-}
- GET /dashboard 307 in 856ms (next.js: 12ms, application-code: 844ms)
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, {imported module ./nodemodules/next/headers.js}["cookies"])()).get("session")?.value;
-  759 const session = await (0, {imported module ./src/lib/session.ts}["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async RootLayout (src\app\layout.tsx:40:16)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '481841126'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:775:305
-
-  772 });
-  773 const getCurrentUser = (0, {imported module ./nodemodules/next/dist/server/route-modules/app-page/vendored/rsc/react.js}["cache"])(async ()=>{
-  774     const session = await verifySession();
-→ 775     const user = await (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:46:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async (src\lib\dal.ts:45:16)
-    at async DashboardPage (src\app\dashboard\page.tsx:26:16)
-  44 |
-  45 |   const user = await withConnectionRetry(() =>
-> 46 |     prisma.user.findFirst({
-     |                 ^
-  47 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  48 |       include: { role: true },
-  49 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '1503403247'
-}
- GET /dashboard 200 in 2.0s (next.js: 210ms, application-code: 1791ms)
- GET /dashboard 200 in 1605ms (next.js: 15ms, application-code: 1590ms)
- GET /dashboard 200 in 1096ms (next.js: 63ms, application-code: 1033ms)
- GET /dashboard 200 in 537ms (next.js: 12ms, application-code: 525ms)
-[browser] Uncaught PrismaClientKnownRequestError: 
-Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withConnectionRetry"])(()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])()).get("session")?.value;
-  759 const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withConnectionRetry"])(()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at  withConnectionRetry (src\lib\prisma.ts:55:14)
-    at  RootLayout (src\app\layout.tsx:40:16)
-    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:150)
-    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
-    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
-    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
-    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     })
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, {imported module ./nodemodules/next/headers.js}["cookies"])()).get("session")?.value;
-  759 const session = await (0, {imported module ./src/lib/session.ts}["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async RootLayout (src\app\layout.tsx:40:16)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '481841126'
-}
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `{imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:775:305
-
-  772 });
-  773 const getCurrentUser = (0, {imported module ./nodemodules/next/dist/server/route-modules/app-page/vendored/rsc/react.js}["cache"])(async ()=>{
-  774     const session = await verifySession();
-→ 775     const user = await (0, {imported module ./src/lib/prisma.ts}["withConnectionRetry"])(()=>{imported module ./src/lib/prisma.ts}["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:46:17)
-    at async withConnectionRetry (src\lib\prisma.ts:55:14)
-    at async (src\lib\dal.ts:45:16)
-    at async DashboardPage (src\app\dashboard\page.tsx:26:16)
-  44 |
-  45 |   const user = await withConnectionRetry(() =>
-> 46 |     prisma.user.findFirst({
-     |                 ^
-  47 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  48 |       include: { role: true },
-  49 |     }) {
-  code: 'ECONNREFUSED',
-  meta: { modelName: 'User' },
-  clientVersion: '7.8.0',
-  digest: '1503403247'
-}
- GET /dashboard 500 in 379ms (next.js: 6ms, application-code: 373ms)
-[browser] Uncaught PrismaClientKnownRequestError: 
-Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withConnectionRetry"])(()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].user.findFirst()` invocation in
-D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__0y5-d4j._.js:761:293
-
-  758 const cookie = (await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])()).get("session")?.value;
-  759 const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$session$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decrypt"])(cookie);
-  760 if (!session?.userId) return null;
-→ 761 return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withConnectionRetry"])(()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].user.findFirst(
-
-    at <unknown> (src\lib\dal.ts:35:17)
-    at  withConnectionRetry (src\lib\prisma.ts:55:14)
-    at  RootLayout (src\app\layout.tsx:40:16)
-    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:105)
-    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
-    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
-    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
-    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
-  33 |
-  34 |   return withConnectionRetry(() =>
-> 35 |     prisma.user.findFirst({
-     |                 ^
-  36 |       where: { id: session.userId, organizationId: session.organizationId, isActive: true },
-  37 |       include: { role: true, organization: true },
-  38 |     })
- GET /login 200 in 165ms (next.js: 21ms, application-code: 144ms)
- GET /dashboard 307 in 131ms (next.js: 6ms, application-code: 125ms)
- GET /login 200 in 140ms (next.js: 6ms, application-code: 134ms)
- GET /dashboard 200 in 491ms (next.js: 5ms, application-code: 486ms)
- POST /login 303 in 772ms (next.js: 8ms, application-code: 764ms)
-  └─ ƒ login(undefined, {}) in 228ms src/app/actions/auth.ts
- GET /dashboard 200 in 784ms (next.js: 11ms, application-code: 773ms)
- GET /archives/cmr43ny1f0000e4206e8txkg0 200 in 5.8s (next.js: 5.2s, application-code: 543ms)
- GET /api/files/cmr4402gk00083g202xmqxcin/preview 200 in 4.9s (next.js: 4.8s, application-code: 101ms)
- GET /dashboard 200 in 370ms (next.js: 8ms, application-code: 363ms)
- POST /dashboard 200 in 834ms (next.js: 6ms, application-code: 829ms)
-  └─ ƒ setThemePreference("light") in 198ms src/app/actions/appearance.ts
- POST /dashboard 200 in 378ms (next.js: 8ms, application-code: 371ms)
-  └─ ƒ setThemePreference("dark") in 33ms src/app/actions/appearance.ts
- POST /dashboard 200 in 386ms (next.js: 8ms, application-code: 378ms)
-  └─ ƒ setThemePreference("system") in 46ms src/app/actions/appearance.ts
- GET /dashboard 200 in 714ms (next.js: 9ms, application-code: 705ms)
-[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/dashboard" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" data-theme="system" className="roboto_c1e...">
-                          <body className="min-h-full">
-                            <style>
-                            <SnackbarProvider>
-                              <AppShell>
-                                <div
-+                                 className="flex min-h-dvh"
--                                 className={null}
--                                 id="open-incognito-widget"
--                                 role="button"
--                                 tabindex="0"
--                                 aria-label="Open current tab in incognito"
-                                >
-+                                 <div className="no-print contents">
-                                  ...
-                  ...
-
-    at <unknown> (https://react.dev/link/hydration-mismatch)
-    at throwOnHydrationMismatch (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
-    at beginWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6758:918)
-    at runWithFiberInDEV (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
-    at performUnitOfWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
-    at workLoopConcurrentByScheduler (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
-    at renderRootConcurrent (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
-    at performWorkOnRoot (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
-    at performWorkOnRootViaSchedulerTask (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
-    at MessagePort.performWorkUntilDeadline (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
-    at div (<anonymous>)
-    at AppShell (src\components\shell\app-shell.tsx:55:7)
-    at RootLayout (src\app\layout.tsx:74:13)
-  53 |   return (
-  54 |     <div className="flex min-h-dvh">
-> 55 |       <div className="no-print contents">
-     |       ^
-  56 |         <NavRail items={navItems} fabHref={fabHref} />
-  57 |       </div>
-  58 |       <div className="flex min-w-0 flex-1 flex-col">
-✓ Compiled in 541ms
- GET /dashboard 200 in 1630ms (next.js: 379ms, application-code: 1250ms)
- GET /dashboard 200 in 866ms (next.js: 9ms, application-code: 857ms)
- GET /dashboard 200 in 767ms (next.js: 8ms, application-code: 759ms)
-✓ Compiled in 444ms
- GET /dashboard 200 in 1725ms (next.js: 334ms, application-code: 1391ms)
- GET /dashboard 200 in 1079ms (next.js: 11ms, application-code: 1068ms)
- GET /dashboard 200 in 922ms (next.js: 13ms, application-code: 909ms)
-✓ Compiled in 488ms
- GET /dashboard 200 in 2.2s (next.js: 417ms, application-code: 1787ms)
- GET /dashboard 200 in 1519ms (next.js: 7ms, application-code: 1512ms)
- GET /dashboard 200 in 1439ms (next.js: 6ms, application-code: 1432ms)
- GET /dashboard 200 in 1298ms (next.js: 72ms, application-code: 1226ms)
- GET /dashboard 200 in 1012ms (next.js: 23ms, application-code: 989ms)
-✓ Compiled in 358ms
- GET /dashboard 200 in 2.5s (next.js: 391ms, application-code: 2.1s)
- GET /dashboard 200 in 1835ms (next.js: 8ms, application-code: 1827ms)
- GET /dashboard 200 in 1709ms (next.js: 21ms, application-code: 1687ms)
- GET /dashboard 200 in 1467ms (next.js: 43ms, application-code: 1425ms)
- GET /login 200 in 1028ms (next.js: 312ms, application-code: 717ms)
- GET /dashboard 200 in 388ms (next.js: 7ms, application-code: 382ms)
- POST /login 303 in 716ms (next.js: 7ms, application-code: 708ms)
-  └─ ƒ login(undefined, {}) in 211ms src/app/actions/auth.ts
- POST /dashboard 200 in 464ms (next.js: 8ms, application-code: 456ms)
-  └─ ƒ setThemePreference("light") in 30ms src/app/actions/appearance.ts
- GET /login 200 in 95ms (next.js: 6ms, application-code: 90ms)
- GET /dashboard 200 in 401ms (next.js: 6ms, application-code: 395ms)
- POST /login 303 in 597ms (next.js: 6ms, application-code: 591ms)
-  └─ ƒ login(undefined, {}) in 164ms src/app/actions/auth.ts
- POST /dashboard 200 in 335ms (next.js: 7ms, application-code: 328ms)
-  └─ ƒ setThemePreference("dark") in 25ms src/app/actions/appearance.ts
- POST /dashboard 200 in 365ms (next.js: 7ms, application-code: 358ms)
-  └─ ƒ setThemePreference("system") in 52ms src/app/actions/appearance.ts
- GET /login 200 in 95ms (next.js: 6ms, application-code: 89ms)
- GET /dashboard 200 in 389ms (next.js: 6ms, application-code: 383ms)
- POST /login 303 in 614ms (next.js: 6ms, application-code: 608ms)
-  └─ ƒ login(undefined, {}) in 185ms src/app/actions/auth.ts
- POST /dashboard 200 in 369ms (next.js: 7ms, application-code: 362ms)
-  └─ ƒ setThemePreference("light") in 40ms src/app/actions/appearance.ts
- POST /dashboard 200 in 322ms (next.js: 6ms, application-code: 316ms)
-  └─ ƒ setThemePreference("dark") in 26ms src/app/actions/appearance.ts
- POST /dashboard 200 in 343ms (next.js: 7ms, application-code: 336ms)
-  └─ ƒ setThemePreference("system") in 32ms src/app/actions/appearance.ts
- GET /login 200 in 97ms (next.js: 5ms, application-code: 92ms)
- GET /dashboard 200 in 411ms (next.js: 8ms, application-code: 403ms)
- POST /login 303 in 654ms (next.js: 13ms, application-code: 641ms)
-  └─ ƒ login(undefined, {}) in 196ms src/app/actions/auth.ts
- POST /dashboard 200 in 358ms (next.js: 7ms, application-code: 351ms)
-  └─ ƒ setThemePreference("light") in 32ms src/app/actions/appearance.ts
- POST /dashboard 200 in 348ms (next.js: 7ms, application-code: 341ms)
-  └─ ƒ setThemePreference("dark") in 28ms src/app/actions/appearance.ts
- POST /dashboard 200 in 610ms (next.js: 10ms, application-code: 600ms)
-  └─ ƒ setThemePreference("light") in 61ms src/app/actions/appearance.ts
- POST /dashboard 200 in 471ms (next.js: 6ms, application-code: 465ms)
-  └─ ƒ setThemePreference("dark") in 53ms src/app/actions/appearance.ts
- GET /login 200 in 108ms (next.js: 7ms, application-code: 101ms)
- GET /dashboard 200 in 437ms (next.js: 6ms, application-code: 430ms)
- POST /login 303 in 706ms (next.js: 6ms, application-code: 700ms)
-  └─ ƒ login(undefined, {}) in 229ms src/app/actions/auth.ts
- POST /dashboard 200 in 536ms (next.js: 12ms, application-code: 524ms)
-  └─ ƒ setThemePreference("system") in 60ms src/app/actions/appearance.ts
+ GET / 307 in 2.0s (next.js: 204ms, proxy.ts: 225ms, application-code: 1604ms)
+ GET /dashboard 200 in 1578ms (next.js: 93ms, proxy.ts: 13ms, application-code: 1472ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 1543ms (next.js: 1489ms, application-code: 54ms)
+ GET / 307 in 95ms (next.js: 5ms, proxy.ts: 7ms, application-code: 84ms)
+ GET /search 200 in 1131ms (next.js: 949ms, proxy.ts: 11ms, application-code: 171ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 3.7s (next.js: 3.4s, proxy.ts: 7ms, application-code: 267ms)
+ GET /api/files/cmrakn0th000lrk205925oxfa/preview 200 in 1401ms (next.js: 1350ms, application-code: 51ms)
+ GET /api/files/cmrakn0th000lrk205925oxfa/preview 200 in 65ms (next.js: 28ms, application-code: 37ms)
+ GET /login 200 in 184ms (next.js: 50ms, proxy.ts: 8ms, application-code: 126ms)
+ GET /login 200 in 121ms (next.js: 6ms, proxy.ts: 5ms, application-code: 110ms)
+ GET /dashboard 200 in 353ms (next.js: 4ms, proxy.ts: 6ms, application-code: 343ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 66ms (next.js: 22ms, application-code: 44ms)
+ POST /login 303 in 598ms (next.js: 6ms, proxy.ts: 10ms, application-code: 581ms)
+  └─ ƒ login(undefined, {}) in 134ms src/app/actions/auth.ts
+ GET /settings/file-naming 200 in 443ms (next.js: 86ms, proxy.ts: 11ms, application-code: 346ms)
+ POST /settings/file-naming 200 in 323ms (next.js: 5ms, proxy.ts: 9ms, application-code: 309ms)
+  └─ ƒ updateFileNamingTemplate(undefined, {}) in 192ms src/app/actions/security-settings.ts
+ GET /archives/cmr28w4xq0055j020n9rduxk1/access 200 in 1235ms (next.js: 908ms, proxy.ts: 7ms, application-code: 320ms)
+ POST /archives/cmr28w4xq0055j020n9rduxk1/access 200 in 234ms (next.js: 19ms, proxy.ts: 6ms, application-code: 209ms)
+  └─ ƒ grantArchiveAccess(undefined, {}) in 68ms src/app/actions/access.ts
+ GET /login 200 in 92ms (next.js: 4ms, proxy.ts: 7ms, application-code: 80ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 62ms (next.js: 18ms, application-code: 44ms)
+ GET /dashboard 200 in 347ms (next.js: 5ms, proxy.ts: 6ms, application-code: 337ms)
+ POST /login 303 in 478ms (next.js: 5ms, proxy.ts: 7ms, application-code: 466ms)
+  └─ ƒ login(undefined, {}) in 102ms src/app/actions/auth.ts
+ GET /archives/cmr28w4xq0055j020n9rduxk1/access 200 in 348ms (next.js: 25ms, proxy.ts: 13ms, application-code: 310ms)
+ POST /archives/cmr28w4xq0055j020n9rduxk1/access 200 in 232ms (next.js: 13ms, proxy.ts: 10ms, application-code: 209ms)
+  └─ ƒ revokeArchiveAccess("cmrenr5m200012w205gqwaodr") in 77ms src/app/actions/access.ts
+ GET /login 200 in 104ms (next.js: 5ms, proxy.ts: 5ms, application-code: 95ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 134ms (next.js: 25ms, application-code: 109ms)
+ GET /dashboard 200 in 393ms (next.js: 4ms, proxy.ts: 6ms, application-code: 383ms)
+ POST /login 303 in 523ms (next.js: 4ms, proxy.ts: 6ms, application-code: 514ms)
+  └─ ƒ login(undefined, {}) in 100ms src/app/actions/auth.ts
+ GET /archives/cmr28w4xq0055j020n9rduxk1 200 in 580ms (next.js: 30ms, proxy.ts: 13ms, application-code: 537ms)
+✓ Compiled in 110ms
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 1925ms (next.js: 1367ms, proxy.ts: 112ms, application-code: 445ms)
+✓ Compiled in 98ms
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 1654ms (next.js: 1209ms, proxy.ts: 100ms, application-code: 344ms)
+ GET /login 200 in 289ms (next.js: 51ms, proxy.ts: 6ms, application-code: 232ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 199ms (next.js: 145ms, application-code: 54ms)
+ GET /dashboard 200 in 570ms (next.js: 59ms, proxy.ts: 6ms, application-code: 505ms)
+ POST /login 303 in 760ms (next.js: 7ms, proxy.ts: 6ms, application-code: 747ms)
+  └─ ƒ login(undefined, {}) in 114ms src/app/actions/auth.ts
+ GET /archives/cmr28w4xq0055j020n9rduxk1 200 in 632ms (next.js: 30ms, proxy.ts: 8ms, application-code: 593ms)
+ POST /api/upload 200 in 213ms (next.js: 84ms, application-code: 129ms)
+ GET /archives/cmr28w4xq0055j020n9rduxk1 200 in 222ms (next.js: 22ms, proxy.ts: 9ms, application-code: 191ms)
+ GET /api/files/cmrakn0th000lrk205925oxfa/preview 200 in 357ms (next.js: 214ms, application-code: 143ms)
+ POST /api/upload 200 in 287ms (next.js: 22ms, application-code: 265ms)
+ POST /api/upload 200 in 404ms (next.js: 7ms, application-code: 397ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 636ms (next.js: 82ms, proxy.ts: 32ms, application-code: 523ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 528ms (next.js: 65ms, proxy.ts: 29ms, application-code: 434ms)
+⨯ TypeError: Cannot convert argument to a ByteString because the character at index 18 has a value of 2437 which is greater than 255.
+    at GET (src\app\api\files\[id]\preview\route.ts:37:10)
+  35 |   const buffer = await readFile(path.join(STORAGE_ROOT, file.storagePath));
+  36 |
+> 37 |   return new Response(new Uint8Array(buffer), {
+     |          ^
+  38 |     headers: {
+  39 |       "Content-Type": file.mimeType,
+  40 |       "Content-Disposition": `inline; filename="${file.filename}"`,
+ GET /api/files/cmrerorj400062w20s9ax6acs/preview 500 in 484ms (next.js: 48ms, application-code: 437ms)
+ GET /api/files/cmrerorn800082w20iin3wvcz/preview 200 in 516ms (next.js: 36ms, application-code: 480ms)

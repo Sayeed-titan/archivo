@@ -35,6 +35,13 @@ model Organization {
   themeMode      String @default("system") // "light" | "dark" | "system" — org default; User.themePreference overrides
   themeShape     String @default("standard") // "sharp" | "standard" | "rounded" — global corner-radius scale
   themeFontScale String @default("medium") // "small" | "medium" | "large" — global base font size
+  // Token-based upload filename template, e.g.
+  // "{originalName}_{folderName}_{archiveName}_{eventDate}" — resolved by
+  // src/lib/file-naming.ts at upload time. {originalName} is always kept
+  // somewhere in the template (enforced in the settings-page action, not
+  // here) so a computed name never fully loses the human-recognizable
+  // source filename.
+  fileNamingTemplate String @default("{originalName}_{folderName}_{archiveName}_{eventDate}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -52,6 +59,7 @@ model Organization {
   workflowStates      WorkflowState[]
   workflowTransitions WorkflowTransition[]
   shareLinks          ShareLink[]
+  archiveGrants       ArchiveGrant[]
 
   @@map("organizations")
 }
@@ -244,6 +252,8 @@ model User {
   notifications     Notification[]
   shareLinks        ShareLink[]
   externalDocShares ExternalDocShare[]
+  archiveGrantsReceived ArchiveGrant[] @relation("ArchiveGrantUser")
+  archiveGrantsCreated  ArchiveGrant[] @relation("ArchiveGrantCreatedBy")
 
   @@unique([organizationId, email])
   @@map("users")
@@ -344,7 +354,8 @@ model Archive {
   name           String // the only required field at creation (Zero-Friction Capture, point 9)
   categoryId     String?
   department     String?
-  eventDate      DateTime?
+  eventDate      DateTime? // start date when a range is set, or the single event day
+  eventEndDate   DateTime? // null for a single-day event; set for a multi-day range
   venue          String?
   organizer      String?
   coordinator    String?
@@ -363,14 +374,16 @@ model Archive {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime? // soft delete (point 5)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  category     Category?    @relation(fields: [categoryId], references: [id])
-  createdBy    User         @relation("ArchiveCreatedBy", fields: [createdById], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  createdBy    User          @relation("ArchiveCreatedBy", fields: [createdById], references: [id])
   folders      Folder[]
+  grants       ArchiveGrant[]
 
   @@unique([organizationId, archiveNumber])
   @@index([organizationId, status])
   @@index([organizationId, donor])
+  @@index([organizationId, eventDate])
   @@map("archives")
 }
 
@@ -386,13 +399,53 @@ model Folder {
   // folders with no originating template (e.g. the inbox's "Unsorted") —
   // uploads into those folders simply have no rules enforced.
   folderTemplateId String?
+  // Folder colorization (file-explorer UX): one of a fixed MD3-tinted
+  // palette key (see src/lib/folder-colors.ts), null = default neutral
+  // folder icon color. Purely cosmetic, no behavior attached.
+  color            String?
 
   archive        Archive         @relation(fields: [archiveId], references: [id], onDelete: Cascade)
   folderTemplate FolderTemplate? @relation(fields: [folderTemplateId], references: [id], onDelete: SetNull)
   files          File[]
+  grants         ArchiveGrant[]
 
   @@unique([archiveId, name])
   @@map("folders")
+}
+
+// Explicit per-user access grant, layered on top of the role/department
+// model in src/lib/visibility.ts and src/lib/authz.ts — never a substitute
+// for it. A grant can only NARROW visibility (restrict a canViewAll admin
+// who'd already see everything down to a curated list — not used today
+// since canViewAll roles bypass grants entirely, see resolveArchiveAccess())
+// or EXTEND specific rights (view/upload) on an archive the user's
+// role+department already makes visible. It can never let a Department
+// User see another department's archive — that boundary is enforced in
+// src/lib/visibility.ts regardless of any grant row.
+//
+// folderId null = applies to the whole archive (every folder); a non-null
+// folderId narrows the grant to one folder only, e.g. "this Viewer may
+// upload into the Photos folder but not see Legal."
+model ArchiveGrant {
+  id             String  @id @default(cuid())
+  organizationId String
+  archiveId      String
+  userId         String
+  folderId       String?
+  canView        Boolean @default(true)
+  canUpload      Boolean @default(false)
+  createdAt      DateTime @default(now())
+  createdById    String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  archive      Archive      @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  folder       Folder?      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user         User         @relation("ArchiveGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ArchiveGrantCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([archiveId, userId, folderId])
+  @@index([organizationId, userId])
+  @@map("archive_grants")
 }
 
 model File {

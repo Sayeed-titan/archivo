@@ -27,6 +27,7 @@ export function FolderUpload({ archiveId, folderId, rules }: { archiveId: string
 
   return (
     <div
+      tabIndex={0}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -37,7 +38,17 @@ export function FolderUpload({ archiveId, folderId, rules }: { archiveId: string
         setIsDragging(false);
         if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files, target, alternateOptionLabel || undefined);
       }}
-      className={`rounded-sm border border-dashed px-3 py-2 type-body-small transition-colors ${
+      onPaste={(e) => {
+        // Files copied in the OS file explorer (Windows Explorer, Finder)
+        // land in e.clipboardData.files on Ctrl/Cmd+V, same as a real
+        // <input type="file"> selection — not e.clipboardData.items, which
+        // is for pasted text/image data, not copied filesystem files.
+        if (e.clipboardData.files.length > 0) {
+          e.preventDefault();
+          uploadFiles(e.clipboardData.files, target, alternateOptionLabel || undefined);
+        }
+      }}
+      className={`rounded-sm border border-dashed px-3 py-2 type-body-small transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${
         isDragging ? "border-primary bg-primary-8" : "border-outline"
       }`}
     >
@@ -74,6 +85,7 @@ export function FolderUpload({ archiveId, folderId, rules }: { archiveId: string
       >
         Drag files here or click to upload
       </button>
+      <span className="text-on-surface-variant/70"> — or click here and press Ctrl+V (⌘V on Mac) to paste files copied from your file explorer</span>
       <UploadProgressList items={items} onDismiss={dismiss} onSubmitExternalLink={handleExternalLink} />
     </div>
   );

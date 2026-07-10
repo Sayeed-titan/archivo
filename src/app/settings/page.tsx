@@ -24,6 +24,12 @@ const SECTIONS = [
     description: "The folder structure every new archive is provisioned with, per category.",
   },
   {
+    href: "/settings/file-naming",
+    icon: "drive_file_rename_outline",
+    title: "File naming",
+    description: "How uploaded files are automatically renamed, using tokens like folder and event date.",
+  },
+  {
     href: "/settings/workflow",
     icon: "account_tree",
     title: "Approval workflow",

@@ -9,15 +9,60 @@ import { extractVideoDuration, extractVideoResolution, generateVideoThumbnail } 
 import { notify } from "@/lib/notifications";
 import { checkStorageLimit } from "@/lib/storage-usage";
 import { parseFolderRules, type FolderRules, type FileTypeCategory } from "@/lib/folder-rules";
+import { resolveFileName } from "@/lib/file-naming";
 import type { User } from "@/generated/prisma/client";
 
 export const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
 export const AVATAR_STORAGE_ROOT = path.join(process.cwd(), "storage", "avatars");
 
+// Context needed to resolve the configurable filename template — omitted
+// entirely for uploads into the Migration Inbox's "Unsorted" folder, which
+// has no archive metadata worth templating on (falls back to the raw
+// uploaded filename, see resolveUploadFilename below).
+export type NamingFolderContext = {
+  folderName: string;
+  archiveName: string;
+  archiveNumber: string;
+  eventDate: Date | null;
+  department: string | null;
+};
+
+async function resolveUploadFilename(
+  originalName: string,
+  folderId: string,
+  organizationId: string,
+  namingCtx?: NamingFolderContext
+): Promise<string> {
+  if (!namingCtx) return originalName;
+
+  const [org, sequence] = await Promise.all([
+    prisma.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { fileNamingTemplate: true } }),
+    prisma.file.count({ where: { folderId } }).then((n) => n + 1),
+  ]);
+
+  return resolveFileName(org.fileNamingTemplate, {
+    originalName,
+    folderName: namingCtx.folderName,
+    archiveName: namingCtx.archiveName,
+    archiveNumber: namingCtx.archiveNumber,
+    eventDate: namingCtx.eventDate,
+    department: namingCtx.department,
+    sequence,
+  });
+}
+
 // SRS.md FR-4.4 (HANDOFF.md point 5): re-uploading a file with the same
 // name in the same folder creates a new version instead of overwriting —
-// the previous version is kept, just no longer flagged isLatest.
-export async function saveUploadedFile(folderId: string, file: File, user: User, alternateOptionLabel?: string | null) {
+// the previous version is kept, just no longer flagged isLatest. "Same
+// name" is checked against the resolved (templated) filename, since that's
+// what's actually shown/stored as File.filename.
+export async function saveUploadedFile(
+  folderId: string,
+  file: File,
+  user: User,
+  alternateOptionLabel?: string | null,
+  namingCtx?: NamingFolderContext
+) {
   await mkdir(STORAGE_ROOT, { recursive: true });
 
   const storedName = `${randomUUID()}-${file.name}`;
@@ -26,6 +71,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User,
   await writeFile(fullStoragePath, buffer);
 
   const fileType = classifyFileType(file.name);
+  const filename = await resolveUploadFilename(file.name, folderId, user.organizationId, namingCtx);
 
   // SRS.md FR-6.2: best-effort — a failed extraction never blocks the
   // upload, the File row is just created with null duration/thumbnail.
@@ -39,7 +85,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User,
   }
 
   const existing = await prisma.file.findFirst({
-    where: { folderId, filename: file.name, isLatest: true, deletedAt: null },
+    where: { folderId, filename, isLatest: true, deletedAt: null },
   });
 
   if (existing) {
@@ -48,7 +94,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User,
       prisma.file.create({
         data: {
           folderId,
-          filename: file.name,
+          filename,
           fileType,
           mimeType: file.type || "application/octet-stream",
           sizeBytes: buffer.byteLength,
@@ -69,7 +115,7 @@ export async function saveUploadedFile(folderId: string, file: File, user: User,
   return prisma.file.create({
     data: {
       folderId,
-      filename: file.name,
+      filename,
       fileType,
       mimeType: file.type || "application/octet-stream",
       sizeBytes: buffer.byteLength,
@@ -178,6 +224,7 @@ export async function processUpload(
   let folderName = "";
   let archiveCreatedById: string | null = null;
   let archiveName = "";
+  let namingCtx: NamingFolderContext | undefined;
 
   if (target.kind === "inbox") {
     const inbox = await prisma.archive.findFirst({
@@ -209,6 +256,13 @@ export async function processUpload(
     folderName = folder.name;
     archiveCreatedById = folder.archive.createdById;
     archiveName = folder.archive.name;
+    namingCtx = {
+      folderName: folder.name,
+      archiveName: folder.archive.name,
+      archiveNumber: folder.archive.archiveNumber,
+      eventDate: folder.archive.eventDate,
+      department: folder.archive.department,
+    };
 
     // Rules are looked up live from the linked FolderTemplate — folders
     // with no link (pre-existing archives, or the inbox's Unsorted folder)
@@ -222,7 +276,7 @@ export async function processUpload(
     }
   }
 
-  const created = await saveUploadedFile(folderId, file, user, alternateOptionLabel);
+  const created = await saveUploadedFile(folderId, file, user, alternateOptionLabel, namingCtx);
 
   await recordUploadCompletion(created, user, { archiveId, archiveCreatedById, archiveName, folderName, isFolderTarget: target.kind === "folder" });
 

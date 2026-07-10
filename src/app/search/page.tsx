@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { searchArchives } from "@/lib/search-archives";
-import { PageHeader, ClearableSearchField, TextField, Combobox, Button } from "@/components/ui";
+import { PageHeader, ClearableSearchField, DateRangePicker, Combobox, Button } from "@/components/ui";
 import { SearchResultsTable } from "./search-results-table";
 
 export default async function SearchPage({
@@ -12,8 +12,8 @@ export default async function SearchPage({
     categoryId?: string;
     status?: string;
     projectName?: string;
-    month?: string;
-    year?: string;
+    dateFrom?: string;
+    dateFromEnd?: string;
     docType?: string;
     group?: string;
   }>;
@@ -29,11 +29,6 @@ export default async function SearchPage({
       include: { items: { where: { isActive: true } } },
     }),
   ]);
-
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
 
   return (
     <main className="mx-auto max-w-3xl p-4 sm:p-8">
@@ -80,16 +75,13 @@ export default async function SearchPage({
             options={(projectList?.items ?? []).map((p) => ({ value: p.value, label: p.value }))}
           />
 
-          <Combobox
-            name="month"
-            defaultValue={params.month ?? ""}
-            placeholder="Any month"
+          <DateRangePicker
+            name="dateFrom"
             compact
-            className="w-40"
-            options={months.map((m, i) => ({ value: String(i + 1), label: m }))}
+            className="w-56"
+            defaultStart={params.dateFrom ?? ""}
+            defaultEnd={params.dateFromEnd ?? ""}
           />
-
-          <TextField name="year" defaultValue={params.year ?? ""} placeholder="Year" compact className="w-20" />
 
           <Combobox
             name="docType"

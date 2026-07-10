@@ -1,5 +1,6 @@
 Loaded Prisma config from prisma.config.ts.
 
+Fetching latest updates for this subcommand...
 [36m-[39m  Starting [7m[8m_[28mprisma dev[8m_[28m[27m server [36mdefault[39m...
 
 
@@ -22,5 +23,5 @@ Loaded Prisma config from prisma.config.ts.
 🌊 Prisma Streams is available at:
 
    [36mPRISMA_STREAM_URL[39m="[35mhttp:[39m//[36m127.0.0.1[39m:[36m51216[39m[37m/v1/stream/prisma-wal[39m"
-[2026-07-04T01:41:33.201Z] [ERROR] (node:21020) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+[2026-07-10T08:07:55.142Z] [ERROR] (node:932) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)

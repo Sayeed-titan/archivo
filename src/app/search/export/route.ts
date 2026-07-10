@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     categoryId: params.get("categoryId") ?? undefined,
     status: params.get("status") ?? undefined,
     projectName: params.get("projectName") ?? undefined,
-    month: params.get("month") ?? undefined,
-    year: params.get("year") ?? undefined,
+    dateFrom: params.get("dateFrom") ?? undefined,
+    dateFromEnd: params.get("dateFromEnd") ?? undefined,
     docType: params.get("docType") ?? undefined,
     group: params.get("group") ?? undefined,
   };

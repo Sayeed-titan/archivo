@@ -13,6 +13,8 @@ import { submitExternalFileLink as submitExternalFileLinkImpl } from "@/lib/file
 const CreateArchiveSchema = z.object({
   name: z.string().trim().min(1, { error: "Name is required." }),
   categoryId: z.string().optional(),
+  eventDate: z.string().optional(),
+  eventDateEnd: z.string().optional(),
 });
 
 export type CreateArchiveState =
@@ -31,13 +33,15 @@ export async function createArchive(_state: CreateArchiveState, formData: FormDa
   const validated = CreateArchiveSchema.safeParse({
     name: formData.get("name"),
     categoryId: formData.get("categoryId") || undefined,
+    eventDate: formData.get("eventDate") || undefined,
+    eventDateEnd: formData.get("eventDateEnd") || undefined,
   });
 
   if (!validated.success) {
     return { errors: validated.error.flatten().fieldErrors };
   }
 
-  const { name, categoryId } = validated.data;
+  const { name, categoryId, eventDate, eventDateEnd } = validated.data;
 
   const archiveNumber = await generateArchiveNumber(user.organizationId);
 
@@ -47,6 +51,8 @@ export async function createArchive(_state: CreateArchiveState, formData: FormDa
       archiveNumber,
       name,
       categoryId,
+      eventDate: eventDate ? new Date(eventDate) : undefined,
+      eventEndDate: eventDateEnd && eventDateEnd !== eventDate ? new Date(eventDateEnd) : undefined,
       createdById: user.id,
     },
   });
@@ -100,6 +106,8 @@ const UpdateMetadataSchema = z.object({
   donor: z.string().trim().optional(),
   projectName: z.string().trim().optional(),
   description: z.string().trim().optional(),
+  eventDate: z.string().optional(),
+  eventDateEnd: z.string().optional(),
 });
 
 export type UpdateMetadataState = { errors?: { name?: string[] }; message?: string } | undefined;
@@ -122,7 +130,7 @@ export async function updateArchiveMetadata(
     return { errors: validated.error.flatten().fieldErrors };
   }
 
-  const { archiveId, ...data } = validated.data;
+  const { archiveId, eventDate, eventDateEnd, ...data } = validated.data;
 
   const existing = await prisma.archive.findFirst({
     where: { id: archiveId, organizationId: user.organizationId, deletedAt: null },
@@ -131,7 +139,14 @@ export async function updateArchiveMetadata(
     return { message: "Archive not found." };
   }
 
-  await prisma.archive.update({ where: { id: archiveId }, data });
+  await prisma.archive.update({
+    where: { id: archiveId },
+    data: {
+      ...data,
+      eventDate: eventDate ? new Date(eventDate) : null,
+      eventEndDate: eventDateEnd && eventDateEnd !== eventDate ? new Date(eventDateEnd) : null,
+    },
+  });
 
   await prisma.auditLog.create({
     data: {

@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import type { File as PrismaFile, User } from "@/generated/prisma/client";
 import { OpenInEditorButton } from "./open-in-editor-button";
 import { Icon } from "@/components/icon";
@@ -7,7 +6,7 @@ import { FilePreviewButton } from "@/components/file-preview/file-preview-dialog
 import { FileShareButton } from "@/components/file-share/file-share-dialog";
 import { TreeFileCheckbox } from "@/components/tree-view";
 
-type FileWithUploader = PrismaFile & { uploadedBy: User };
+export type FileWithUploader = PrismaFile & { uploadedBy: User };
 
 const OPENABLE_KINDS = new Set(["word", "excel", "powerpoint"]);
 
@@ -17,33 +16,22 @@ function formatDuration(totalSeconds: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-async function getVersionHistory(fileId: string): Promise<FileWithUploader[]> {
-  const history: FileWithUploader[] = [];
-  let currentId: string | null = fileId;
-
-  while (currentId) {
-    const file: FileWithUploader | null = await prisma.file.findUnique({
-      where: { id: currentId },
-      include: { uploadedBy: true },
-    });
-    if (!file) break;
-    history.push(file);
-    currentId = file.previousVersionId;
-  }
-
-  return history;
-}
-
-export async function FileRow({
+// Deliberately not a Server Component (and this module imports no
+// server-only code) so it can be rendered both from server pages and from
+// the client-side file-explorer tree — version history is pre-fetched by
+// the caller (see getVersionHistory in file-version-history.ts) rather
+// than fetched inside this component.
+export function FileRow({
   file,
+  history,
   canDownload,
   docEditorProvider,
 }: {
   file: FileWithUploader;
+  history: FileWithUploader[];
   canDownload: boolean;
   docEditorProvider: string | null;
 }) {
-  const history = file.version > 1 ? await getVersionHistory(file.id) : [file];
   const canOpenInEditor = docEditorProvider !== null && OPENABLE_KINDS.has(file.fileType);
 
   return (
