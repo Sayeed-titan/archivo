@@ -48,7 +48,7 @@ export function DataTablePager<TRow>({ table }: { table: UseDataTableResult<TRow
             placeholder="Go to…"
             value={jumpValue}
             onChange={(e) => setJumpValue(e.target.value)}
-            className="w-20 rounded-xs border border-outline bg-surface px-2 py-1 type-body-medium text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-24 rounded-xs border border-outline bg-surface px-2 py-1 type-body-medium text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </form>
       </div>

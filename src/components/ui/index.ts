@@ -27,3 +27,4 @@ export { CircularProgress, LinearProgress } from "./progress";
 export { EmptyState } from "./empty-state";
 export { Menu, MenuItem, MenuFormItem, MenuSeparator } from "./menu";
 export { ExtendedFab } from "./fab";
+export { Tabs } from "./tabs";

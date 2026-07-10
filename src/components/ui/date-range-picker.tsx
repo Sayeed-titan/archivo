@@ -62,6 +62,9 @@ type DateRangePickerProps = {
   className?: string;
   defaultStart?: string | null; // "YYYY-MM-DD"
   defaultEnd?: string | null;
+  /** Fire on every start/end change (incl. clear), in addition to the hidden <input name>s still working in a native form submission — for instant client-side filtering (e.g. the dashboard's Recent Archives filter). Values are "YYYY-MM-DD" or "" when cleared. */
+  onChangeStart?: (value: string) => void;
+  onChangeEnd?: (value: string) => void;
 };
 
 export function DateRangePicker({
@@ -73,9 +76,20 @@ export function DateRangePicker({
   className,
   defaultStart,
   defaultEnd,
+  onChangeStart,
+  onChangeEnd,
 }: DateRangePickerProps) {
-  const [start, setStart] = useState<Date | null>(fromIso(defaultStart));
-  const [end, setEnd] = useState<Date | null>(fromIso(defaultEnd));
+  const [start, setStartState] = useState<Date | null>(fromIso(defaultStart));
+  const [end, setEndState] = useState<Date | null>(fromIso(defaultEnd));
+
+  function setStart(d: Date | null) {
+    setStartState(d);
+    onChangeStart?.(d ? toIso(d) : "");
+  }
+  function setEnd(d: Date | null) {
+    setEndState(d);
+    onChangeEnd?.(d ? toIso(d) : "");
+  }
   const [isRange, setIsRange] = useState(!!fromIso(defaultEnd) && !sameDay(fromIso(defaultStart), fromIso(defaultEnd)));
 
   // Which end of the range the calendar is currently placing — only

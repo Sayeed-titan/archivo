@@ -15,14 +15,22 @@ export function ClearableSearchField({
   defaultValue,
   placeholder,
   className,
+  onChange,
 }: {
   name: string;
   defaultValue?: string;
   placeholder?: string;
   className?: string;
+  /** Fires on every keystroke/clear, in addition to the field's own uncontrolled value — for instant client-side filtering (e.g. the dashboard's Recent Archives filter), independent of the <input name> still working in a native form submission. */
+  onChange?: (value: string) => void;
 }) {
   const [value, setValue] = useState(defaultValue ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function update(next: string) {
+    setValue(next);
+    onChange?.(next);
+  }
 
   return (
     <div className={cn("relative", className)}>
@@ -32,7 +40,7 @@ export function ClearableSearchField({
         type="text"
         name={name}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => update(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
         className="w-full rounded-xs border border-outline bg-surface py-2 pl-10 pr-9 type-body-medium text-on-surface placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -42,7 +50,7 @@ export function ClearableSearchField({
           type="button"
           aria-label="Clear search"
           onClick={() => {
-            setValue("");
+            update("");
             inputRef.current?.focus();
           }}
           className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8"

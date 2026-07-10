@@ -1,19 +1,13 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/dal";
 import { prisma, withConnectionRetry } from "@/lib/prisma";
-import { getDashboardSummary, getRecentUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
+import { getDashboardSummary, getRecentUploads, browseUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
 import { getBackupStatus } from "@/lib/backup-status";
-import { fileTypeIcon } from "@/lib/file-icon";
-import { HealthBadge } from "@/components/health-badge";
 import { Icon } from "@/components/icon";
-import { Badge, Card, LinearProgress, EmptyState, Button } from "@/components/ui";
-
-const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
-  Archived: "success",
-  "Pending Review": "warning",
-  Draft: "neutral",
-};
+import { Badge, Card, LinearProgress, Button } from "@/components/ui";
+import { RecentUploadsCard } from "./recent-uploads-card";
+import { RecentArchivesCard } from "./recent-archives-card";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -22,13 +16,22 @@ function greeting(): string {
   return "Good evening";
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ uploadsQ?: string; uploadsDateFrom?: string; uploadsDateFromEnd?: string; tab?: string }>;
+}) {
   const user = await getCurrentUser();
+  const params = await searchParams;
+  const hasBrowseParams = Boolean(params.uploadsQ || params.uploadsDateFrom || params.tab === "uploads-browse");
 
-  const [summary, recentArchives, recentUploads, categories, backupStatus, org] = await Promise.all([
+  const [summary, recentArchives, recentUploads, browseUploadResults, categories, backupStatus, org] = await Promise.all([
     getDashboardSummary(user),
     getRecentArchivesWithHealth(user),
     getRecentUploads(user),
+    hasBrowseParams
+      ? browseUploads(user, { q: params.uploadsQ, dateFrom: params.uploadsDateFrom, dateFromEnd: params.uploadsDateFromEnd })
+      : Promise.resolve([]),
     getCategoryCounts(user),
     user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
     withConnectionRetry(() => prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } })),
@@ -152,93 +155,57 @@ export default async function DashboardPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[1.6fr_1fr]">
         <Card variant="elevated" className="min-w-0 p-0!">
-          <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
-            <h2 className="type-title-medium text-on-surface">Recent Archives</h2>
-            <Link
-              href="/search"
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 type-label-medium text-primary hover:bg-primary-8"
-            >
-              View all
-              <Icon name="arrow_forward" size={14} />
-            </Link>
-          </div>
-          {recentArchives.length > 0 ? (
-            <ul className="divide-y divide-outline-variant/60">
-              {recentArchives.map((archive) => (
-                <li key={archive.id} className="px-4 py-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <Link
-                      href={`/archives/${archive.id}`}
-                      className="truncate font-medium text-on-surface hover:text-primary hover:underline"
-                    >
-                      {archive.name}
-                    </Link>
-                    <span className="whitespace-nowrap type-body-small text-on-surface-variant">
-                      {archive.createdAt.toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <span className="type-body-small text-on-surface-variant">
-                      {archive.category?.name ?? "Uncategorized"}
-                    </span>
-                    <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
-                    <HealthBadge health={archive.health} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState
-              icon="folder_off"
-              title="No archives yet"
-              description="Create the first one to get started."
-              action={
-                user.role.canCreateArchive ? (
-                  <Button href="/archives/new" variant="tonal" size="sm">
-                    New Archive
-                  </Button>
-                ) : undefined
-              }
-            />
-          )}
+          <RecentUploadsCard
+            recent={recentUploads.map((file) => ({
+              id: file.id,
+              filename: file.filename,
+              fileType: file.fileType,
+              uploadedByName: file.uploadedBy.name,
+              archiveId: file.folder.archive.id,
+              archiveName: file.folder.archive.name,
+              uploadedAt: file.uploadedAt.toLocaleDateString(),
+            }))}
+            browseResults={browseUploadResults.map((file) => ({
+              id: file.id,
+              filename: file.filename,
+              fileType: file.fileType,
+              uploadedByName: file.uploadedBy.name,
+              archiveId: file.folder.archive.id,
+              archiveName: file.folder.archive.name,
+              uploadedAt: file.uploadedAt.toLocaleDateString(),
+            }))}
+            browseQuery={params.uploadsQ ?? ""}
+            browseDateFrom={params.uploadsDateFrom ?? ""}
+            browseDateFromEnd={params.uploadsDateFromEnd ?? ""}
+            hasBrowseParams={hasBrowseParams}
+          />
         </Card>
 
-        <div className="flex flex-col gap-5">
-          <Card variant="elevated" className="p-0!">
-            <div className="border-b border-outline-variant px-4 py-3">
-              <h2 className="type-title-medium text-on-surface">Recent Uploads</h2>
+        <div className="flex min-w-0 flex-col gap-5">
+          <Card variant="elevated" className="min-w-0 p-0!">
+            <div className="flex items-center justify-between border-b border-outline-variant px-4 py-3">
+              <h2 className="type-title-medium text-on-surface">Recent Archives</h2>
+              <Link
+                href="/archives"
+                className="inline-flex items-center gap-1 rounded-full px-2 py-1 type-label-medium text-primary hover:bg-primary-8"
+              >
+                View all
+                <Icon name="arrow_forward" size={14} />
+              </Link>
             </div>
-            {recentUploads.length > 0 ? (
-              <ul className="divide-y divide-outline-variant/60">
-                {recentUploads.map((file) => (
-                  <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
-                    <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 text-on-surface-variant" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate type-body-medium text-on-surface">{file.filename}</span>
-                        <span className="whitespace-nowrap type-body-small text-on-surface-variant">
-                          {file.uploadedAt.toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="truncate type-body-small text-on-surface-variant">
-                        {file.uploadedBy.name} · {file.folder.archive.name}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <EmptyState
-                icon="cloud_upload"
-                title="No uploads yet"
-                description="Files added to any archive will show up here."
-                action={
-                  <Button href="/inbox" variant="tonal" size="sm">
-                    Open Migration Inbox
-                  </Button>
-                }
-              />
-            )}
+            <RecentArchivesCard
+              archives={recentArchives.map((archive) => ({
+                id: archive.id,
+                name: archive.name,
+                categoryName: archive.category?.name ?? "Uncategorized",
+                status: archive.status,
+                createdAt: archive.createdAt.toLocaleDateString(),
+                eventDateMs: archive.eventDate ? archive.eventDate.getTime() : null,
+                eventEndDateMs: archive.eventEndDate ? archive.eventEndDate.getTime() : null,
+                health: archive.health,
+              }))}
+              canCreateArchive={user.role.canCreateArchive}
+            />
           </Card>
 
           <Card variant="elevated" className="p-0!">
@@ -247,10 +214,16 @@ export default async function DashboardPage() {
             </div>
             <div className="flex flex-wrap gap-2 p-4">
               {categories.map((category) => (
-                <Badge key={category.id} tone="neutral">
-                  {category.name}
-                  <span className="text-on-surface-variant/70">{category._count.archives}</span>
-                </Badge>
+                <Link
+                  key={category.id}
+                  href={`/archives?categoryId=${category.id}`}
+                  className="transition-transform hover:scale-105"
+                >
+                  <Badge tone="neutral" className="cursor-pointer hover:bg-on-surface-8">
+                    {category.name}
+                    <span className="text-on-surface-variant/70">{category._count.archives}</span>
+                  </Badge>
+                </Link>
               ))}
               {categories.length === 0 && <p className="type-body-small text-on-surface-variant">No categories yet.</p>}
             </div>

@@ -136,3 +136,411 @@ Failed to send notification email to admin@demo-ngo.org: Error: connect ECONNREF
  GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 285ms (next.js: 22ms, proxy.ts: 8ms, application-code: 255ms)
  POST /archives/new 303 in 642ms (next.js: 10ms, proxy.ts: 8ms, application-code: 624ms)
   └─ ƒ createArchive(undefined, {}) in 314ms src/app/actions/archives.ts
+ GET /search 200 in 123ms (next.js: 4ms, proxy.ts: 7ms, application-code: 111ms)
+ POST /search 200 in 209ms (next.js: 4ms, proxy.ts: 7ms, application-code: 198ms)
+  └─ ƒ markAllNotificationsRead() in 45ms src/app/actions/notifications.ts
+ GET /dashboard 200 in 248ms (next.js: 4ms, proxy.ts: 8ms, application-code: 236ms)
+✓ Compiled in 708ms
+ GET /dashboard 200 in 2.8s (next.js: 349ms, proxy.ts: 291ms, application-code: 2.1s)
+ GET /dashboard 200 in 1899ms (next.js: 12ms, proxy.ts: 168ms, application-code: 1719ms)
+ GET /dashboard 200 in 1635ms (next.js: 64ms, proxy.ts: 170ms, application-code: 1401ms)
+ GET /dashboard 200 in 1447ms (next.js: 161ms, proxy.ts: 153ms, application-code: 1133ms)
+ GET /dashboard 200 in 1318ms (next.js: 135ms, proxy.ts: 100ms, application-code: 1083ms)
+ GET /dashboard 200 in 1505ms (next.js: 49ms, proxy.ts: 52ms, application-code: 1405ms)
+ GET /dashboard 200 in 1192ms (next.js: 11ms, proxy.ts: 18ms, application-code: 1163ms)
+ GET /dashboard 200 in 1349ms (next.js: 69ms, proxy.ts: 23ms, application-code: 1256ms)
+ GET /dashboard 200 in 1303ms (next.js: 87ms, proxy.ts: 142ms, application-code: 1073ms)
+ GET /dashboard 200 in 1302ms (next.js: 43ms, proxy.ts: 53ms, application-code: 1206ms)
+ GET /dashboard 200 in 1284ms (next.js: 44ms, proxy.ts: 215ms, application-code: 1025ms)
+ GET /dashboard 200 in 1277ms (next.js: 21ms, proxy.ts: 56ms, application-code: 1199ms)
+ GET /dashboard 200 in 1234ms (next.js: 13ms, proxy.ts: 132ms, application-code: 1089ms)
+ GET /dashboard 200 in 1332ms (next.js: 31ms, proxy.ts: 66ms, application-code: 1235ms)
+ GET /dashboard 200 in 1307ms (next.js: 46ms, proxy.ts: 194ms, application-code: 1067ms)
+ GET /dashboard 200 in 1452ms (next.js: 73ms, proxy.ts: 22ms, application-code: 1358ms)
+ GET /dashboard 200 in 1513ms (next.js: 83ms, proxy.ts: 88ms, application-code: 1342ms)
+ GET /dashboard 200 in 1298ms (next.js: 25ms, proxy.ts: 84ms, application-code: 1189ms)
+ GET /dashboard 200 in 1132ms (next.js: 31ms, proxy.ts: 156ms, application-code: 945ms)
+✓ Compiled in 143ms
+ GET /dashboard 200 in 1421ms (next.js: 55ms, proxy.ts: 55ms, application-code: 1311ms)
+ GET /dashboard 200 in 1907ms (next.js: 27ms, proxy.ts: 219ms, application-code: 1662ms)
+ GET /dashboard 200 in 2.1s (next.js: 539ms, proxy.ts: 103ms, application-code: 1439ms)
+ GET /dashboard 200 in 1441ms (next.js: 62ms, proxy.ts: 156ms, application-code: 1223ms)
+ GET /dashboard 200 in 1439ms (next.js: 25ms, proxy.ts: 80ms, application-code: 1335ms)
+ GET /dashboard 200 in 1430ms (next.js: 72ms, proxy.ts: 199ms, application-code: 1159ms)
+ GET /dashboard 200 in 1312ms (next.js: 58ms, proxy.ts: 85ms, application-code: 1169ms)
+ GET /dashboard 200 in 1291ms (next.js: 86ms, proxy.ts: 81ms, application-code: 1123ms)
+ GET /dashboard 200 in 1372ms (next.js: 41ms, proxy.ts: 145ms, application-code: 1186ms)
+ GET /dashboard 200 in 1268ms (next.js: 34ms, proxy.ts: 179ms, application-code: 1056ms)
+ GET /dashboard 200 in 1229ms (next.js: 63ms, proxy.ts: 60ms, application-code: 1106ms)
+ GET /dashboard 200 in 1136ms (next.js: 54ms, proxy.ts: 56ms, application-code: 1025ms)
+ GET /dashboard 200 in 1227ms (next.js: 42ms, proxy.ts: 54ms, application-code: 1131ms)
+ GET /dashboard 200 in 1275ms (next.js: 74ms, proxy.ts: 71ms, application-code: 1131ms)
+ GET /dashboard 200 in 1368ms (next.js: 29ms, proxy.ts: 117ms, application-code: 1222ms)
+ GET /dashboard 200 in 1301ms (next.js: 118ms, proxy.ts: 54ms, application-code: 1129ms)
+ GET /dashboard 200 in 1280ms (next.js: 68ms, proxy.ts: 23ms, application-code: 1189ms)
+ GET /dashboard 200 in 1181ms (next.js: 84ms, proxy.ts: 69ms, application-code: 1028ms)
+ GET /dashboard 200 in 1251ms (next.js: 90ms, proxy.ts: 81ms, application-code: 1080ms)
+ GET /dashboard 200 in 1140ms (next.js: 55ms, proxy.ts: 61ms, application-code: 1024ms)
+ GET /dashboard 200 in 1184ms (next.js: 11ms, proxy.ts: 96ms, application-code: 1077ms)
+ GET /dashboard 200 in 1194ms (next.js: 47ms, proxy.ts: 113ms, application-code: 1034ms)
+ GET /dashboard 200 in 1245ms (next.js: 48ms, proxy.ts: 49ms, application-code: 1147ms)
+ GET /dashboard 200 in 1180ms (next.js: 95ms, proxy.ts: 111ms, application-code: 973ms)
+ GET /dashboard 200 in 1269ms (next.js: 49ms, proxy.ts: 55ms, application-code: 1166ms)
+ GET /dashboard 200 in 1204ms (next.js: 95ms, proxy.ts: 92ms, application-code: 1018ms)
+ GET /dashboard 200 in 1328ms (next.js: 101ms, proxy.ts: 61ms, application-code: 1165ms)
+ GET /dashboard 200 in 1297ms (next.js: 64ms, proxy.ts: 106ms, application-code: 1127ms)
+ GET /dashboard 200 in 1330ms (next.js: 60ms, proxy.ts: 17ms, application-code: 1252ms)
+ GET /dashboard 200 in 1418ms (next.js: 99ms, proxy.ts: 130ms, application-code: 1189ms)
+ GET /dashboard 200 in 1389ms (next.js: 37ms, proxy.ts: 70ms, application-code: 1282ms)
+✓ Compiled in 117ms
+ GET /dashboard 200 in 1632ms (next.js: 87ms, proxy.ts: 108ms, application-code: 1437ms)
+ GET /dashboard 200 in 2.4s (next.js: 39ms, proxy.ts: 133ms, application-code: 2.2s)
+ GET /dashboard 200 in 2.3s (next.js: 97ms, proxy.ts: 64ms, application-code: 2.1s)
+ GET /dashboard 200 in 2.4s (next.js: 60ms, proxy.ts: 163ms, application-code: 2.2s)
+ GET /dashboard 200 in 2.3s (next.js: 64ms, proxy.ts: 78ms, application-code: 2.2s)
+ GET /dashboard 200 in 2.4s (next.js: 570ms, proxy.ts: 336ms, application-code: 1451ms)
+ GET /dashboard 200 in 1390ms (next.js: 67ms, proxy.ts: 159ms, application-code: 1164ms)
+ GET /dashboard 200 in 1439ms (next.js: 20ms, proxy.ts: 50ms, application-code: 1370ms)
+ GET /dashboard 200 in 1498ms (next.js: 49ms, proxy.ts: 214ms, application-code: 1235ms)
+ GET /dashboard 200 in 1330ms (next.js: 61ms, proxy.ts: 78ms, application-code: 1191ms)
+ GET /dashboard 200 in 1364ms (next.js: 24ms, proxy.ts: 153ms, application-code: 1187ms)
+ GET /dashboard 200 in 1309ms (next.js: 64ms, proxy.ts: 126ms, application-code: 1119ms)
+ GET /dashboard 200 in 1320ms (next.js: 103ms, proxy.ts: 60ms, application-code: 1156ms)
+ GET /dashboard 200 in 1205ms (next.js: 19ms, proxy.ts: 81ms, application-code: 1105ms)
+ GET /dashboard 200 in 1278ms (next.js: 46ms, proxy.ts: 51ms, application-code: 1181ms)
+ GET /dashboard 200 in 1191ms (next.js: 39ms, proxy.ts: 116ms, application-code: 1036ms)
+ GET /dashboard 200 in 1286ms (next.js: 45ms, proxy.ts: 61ms, application-code: 1180ms)
+ GET /dashboard 200 in 1382ms (next.js: 19ms, proxy.ts: 201ms, application-code: 1161ms)
+ GET /dashboard 200 in 1259ms (next.js: 49ms, proxy.ts: 52ms, application-code: 1158ms)
+ GET /dashboard 200 in 1265ms (next.js: 11ms, proxy.ts: 114ms, application-code: 1140ms)
+ GET /dashboard 200 in 1277ms (next.js: 58ms, proxy.ts: 48ms, application-code: 1172ms)
+ GET /dashboard 200 in 1239ms (next.js: 112ms, proxy.ts: 80ms, application-code: 1046ms)
+ GET /dashboard 200 in 1231ms (next.js: 32ms, proxy.ts: 133ms, application-code: 1066ms)
+ GET /dashboard 200 in 1264ms (next.js: 33ms, proxy.ts: 73ms, application-code: 1158ms)
+ GET /dashboard 200 in 1322ms (next.js: 37ms, proxy.ts: 176ms, application-code: 1109ms)
+ GET /dashboard 200 in 1285ms (next.js: 84ms, proxy.ts: 58ms, application-code: 1142ms)
+ GET /dashboard 200 in 1313ms (next.js: 92ms, proxy.ts: 55ms, application-code: 1167ms)
+ GET /dashboard 200 in 1265ms (next.js: 88ms, proxy.ts: 70ms, application-code: 1107ms)
+ GET /dashboard 200 in 1427ms (next.js: 85ms, proxy.ts: 85ms, application-code: 1257ms)
+ GET /dashboard 200 in 1341ms (next.js: 56ms, proxy.ts: 112ms, application-code: 1174ms)
+ GET /dashboard 200 in 1412ms (next.js: 45ms, proxy.ts: 76ms, application-code: 1291ms)
+ GET /dashboard 200 in 1110ms (next.js: 16ms, proxy.ts: 130ms, application-code: 963ms)
+ GET /dashboard 200 in 919ms (next.js: 73ms, proxy.ts: 24ms, application-code: 822ms)
+ GET /dashboard 200 in 743ms (next.js: 38ms, proxy.ts: 213ms, application-code: 492ms)
+✓ Compiled in 231ms
+✓ Compiled in 679ms
+ GET /dashboard 200 in 2.9s (next.js: 219ms, proxy.ts: 1233ms, application-code: 1481ms)
+ GET /dashboard 200 in 1401ms (next.js: 6ms, proxy.ts: 126ms, application-code: 1269ms)
+ GET /dashboard 200 in 1274ms (next.js: 93ms, proxy.ts: 31ms, application-code: 1150ms)
+ GET /dashboard 200 in 1169ms (next.js: 126ms, proxy.ts: 128ms, application-code: 915ms)
+ GET /dashboard 200 in 1111ms (next.js: 22ms, proxy.ts: 140ms, application-code: 948ms)
+ GET /dashboard 200 in 1347ms (next.js: 49ms, proxy.ts: 72ms, application-code: 1225ms)
+ GET /dashboard 200 in 1262ms (next.js: 9ms, proxy.ts: 123ms, application-code: 1130ms)
+ GET /dashboard 200 in 1213ms (next.js: 78ms, proxy.ts: 22ms, application-code: 1114ms)
+ GET /dashboard 200 in 1715ms (next.js: 84ms, proxy.ts: 149ms, application-code: 1482ms)
+ GET /dashboard 200 in 1602ms (next.js: 64ms, proxy.ts: 18ms, application-code: 1520ms)
+ GET /dashboard 200 in 1654ms (next.js: 80ms, proxy.ts: 97ms, application-code: 1478ms)
+ GET /dashboard 200 in 1572ms (next.js: 71ms, proxy.ts: 44ms, application-code: 1457ms)
+ GET /dashboard 200 in 1627ms (next.js: 65ms, proxy.ts: 60ms, application-code: 1502ms)
+ GET /dashboard 200 in 1464ms (next.js: 25ms, proxy.ts: 437ms, application-code: 1003ms)
+ GET /dashboard 200 in 1276ms (next.js: 90ms, proxy.ts: 64ms, application-code: 1123ms)
+ GET /dashboard 200 in 1199ms (next.js: 31ms, proxy.ts: 137ms, application-code: 1031ms)
+ GET /dashboard 200 in 1150ms (next.js: 42ms, proxy.ts: 60ms, application-code: 1048ms)
+ GET /dashboard 200 in 1339ms (next.js: 10ms, proxy.ts: 161ms, application-code: 1169ms)
+ GET /dashboard 200 in 1318ms (next.js: 44ms, proxy.ts: 48ms, application-code: 1226ms)
+ GET /dashboard 200 in 1371ms (next.js: 81ms, proxy.ts: 121ms, application-code: 1169ms)
+ GET /dashboard 200 in 1350ms (next.js: 91ms, proxy.ts: 51ms, application-code: 1208ms)
+ GET /dashboard 200 in 1425ms (next.js: 46ms, proxy.ts: 50ms, application-code: 1329ms)
+ GET /dashboard 200 in 1388ms (next.js: 32ms, proxy.ts: 162ms, application-code: 1194ms)
+ GET /dashboard 200 in 1456ms (next.js: 86ms, proxy.ts: 97ms, application-code: 1272ms)
+ GET /dashboard 200 in 1354ms (next.js: 30ms, proxy.ts: 130ms, application-code: 1193ms)
+ GET /dashboard 200 in 1381ms (next.js: 90ms, proxy.ts: 23ms, application-code: 1268ms)
+ GET /dashboard 200 in 1281ms (next.js: 10ms, proxy.ts: 122ms, application-code: 1149ms)
+ GET /dashboard 200 in 1262ms (next.js: 92ms, proxy.ts: 70ms, application-code: 1100ms)
+ GET /dashboard 200 in 1028ms (next.js: 29ms, proxy.ts: 175ms, application-code: 823ms)
+ GET /dashboard 200 in 781ms (next.js: 44ms, proxy.ts: 49ms, application-code: 688ms)
+ GET /dashboard 200 in 573ms (next.js: 37ms, proxy.ts: 126ms, application-code: 411ms)
+ GET /dashboard 200 in 498ms (next.js: 96ms, proxy.ts: 58ms, application-code: 344ms)
+✓ Compiled in 130ms
+ GET /dashboard 200 in 981ms (next.js: 249ms, proxy.ts: 110ms, application-code: 623ms)
+ GET /dashboard 200 in 529ms (next.js: 6ms, proxy.ts: 10ms, application-code: 513ms)
+✓ Compiled in 214ms
+⨯ ReferenceError: fileTypeIcon is not defined
+    at <unknown> (src\app\dashboard\page.tsx:215:33)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:213:32)
+  213 |                 {recentUploads.map((file) => (
+  214 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 215 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  216 |                     <div className="min-w-0 flex-1">
+  217 |                       <div className="flex items-center justify-between gap-2">
+  218 |                         <span className="truncate type-body-medium text-on-surface">{file... {
+  digest: '2978789876'
+}
+⨯ ReferenceError: fileTypeIcon is not defined
+    at <unknown> (src\app\dashboard\page.tsx:215:33)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:213:32)
+  213 |                 {recentUploads.map((file) => (
+  214 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 215 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  216 |                     <div className="min-w-0 flex-1">
+  217 |                       <div className="flex items-center justify-between gap-2">
+  218 |                         <span className="truncate type-body-medium text-on-surface">{file... {
+  digest: '2978789876'
+}
+ GET /dashboard 200 in 1119ms (next.js: 197ms, proxy.ts: 93ms, application-code: 829ms)
+ GET /dashboard 200 in 693ms (next.js: 54ms, proxy.ts: 24ms, application-code: 616ms)
+⨯ ReferenceError: fileTypeIcon is not defined
+    at <unknown> (src\app\dashboard\page.tsx:215:33)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:213:32)
+  213 |                 {recentUploads.map((file) => (
+  214 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 215 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  216 |                     <div className="min-w-0 flex-1">
+  217 |                       <div className="flex items-center justify-between gap-2">
+  218 |                         <span className="truncate type-body-medium text-on-surface">{file... {
+  digest: '2978789876'
+}
+ GET /dashboard 200 in 656ms (next.js: 67ms, proxy.ts: 65ms, application-code: 524ms)
+[browser] Uncaught ReferenceError: fileTypeIcon is not defined
+    at <anonymous> (src\app\dashboard\page.tsx:215:33)
+    at Array.map (<anonymous>:1:18)
+    at DashboardPage (src\app\dashboard\page.tsx:213:32)
+    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:150)
+    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
+    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
+    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
+    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
+  213 |                 {recentUploads.map((file) => (
+  214 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 215 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  216 |                     <div className="min-w-0 flex-1">
+  217 |                       <div className="flex items-center justify-between gap-2">
+  218 |                         <span className="truncate type-body-medium text-on-surface">{file...
+✓ Compiled in 120ms
+⨯ ReferenceError: fileTypeIcon is not defined
+    at <unknown> (src\app\dashboard\page.tsx:224:33)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:222:32)
+  222 |                 {recentUploads.map((file) => (
+  223 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 224 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  225 |                     <div className="min-w-0 flex-1">
+  226 |                       <div className="flex items-center justify-between gap-2">
+  227 |                         <span className="truncate type-body-medium text-on-surface">{file... {
+  digest: '528425501'
+}
+ GET /dashboard 500 in 1065ms (next.js: 191ms, proxy.ts: 103ms, application-code: 772ms)
+[browser] Uncaught ReferenceError: fileTypeIcon is not defined
+    at <anonymous> (src\app\dashboard\page.tsx:224:33)
+    at Array.map (<anonymous>:1:18)
+    at DashboardPage (src\app\dashboard\page.tsx:222:32)
+    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:105)
+    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
+    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
+    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
+    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
+  222 |                 {recentUploads.map((file) => (
+  223 |                   <li key={file.id} className="flex items-start gap-3 px-4 py-2.5">
+> 224 |                     <Icon name={fileTypeIcon(file.fileType)} size={20} className="mt-0.5 ...
+      |                                 ^
+  225 |                     <div className="min-w-0 flex-1">
+  226 |                       <div className="flex items-center justify-between gap-2">
+  227 |                         <span className="truncate type-body-medium text-on-surface">{file...
+ GET /dashboard 200 in 1714ms (next.js: 303ms, proxy.ts: 6ms, application-code: 1405ms)
+ GET /login 200 in 645ms (next.js: 256ms, proxy.ts: 6ms, application-code: 383ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 320ms (next.js: 186ms, application-code: 134ms)
+ GET /dashboard 200 in 651ms (next.js: 50ms, proxy.ts: 7ms, application-code: 594ms)
+ POST /login 303 in 846ms (next.js: 5ms, proxy.ts: 7ms, application-code: 834ms)
+  └─ ƒ login(undefined, {}) in 113ms src/app/actions/auth.ts
+ GET /search?group=events 200 in 450ms (next.js: 213ms, proxy.ts: 8ms, application-code: 229ms)
+ GET /login 200 in 97ms (next.js: 6ms, proxy.ts: 8ms, application-code: 83ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 59ms (next.js: 21ms, application-code: 37ms)
+ GET /dashboard 200 in 424ms (next.js: 5ms, proxy.ts: 7ms, application-code: 412ms)
+ POST /login 303 in 579ms (next.js: 11ms, proxy.ts: 9ms, application-code: 559ms)
+  └─ ƒ login(undefined, {}) in 104ms src/app/actions/auth.ts
+ GET /archives?categoryId=cmr28vyml0007j020x67lnleb 200 in 1301ms (next.js: 1111ms, proxy.ts: 15ms, application-code: 176ms)
+ GET /archives 200 in 618ms (next.js: 8ms, proxy.ts: 10ms, application-code: 601ms)
+ GET /archives?q=Annual&categoryId=&status=&dateFrom=&dateFromEnd= 200 in 315ms (next.js: 6ms, proxy.ts: 7ms, application-code: 303ms)
+ GET /archives 200 in 268ms (next.js: 5ms, proxy.ts: 7ms, application-code: 256ms)
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 2.7s (next.js: 1950ms, proxy.ts: 9ms, application-code: 711ms)
+ GET /dashboard 200 in 3.1s (next.js: 25ms, proxy.ts: 2.2s, application-code: 850ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=pdf&uploadsDateFrom=&uploadsDateFromEnd= 200 in 632ms (next.js: 5ms, proxy.ts: 7ms, application-code: 619ms)
+ GET /dashboard 200 in 603ms (next.js: 7ms, proxy.ts: 7ms, application-code: 589ms)
+ GET /login 200 in 82ms (next.js: 5ms, proxy.ts: 6ms, application-code: 70ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 43ms (next.js: 17ms, application-code: 26ms)
+ GET /dashboard 200 in 437ms (next.js: 5ms, proxy.ts: 5ms, application-code: 427ms)
+ POST /login 303 in 570ms (next.js: 5ms, proxy.ts: 10ms, application-code: 556ms)
+  └─ ƒ login(undefined, {}) in 99ms src/app/actions/auth.ts
+ GET /archives?categoryId=cmr28vyml0007j020x67lnleb 200 in 160ms (next.js: 10ms, proxy.ts: 10ms, application-code: 140ms)
+ GET /archives 200 in 247ms (next.js: 6ms, proxy.ts: 6ms, application-code: 235ms)
+ GET /archives?q=Annual&categoryId=&status=&dateFrom=&dateFromEnd= 200 in 322ms (next.js: 5ms, proxy.ts: 6ms, application-code: 312ms)
+ GET /archives 200 in 289ms (next.js: 6ms, proxy.ts: 8ms, application-code: 275ms)
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 251ms (next.js: 30ms, proxy.ts: 7ms, application-code: 215ms)
+ GET /dashboard 200 in 580ms (next.js: 7ms, proxy.ts: 9ms, application-code: 564ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=pdf&uploadsDateFrom=&uploadsDateFromEnd= 200 in 595ms (next.js: 5ms, proxy.ts: 6ms, application-code: 584ms)
+ GET /dashboard 200 in 549ms (next.js: 6ms, proxy.ts: 7ms, application-code: 535ms)
+ GET /login 200 in 202ms (next.js: 5ms, proxy.ts: 6ms, application-code: 191ms)
+ GET /archives?categoryId=cmr28vyml0007j020x67lnleb 200 in 192ms (next.js: 8ms, proxy.ts: 23ms, application-code: 160ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 61ms (next.js: 17ms, application-code: 44ms)
+ GET /dashboard 200 in 427ms (next.js: 5ms, proxy.ts: 7ms, application-code: 415ms)
+ POST /login 303 in 577ms (next.js: 12ms, proxy.ts: 10ms, application-code: 555ms)
+  └─ ƒ login(undefined, {}) in 97ms src/app/actions/auth.ts
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 922ms (next.js: 27ms, proxy.ts: 11ms, application-code: 885ms)
+ GET /archives 200 in 154ms (next.js: 5ms, proxy.ts: 19ms, application-code: 130ms)
+ GET /dashboard 200 in 402ms (next.js: 6ms, proxy.ts: 11ms, application-code: 385ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 91ms (next.js: 27ms, application-code: 64ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 747ms (next.js: 4ms, proxy.ts: 10ms, application-code: 732ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+bike+race&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 614ms (next.js: 6ms, proxy.ts: 15ms, application-code: 594ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 566ms (next.js: 5ms, proxy.ts: 8ms, application-code: 553ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 550ms (next.js: 6ms, proxy.ts: 9ms, application-code: 535ms)
+✓ Compiled in 111ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1080ms (next.js: 196ms, proxy.ts: 95ms, application-code: 789ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 641ms (next.js: 7ms, proxy.ts: 9ms, application-code: 625ms)
+✓ Compiled in 100ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1192ms (next.js: 192ms, proxy.ts: 87ms, application-code: 914ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 768ms (next.js: 59ms, proxy.ts: 13ms, application-code: 696ms)
+✓ Compiled in 317ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1604ms (next.js: 219ms, proxy.ts: 87ms, application-code: 1298ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1257ms (next.js: 102ms, proxy.ts: 9ms, application-code: 1146ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1155ms (next.js: 19ms, proxy.ts: 107ms, application-code: 1030ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1262ms (next.js: 109ms, proxy.ts: 78ms, application-code: 1075ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1120ms (next.js: 87ms, proxy.ts: 128ms, application-code: 905ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 839ms (next.js: 43ms, proxy.ts: 65ms, application-code: 730ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 543ms (next.js: 15ms, proxy.ts: 78ms, application-code: 450ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 546ms (next.js: 42ms, proxy.ts: 68ms, application-code: 436ms)
+✓ Compiled in 106ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 765ms (next.js: 192ms, proxy.ts: 89ms, application-code: 483ms)
+✓ Compiled in 95ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 976ms (next.js: 201ms, proxy.ts: 94ms, application-code: 681ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 834ms (next.js: 7ms, proxy.ts: 11ms, application-code: 816ms)
+ GET /login 200 in 448ms (next.js: 166ms, proxy.ts: 6ms, application-code: 276ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 199ms (next.js: 119ms, application-code: 80ms)
+ GET /dashboard 200 in 370ms (next.js: 4ms, proxy.ts: 5ms, application-code: 362ms)
+ POST /login 303 in 534ms (next.js: 4ms, proxy.ts: 5ms, application-code: 526ms)
+  └─ ƒ login(undefined, {}) in 111ms src/app/actions/auth.ts
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 807ms (next.js: 5ms, proxy.ts: 6ms, application-code: 796ms)
+ GET /login 200 in 75ms (next.js: 5ms, proxy.ts: 7ms, application-code: 63ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 41ms (next.js: 18ms, application-code: 22ms)
+ GET /dashboard 200 in 423ms (next.js: 4ms, proxy.ts: 10ms, application-code: 409ms)
+ POST /login 303 in 558ms (next.js: 4ms, proxy.ts: 10ms, application-code: 544ms)
+  └─ ƒ login(undefined, {}) in 96ms src/app/actions/auth.ts
+ GET /dashboard?tab=uploads-browse&uploadsQ=Physical+Startup+of+Unit+1&uploadsDateFrom=&uploadsDateFromEnd= 200 in 592ms (next.js: 7ms, proxy.ts: 8ms, application-code: 577ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 617ms (next.js: 4ms, proxy.ts: 7ms, application-code: 605ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 617ms (next.js: 6ms, proxy.ts: 8ms, application-code: 603ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Dhaka+Bike+Race&uploadsDateFrom=&uploadsDateFromEnd= 200 in 572ms (next.js: 5ms, proxy.ts: 15ms, application-code: 552ms)
+ GET /search?group=events 200 in 1805ms (next.js: 1400ms, proxy.ts: 6ms, application-code: 398ms)
+ GET /dashboard 200 in 470ms (next.js: 48ms, proxy.ts: 6ms, application-code: 416ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Date+Picker+Test&uploadsDateFrom=&uploadsDateFromEnd= 200 in 1036ms (next.js: 5ms, proxy.ts: 8ms, application-code: 1023ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Date+Picker+Test&uploadsDateFrom=&uploadsDateFromEnd= 200 in 633ms (next.js: 5ms, proxy.ts: 8ms, application-code: 619ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 515ms (next.js: 5ms, proxy.ts: 7ms, application-code: 503ms)
+ GET /login 200 in 207ms (next.js: 44ms, proxy.ts: 6ms, application-code: 157ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 94ms (next.js: 37ms, application-code: 58ms)
+ GET /dashboard 200 in 390ms (next.js: 4ms, proxy.ts: 9ms, application-code: 377ms)
+ POST /login 303 in 537ms (next.js: 5ms, proxy.ts: 10ms, application-code: 522ms)
+  └─ ƒ login(undefined, {}) in 97ms src/app/actions/auth.ts
+ GET /dashboard?tab=uploads-browse&uploadsQ=Physical+Startup&uploadsDateFrom=&uploadsDateFromEnd= 200 in 544ms (next.js: 5ms, proxy.ts: 5ms, application-code: 534ms)
+✓ Compiled in 125ms
+ GET /dashboard?tab=uploads-browse&uploadsQ=&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 1654ms (next.js: 442ms, proxy.ts: 438ms, application-code: 775ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 782ms (next.js: 14ms, proxy.ts: 16ms, application-code: 752ms)
+ GET /dashboard 200 in 27ms (next.js: 10ms, proxy.ts: 6ms, application-code: 11ms)
+ GET /dashboard 200 in 427ms (next.js: 5ms, proxy.ts: 13ms, application-code: 409ms)
+ GET /login 200 in 1251ms (next.js: 214ms, proxy.ts: 7ms, application-code: 1030ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 269ms (next.js: 157ms, application-code: 112ms)
+ GET /dashboard 200 in 470ms (next.js: 4ms, proxy.ts: 5ms, application-code: 461ms)
+ POST /login 303 in 662ms (next.js: 4ms, proxy.ts: 6ms, application-code: 652ms)
+  └─ ƒ login(undefined, {}) in 122ms src/app/actions/auth.ts
+ GET /login 200 in 85ms (next.js: 4ms, proxy.ts: 7ms, application-code: 74ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 44ms (next.js: 15ms, application-code: 29ms)
+ GET /dashboard 200 in 400ms (next.js: 5ms, proxy.ts: 11ms, application-code: 384ms)
+ POST /login 303 in 540ms (next.js: 9ms, proxy.ts: 8ms, application-code: 523ms)
+  └─ ƒ login(undefined, {}) in 104ms src/app/actions/auth.ts
+ GET /dashboard?tab=uploads-browse&uploadsQ=Physical+Startup+of+Unit+1+-+Roppur+NPP&uploadsDateFrom=&uploadsDateFromEnd= 200 in 755ms (next.js: 6ms, proxy.ts: 6ms, application-code: 743ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Date+Picker+Test+-+Multi+Day&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 605ms (next.js: 16ms, proxy.ts: 7ms, application-code: 582ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=Physical+Startup+of+Unit+1+-+Roppur+NPP&uploadsDateFrom=2026-07-10&uploadsDateFromEnd=2026-07-10 200 in 555ms (next.js: 4ms, proxy.ts: 6ms, application-code: 544ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 11.4s (next.js: 10.3s, proxy.ts: 7ms, application-code: 1093ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 921ms (next.js: 26ms, proxy.ts: 31ms, application-code: 864ms)
+ GET /archives/cmraklr530000rk20gomrthyr 200 in 766ms (next.js: 22ms, proxy.ts: 33ms, application-code: 711ms)
+ GET /dashboard 200 in 33ms (next.js: 9ms, proxy.ts: 6ms, application-code: 19ms)
+ GET /dashboard 200 in 562ms (next.js: 6ms, proxy.ts: 14ms, application-code: 543ms)
+✓ Compiled in 323ms
+ GET /dashboard 200 in 1324ms (next.js: 309ms, proxy.ts: 10ms, application-code: 1005ms)
+ GET /dashboard 200 in 942ms (next.js: 244ms, proxy.ts: 85ms, application-code: 612ms)
+ GET /login 200 in 238ms (next.js: 18ms, proxy.ts: 6ms, application-code: 214ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 253ms (next.js: 135ms, application-code: 118ms)
+ GET /dashboard 200 in 460ms (next.js: 5ms, proxy.ts: 10ms, application-code: 446ms)
+ POST /login 303 in 646ms (next.js: 5ms, proxy.ts: 11ms, application-code: 630ms)
+  └─ ƒ login(undefined, {}) in 106ms src/app/actions/auth.ts
+ GET /archives?q=Dhaka&dateFrom=&dateFromEnd= 200 in 1080ms (next.js: 439ms, proxy.ts: 7ms, application-code: 635ms)
+✓ Compiled in 84ms
+ GET /dashboard 200 in 788ms (next.js: 9ms, proxy.ts: 14ms, application-code: 765ms)
+ GET /dashboard 200 in 1715ms (next.js: 201ms, proxy.ts: 95ms, application-code: 1419ms)
+ GET /login 200 in 217ms (next.js: 19ms, proxy.ts: 6ms, application-code: 192ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 254ms (next.js: 144ms, application-code: 110ms)
+ GET /dashboard 200 in 448ms (next.js: 5ms, proxy.ts: 7ms, application-code: 436ms)
+ POST /login 303 in 627ms (next.js: 4ms, proxy.ts: 5ms, application-code: 618ms)
+  └─ ƒ login(undefined, {}) in 115ms src/app/actions/auth.ts
+ GET /archives?q=Dhaka&dateFrom=&dateFromEnd= 200 in 323ms (next.js: 38ms, proxy.ts: 9ms, application-code: 276ms)
+ GET /archives?q=Dhaka+Bike+Race&dateFrom=&dateFromEnd= 200 in 283ms (next.js: 4ms, proxy.ts: 7ms, application-code: 271ms)
+✓ Compiled in 356ms
+ GET /dashboard 200 in 1925ms (next.js: 285ms, proxy.ts: 132ms, application-code: 1508ms)
+ GET /dashboard 200 in 1501ms (next.js: 57ms, proxy.ts: 11ms, application-code: 1433ms)
+ GET /dashboard 200 in 1395ms (next.js: 48ms, proxy.ts: 95ms, application-code: 1251ms)
+ GET /dashboard 200 in 1355ms (next.js: 90ms, proxy.ts: 109ms, application-code: 1156ms)
+ GET /dashboard 200 in 1197ms (next.js: 83ms, proxy.ts: 79ms, application-code: 1035ms)
+ GET /dashboard 200 in 923ms (next.js: 19ms, proxy.ts: 165ms, application-code: 739ms)
+ GET /dashboard 200 in 568ms (next.js: 15ms, proxy.ts: 83ms, application-code: 471ms)
+ GET /dashboard 200 in 560ms (next.js: 39ms, proxy.ts: 161ms, application-code: 360ms)
+ GET /archives?q=Date+Picker&dateFrom=&dateFromEnd= 200 in 745ms (next.js: 237ms, proxy.ts: 8ms, application-code: 500ms)
+✓ Compiled in 274ms
+ GET /dashboard 200 in 2.1s (next.js: 246ms, proxy.ts: 103ms, application-code: 1766ms)
+ GET /archives?q=Date+Picker&dateFrom=&dateFromEnd= 200 in 1342ms (next.js: 670ms, proxy.ts: 14ms, application-code: 658ms)
+✓ Compiled in 121ms
+⨯ ReferenceError: ClearableSearchField is not defined
+    at DashboardPage (src\app\dashboard\page.tsx:198:16)
+  196 |             </div>
+  197 |             <form action="/archives" className="space-y-2 border-b border-outline-variant...
+> 198 |               <ClearableSearchField name="q" placeholder="Search archives by name…" class...
+      |                ^
+  199 |               <div className="flex flex-wrap items-center gap-2">
+  200 |                 <DateRangePicker name="dateFrom" compact className="flex-1" />
+  201 |                 <Button type="submit" size="sm" icon="search"> {
+  digest: '2605279503'
+}
+ GET /dashboard 200 in 1525ms (next.js: 620ms, proxy.ts: 340ms, application-code: 566ms)
+⨯ ReferenceError: ClearableSearchField is not defined
+    at DashboardPage (src\app\dashboard\page.tsx:198:16)
+  196 |             </div>
+  197 |             <form action="/archives" className="space-y-2 border-b border-outline-variant...
+> 198 |               <ClearableSearchField name="q" placeholder="Search archives by name…" class...
+      |                ^
+  199 |               <div className="flex flex-wrap items-center gap-2">
+  200 |                 <DateRangePicker name="dateFrom" compact className="flex-1" />
+  201 |                 <Button type="submit" size="sm" icon="search"> {
+  digest: '2605279503'
+}
+ GET /dashboard 200 in 646ms (next.js: 61ms, proxy.ts: 10ms, application-code: 575ms)
+[browser] Uncaught ReferenceError: ClearableSearchField is not defined
+    at DashboardPage (src\app\dashboard\page.tsx:198:16)
+    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:150)
+    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
+    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
+    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
+    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
+  196 |             </div>
+  197 |             <form action="/archives" className="space-y-2 border-b border-outline-variant...
+> 198 |               <ClearableSearchField name="q" placeholder="Search archives by name…" class...
+      |                ^
+  199 |               <div className="flex flex-wrap items-center gap-2">
+  200 |                 <DateRangePicker name="dateFrom" compact className="flex-1" />
+  201 |                 <Button type="submit" size="sm" icon="search">
+✓ Compiled in 636ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard 200 in 1886ms (next.js: 465ms, proxy.ts: 18ms, application-code: 1404ms)

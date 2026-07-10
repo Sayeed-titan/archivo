@@ -2,7 +2,7 @@ import "server-only";
 import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { archiveVisibilityWhere } from "@/lib/visibility";
 import { getOrgStorageBytes } from "@/lib/storage-usage";
-import type { User, Role } from "@/generated/prisma/client";
+import type { Prisma, User, Role } from "@/generated/prisma/client";
 
 // SRS.md FR-1.1: Total Events Archived, Total Programs Archived, Total
 // Documents, Photos, Videos, Reports, Pending Review, Storage Used.
@@ -75,6 +75,48 @@ export async function getRecentUploads(user: User & { role: Role }, take = 8) {
       where: { deletedAt: null, folder: { archive: archiveVisibilityWhere(user) } },
       orderBy: { uploadedAt: "desc" },
       take,
+      include: { uploadedBy: true, folder: { include: { archive: true } } },
+    })
+  );
+}
+
+export type BrowseUploadsParams = {
+  q?: string;
+  dateFrom?: string; // "YYYY-MM-DD" — inclusive, filters by uploadedAt
+  dateFromEnd?: string; // inclusive; same as dateFrom for a single-day filter
+};
+
+// Backs the "Browse" tab of the dashboard's Recent Uploads card — a
+// filename search + upload-date range over the same visibility-scoped
+// file set as getRecentUploads, but not capped to a small preview count
+// (DataTable paginates client-side, same pattern as search-archives.ts).
+export async function browseUploads(user: User & { role: Role }, params: BrowseUploadsParams) {
+  const where: Prisma.FileWhereInput = {
+    deletedAt: null,
+    folder: { archive: archiveVisibilityWhere(user) },
+  };
+  if (params.q) {
+    const q = params.q;
+    where.OR = [
+      { filename: { contains: q, mode: "insensitive" } },
+      { folder: { archive: { name: { contains: q, mode: "insensitive" } } } },
+    ];
+  }
+  if (params.dateFrom || params.dateFromEnd) {
+    const from = params.dateFrom ? new Date(params.dateFrom) : null;
+    const to = params.dateFromEnd
+      ? new Date(`${params.dateFromEnd}T23:59:59.999`)
+      : from
+        ? new Date(`${params.dateFrom}T23:59:59.999`)
+        : null;
+    where.uploadedAt = { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) };
+  }
+
+  return withConnectionRetry(() =>
+    prisma.file.findMany({
+      where,
+      orderBy: { uploadedAt: "desc" },
+      take: 300,
       include: { uploadedBy: true, folder: { include: { archive: true } } },
     })
   );
