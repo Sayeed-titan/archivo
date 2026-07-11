@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/dal";
 import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { getDashboardSummary, getRecentUploads, browseUploads, getCategoryCounts, formatBytes } from "@/lib/dashboard-data";
 import { getRecentArchivesWithHealth } from "@/lib/archive-with-health";
+import { browseArchives } from "@/lib/browse-archives";
 import { getBackupStatus } from "@/lib/backup-status";
 import { Icon } from "@/components/icon";
 import { Badge, Card, LinearProgress, Button } from "@/components/ui";
@@ -16,26 +17,47 @@ function greeting(): string {
   return "Good evening";
 }
 
+function formatEventDate(eventDate: Date | null, eventEndDate: Date | null): string | null {
+  if (!eventDate) return null;
+  if (eventEndDate && eventEndDate.getTime() !== eventDate.getTime()) {
+    return `${eventDate.toLocaleDateString()} – ${eventEndDate.toLocaleDateString()}`;
+  }
+  return eventDate.toLocaleDateString();
+}
+
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ uploadsQ?: string; uploadsDateFrom?: string; uploadsDateFromEnd?: string; tab?: string }>;
+  searchParams: Promise<{
+    uploadsQ?: string;
+    uploadsDateFrom?: string;
+    uploadsDateFromEnd?: string;
+    tab?: string;
+    archivesQ?: string;
+    archivesDateFrom?: string;
+    archivesDateFromEnd?: string;
+  }>;
 }) {
   const user = await getCurrentUser();
   const params = await searchParams;
   const hasBrowseParams = Boolean(params.uploadsQ || params.uploadsDateFrom || params.tab === "uploads-browse");
+  const hasArchivesSearchParams = Boolean(params.archivesQ || params.archivesDateFrom);
 
-  const [summary, recentArchives, recentUploads, browseUploadResults, categories, backupStatus, org] = await Promise.all([
-    getDashboardSummary(user),
-    getRecentArchivesWithHealth(user),
-    getRecentUploads(user),
-    hasBrowseParams
-      ? browseUploads(user, { q: params.uploadsQ, dateFrom: params.uploadsDateFrom, dateFromEnd: params.uploadsDateFromEnd })
-      : Promise.resolve([]),
-    getCategoryCounts(user),
-    user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
-    withConnectionRetry(() => prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } })),
-  ]);
+  const [summary, recentArchives, archivesSearchResults, recentUploads, browseUploadResults, categories, backupStatus, org] =
+    await Promise.all([
+      getDashboardSummary(user),
+      getRecentArchivesWithHealth(user),
+      hasArchivesSearchParams
+        ? browseArchives(user, { q: params.archivesQ, dateFrom: params.archivesDateFrom, dateFromEnd: params.archivesDateFromEnd })
+        : Promise.resolve([]),
+      getRecentUploads(user),
+      hasBrowseParams
+        ? browseUploads(user, { q: params.uploadsQ, dateFrom: params.uploadsDateFrom, dateFromEnd: params.uploadsDateFromEnd })
+        : Promise.resolve([]),
+      getCategoryCounts(user),
+      user.role.canManageSettings ? getBackupStatus() : Promise.resolve(null),
+      withConnectionRetry(() => prisma.organization.findUniqueOrThrow({ where: { id: user.organizationId } })),
+    ]);
 
   const quotaBytes = org.storageQuotaBytes ? Number(org.storageQuotaBytes) : null;
   const storageRatio = quotaBytes ? Number(summary.storageBytes) / quotaBytes : null;
@@ -194,16 +216,28 @@ export default async function DashboardPage({
               </Link>
             </div>
             <RecentArchivesCard
-              archives={recentArchives.map((archive) => ({
+              recent={recentArchives.map((archive) => ({
                 id: archive.id,
                 name: archive.name,
                 categoryName: archive.category?.name ?? "Uncategorized",
                 status: archive.status,
-                createdAt: archive.createdAt.toLocaleDateString(),
-                eventDateMs: archive.eventDate ? archive.eventDate.getTime() : null,
-                eventEndDateMs: archive.eventEndDate ? archive.eventEndDate.getTime() : null,
+                updatedAt: archive.updatedAt.toLocaleDateString(),
+                eventDate: formatEventDate(archive.eventDate, archive.eventEndDate),
                 health: archive.health,
               }))}
+              searchResults={archivesSearchResults.map((archive) => ({
+                id: archive.id,
+                name: archive.name,
+                categoryName: archive.category?.name ?? "Uncategorized",
+                status: archive.status,
+                updatedAt: archive.updatedAt.toLocaleDateString(),
+                eventDate: formatEventDate(archive.eventDate, archive.eventEndDate),
+                health: archive.health,
+              }))}
+              searchQuery={params.archivesQ ?? ""}
+              searchDateFrom={params.archivesDateFrom ?? ""}
+              searchDateFromEnd={params.archivesDateFromEnd ?? ""}
+              hasSearchParams={hasArchivesSearchParams}
               canCreateArchive={user.role.canCreateArchive}
             />
           </Card>

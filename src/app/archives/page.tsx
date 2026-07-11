@@ -81,6 +81,9 @@ export default async function ArchivesPage({
             </Button>
           )}
         </div>
+        <p className="type-body-small text-on-surface-variant">
+          The date filter searches by each archive&apos;s event date, not when it was last updated.
+        </p>
       </form>
 
       <h2 className="mt-6 type-title-small text-on-surface-variant">
@@ -99,10 +102,13 @@ export default async function ArchivesPage({
                 ? `${archive.eventDate.toLocaleDateString()} – ${archive.eventEndDate.toLocaleDateString()}`
                 : archive.eventDate.toLocaleDateString()
               : null,
-            createdAt: archive.createdAt.toLocaleDateString(),
+            updatedAt: archive.updatedAt.toLocaleDateString(),
             fileCount: archive.fileCount,
             health: archive.health,
           }))}
+          exportQuery={new URLSearchParams(
+            Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]
+          ).toString()}
         />
       </div>
     </main>

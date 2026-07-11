@@ -544,3 +544,461 @@ Failed to send notification email to admin@demo-ngo.org: Error: connect ECONNREF
 ✓ Compiled in 636ms
 ⚠ Fast Refresh had to perform a full reload due to a runtime error.
  GET /dashboard 200 in 1886ms (next.js: 465ms, proxy.ts: 18ms, application-code: 1404ms)
+✓ Compiled in 130ms
+ GET /dashboard 200 in 1135ms (next.js: 301ms, proxy.ts: 121ms, application-code: 713ms)
+ GET /dashboard 200 in 622ms (next.js: 9ms, proxy.ts: 12ms, application-code: 601ms)
+ GET /login 200 in 525ms (next.js: 195ms, proxy.ts: 6ms, application-code: 324ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 237ms (next.js: 149ms, application-code: 88ms)
+ GET /dashboard 200 in 441ms (next.js: 6ms, proxy.ts: 6ms, application-code: 429ms)
+ POST /login 303 in 633ms (next.js: 9ms, proxy.ts: 5ms, application-code: 618ms)
+  └─ ƒ login(undefined, {}) in 121ms src/app/actions/auth.ts
+ GET /login 200 in 155ms (next.js: 7ms, proxy.ts: 10ms, application-code: 138ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 43ms (next.js: 17ms, application-code: 27ms)
+ GET /dashboard 200 in 353ms (next.js: 4ms, proxy.ts: 7ms, application-code: 342ms)
+ POST /login 303 in 503ms (next.js: 6ms, proxy.ts: 7ms, application-code: 490ms)
+  └─ ƒ login(undefined, {}) in 107ms src/app/actions/auth.ts
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 230ms (next.js: 24ms, proxy.ts: 10ms, application-code: 196ms)
+ GET /archives 200 in 261ms (next.js: 68ms, proxy.ts: 27ms, application-code: 167ms)
+ GET /archives/cmrf0jq2k000c2w20ha26cy1l 200 in 241ms (next.js: 30ms, proxy.ts: 5ms, application-code: 205ms)
+ GET /archives/cmregvbjt0000oo20eo1u02g0 200 in 221ms (next.js: 18ms, proxy.ts: 6ms, application-code: 197ms)
+ POST /archives/cmregvbjt0000oo20eo1u02g0 200 in 1442ms (next.js: 26ms, proxy.ts: 13ms, application-code: 1403ms)
+  └─ ƒ updateArchiveMetadata(undefined, {}) in 198ms src/app/actions/archives.ts
+ GET /archives 200 in 137ms (next.js: 6ms, proxy.ts: 10ms, application-code: 121ms)
+ GET /archives/cmr66az450000ug20615mclt3 200 in 188ms (next.js: 17ms, proxy.ts: 6ms, application-code: 165ms)
+ POST /archives/cmr66az450000ug20615mclt3 200 in 286ms (next.js: 26ms, proxy.ts: 7ms, application-code: 252ms)
+  └─ ƒ updateArchiveMetadata(undefined, {}) in 49ms src/app/actions/archives.ts
+ POST /archives/cmr66az450000ug20615mclt3 200 in 275ms (next.js: 20ms, proxy.ts: 7ms, application-code: 249ms)
+  └─ ƒ updateArchiveMetadata(undefined, {}) in 49ms src/app/actions/archives.ts
+ GET /archives 200 in 117ms (next.js: 5ms, proxy.ts: 8ms, application-code: 104ms)
+ GET /dashboard 200 in 365ms (next.js: 5ms, proxy.ts: 8ms, application-code: 353ms)
+ GET /dashboard 200 in 1837ms (next.js: 273ms, proxy.ts: 166ms, application-code: 1399ms)
+ GET /dashboard 200 in 1273ms (next.js: 6ms, proxy.ts: 11ms, application-code: 1255ms)
+ GET /dashboard 200 in 1217ms (next.js: 62ms, proxy.ts: 32ms, application-code: 1124ms)
+ GET /dashboard 200 in 1162ms (next.js: 101ms, proxy.ts: 143ms, application-code: 919ms)
+ GET /dashboard 200 in 1038ms (next.js: 25ms, proxy.ts: 145ms, application-code: 868ms)
+ GET /dashboard 200 in 1125ms (next.js: 87ms, proxy.ts: 64ms, application-code: 974ms)
+ GET /dashboard 200 in 1220ms (next.js: 7ms, proxy.ts: 77ms, application-code: 1137ms)
+ GET /dashboard 200 in 1234ms (next.js: 28ms, proxy.ts: 68ms, application-code: 1138ms)
+ GET /dashboard 200 in 1176ms (next.js: 108ms, proxy.ts: 82ms, application-code: 986ms)
+ GET /dashboard 200 in 1213ms (next.js: 116ms, proxy.ts: 23ms, application-code: 1073ms)
+ GET /dashboard 200 in 1325ms (next.js: 49ms, proxy.ts: 114ms, application-code: 1162ms)
+ GET /dashboard 200 in 1188ms (next.js: 29ms, proxy.ts: 149ms, application-code: 1009ms)
+ GET /dashboard 200 in 1208ms (next.js: 43ms, proxy.ts: 59ms, application-code: 1106ms)
+ GET /dashboard 200 in 1349ms (next.js: 96ms, proxy.ts: 21ms, application-code: 1232ms)
+ GET /dashboard 200 in 1364ms (next.js: 82ms, proxy.ts: 104ms, application-code: 1178ms)
+ GET /dashboard 200 in 1319ms (next.js: 45ms, proxy.ts: 137ms, application-code: 1137ms)
+ GET /dashboard 200 in 1289ms (next.js: 59ms, proxy.ts: 88ms, application-code: 1142ms)
+ GET /dashboard 200 in 1249ms (next.js: 116ms, proxy.ts: 78ms, application-code: 1054ms)
+ GET /dashboard 200 in 1242ms (next.js: 91ms, proxy.ts: 92ms, application-code: 1059ms)
+ GET /dashboard 200 in 1188ms (next.js: 86ms, proxy.ts: 84ms, application-code: 1018ms)
+ GET /dashboard 200 in 1201ms (next.js: 78ms, proxy.ts: 76ms, application-code: 1047ms)
+ GET /dashboard 200 in 1230ms (next.js: 99ms, proxy.ts: 65ms, application-code: 1065ms)
+ GET /dashboard 200 in 1241ms (next.js: 113ms, proxy.ts: 79ms, application-code: 1049ms)
+ GET /dashboard 200 in 1235ms (next.js: 63ms, proxy.ts: 80ms, application-code: 1092ms)
+ GET /dashboard 200 in 1211ms (next.js: 91ms, proxy.ts: 77ms, application-code: 1042ms)
+ GET /dashboard 200 in 1240ms (next.js: 99ms, proxy.ts: 76ms, application-code: 1065ms)
+ GET /dashboard 200 in 1266ms (next.js: 94ms, proxy.ts: 69ms, application-code: 1103ms)
+ GET /dashboard 200 in 1246ms (next.js: 120ms, proxy.ts: 76ms, application-code: 1050ms)
+ GET /dashboard 200 in 1264ms (next.js: 85ms, proxy.ts: 80ms, application-code: 1099ms)
+ GET /dashboard 200 in 1264ms (next.js: 84ms, proxy.ts: 69ms, application-code: 1111ms)
+ GET /dashboard 200 in 1241ms (next.js: 109ms, proxy.ts: 85ms, application-code: 1047ms)
+ GET /dashboard 200 in 1234ms (next.js: 32ms, proxy.ts: 144ms, application-code: 1058ms)
+ GET /dashboard 200 in 1408ms (next.js: 52ms, proxy.ts: 62ms, application-code: 1294ms)
+ GET /dashboard 200 in 2.0s (next.js: 26ms, proxy.ts: 185ms, application-code: 1836ms)
+ GET /dashboard 200 in 2.0s (next.js: 77ms, proxy.ts: 136ms, application-code: 1834ms)
+ GET /dashboard 200 in 2.0s (next.js: 32ms, proxy.ts: 130ms, application-code: 1861ms)
+ GET /dashboard 200 in 2.2s (next.js: 53ms, proxy.ts: 80ms, application-code: 2.1s)
+ GET /dashboard 200 in 2.2s (next.js: 18ms, proxy.ts: 949ms, application-code: 1201ms)
+✓ Compiled in 144ms
+ GET /dashboard 200 in 2.1s (next.js: 30ms, proxy.ts: 53ms, application-code: 1976ms)
+ GET /dashboard 200 in 2.1s (next.js: 23ms, proxy.ts: 192ms, application-code: 1920ms)
+ GET /dashboard 200 in 2.2s (next.js: 105ms, proxy.ts: 139ms, application-code: 1953ms)
+ GET /dashboard 200 in 1982ms (next.js: 61ms, proxy.ts: 166ms, application-code: 1755ms)
+ GET /dashboard 200 in 1975ms (next.js: 418ms, proxy.ts: 92ms, application-code: 1465ms)
+ GET /dashboard 200 in 1381ms (next.js: 62ms, proxy.ts: 257ms, application-code: 1063ms)
+ GET /dashboard 200 in 1313ms (next.js: 108ms, proxy.ts: 107ms, application-code: 1098ms)
+ GET /dashboard 200 in 1194ms (next.js: 32ms, proxy.ts: 163ms, application-code: 999ms)
+ GET /dashboard 200 in 1298ms (next.js: 42ms, proxy.ts: 60ms, application-code: 1196ms)
+ GET /dashboard 200 in 1197ms (next.js: 25ms, proxy.ts: 190ms, application-code: 982ms)
+ GET /dashboard 200 in 1220ms (next.js: 51ms, proxy.ts: 77ms, application-code: 1092ms)
+ GET /dashboard 200 in 1276ms (next.js: 26ms, proxy.ts: 200ms, application-code: 1049ms)
+ GET /dashboard 200 in 1285ms (next.js: 54ms, proxy.ts: 26ms, application-code: 1205ms)
+ GET /dashboard 200 in 1303ms (next.js: 14ms, proxy.ts: 206ms, application-code: 1083ms)
+ GET /dashboard 200 in 1174ms (next.js: 50ms, proxy.ts: 58ms, application-code: 1067ms)
+ GET /dashboard 200 in 1284ms (next.js: 117ms, proxy.ts: 73ms, application-code: 1094ms)
+ GET /dashboard 200 in 1293ms (next.js: 62ms, proxy.ts: 92ms, application-code: 1139ms)
+ GET /dashboard 200 in 1307ms (next.js: 41ms, proxy.ts: 147ms, application-code: 1119ms)
+ GET /dashboard 200 in 1232ms (next.js: 80ms, proxy.ts: 101ms, application-code: 1051ms)
+ GET /dashboard 200 in 1218ms (next.js: 70ms, proxy.ts: 15ms, application-code: 1133ms)
+ GET /dashboard 200 in 1202ms (next.js: 25ms, proxy.ts: 89ms, application-code: 1088ms)
+ GET /dashboard 200 in 1270ms (next.js: 80ms, proxy.ts: 146ms, application-code: 1044ms)
+ GET /dashboard 200 in 1230ms (next.js: 26ms, proxy.ts: 128ms, application-code: 1076ms)
+ GET /dashboard 200 in 1211ms (next.js: 100ms, proxy.ts: 94ms, application-code: 1017ms)
+ GET /dashboard 200 in 1227ms (next.js: 69ms, proxy.ts: 63ms, application-code: 1095ms)
+ GET /dashboard 200 in 1240ms (next.js: 84ms, proxy.ts: 76ms, application-code: 1081ms)
+ GET /dashboard 200 in 1259ms (next.js: 100ms, proxy.ts: 110ms, application-code: 1049ms)
+ GET /dashboard 200 in 1187ms (next.js: 104ms, proxy.ts: 83ms, application-code: 1001ms)
+ GET /dashboard 200 in 1170ms (next.js: 92ms, proxy.ts: 81ms, application-code: 997ms)
+ GET /dashboard 200 in 1183ms (next.js: 89ms, proxy.ts: 86ms, application-code: 1008ms)
+ GET /dashboard 200 in 1172ms (next.js: 51ms, proxy.ts: 122ms, application-code: 999ms)
+ GET /dashboard 200 in 1198ms (next.js: 79ms, proxy.ts: 92ms, application-code: 1027ms)
+ GET /dashboard 200 in 1216ms (next.js: 36ms, proxy.ts: 63ms, application-code: 1117ms)
+ GET /dashboard 200 in 1203ms (next.js: 145ms, proxy.ts: 28ms, application-code: 1030ms)
+ GET /dashboard 200 in 1191ms (next.js: 20ms, proxy.ts: 66ms, application-code: 1105ms)
+ GET /dashboard 200 in 1369ms (next.js: 108ms, proxy.ts: 96ms, application-code: 1166ms)
+ GET /dashboard 200 in 1202ms (next.js: 67ms, proxy.ts: 104ms, application-code: 1032ms)
+ GET /dashboard 200 in 1002ms (next.js: 58ms, proxy.ts: 95ms, application-code: 849ms)
+ GET /dashboard 200 in 741ms (next.js: 62ms, proxy.ts: 62ms, application-code: 616ms)
+✓ Compiled in 198ms
+ GET /dashboard 200 in 1722ms (next.js: 106ms, proxy.ts: 92ms, application-code: 1524ms)
+ GET /dashboard 200 in 1913ms (next.js: 167ms, proxy.ts: 170ms, application-code: 1576ms)
+ GET /dashboard 200 in 1689ms (next.js: 302ms, proxy.ts: 226ms, application-code: 1161ms)
+ GET /dashboard 200 in 1177ms (next.js: 36ms, proxy.ts: 182ms, application-code: 959ms)
+ GET /dashboard 200 in 1118ms (next.js: 37ms, proxy.ts: 60ms, application-code: 1020ms)
+ GET /dashboard 200 in 1162ms (next.js: 76ms, proxy.ts: 152ms, application-code: 934ms)
+ GET /dashboard 200 in 1093ms (next.js: 64ms, proxy.ts: 59ms, application-code: 970ms)
+ GET /dashboard 200 in 1068ms (next.js: 74ms, proxy.ts: 85ms, application-code: 909ms)
+ GET /dashboard 200 in 848ms (next.js: 82ms, proxy.ts: 75ms, application-code: 691ms)
+ GET /dashboard 200 in 625ms (next.js: 78ms, proxy.ts: 85ms, application-code: 462ms)
+ GET /dashboard 200 in 516ms (next.js: 103ms, proxy.ts: 72ms, application-code: 341ms)
+✓ Compiled in 119ms
+ GET /dashboard 200 in 967ms (next.js: 222ms, proxy.ts: 123ms, application-code: 622ms)
+ GET /dashboard 200 in 566ms (next.js: 7ms, proxy.ts: 11ms, application-code: 548ms)
+✓ Compiled in 99ms
+ GET /dashboard 200 in 991ms (next.js: 263ms, proxy.ts: 116ms, application-code: 612ms)
+ GET /dashboard 200 in 512ms (next.js: 62ms, proxy.ts: 16ms, application-code: 434ms)
+ GET /dashboard 200 in 1693ms (next.js: 298ms, proxy.ts: 10ms, application-code: 1385ms)
+ GET /dashboard 200 in 1161ms (next.js: 324ms, proxy.ts: 128ms, application-code: 709ms)
+ GET /dashboard 200 in 672ms (next.js: 74ms, proxy.ts: 141ms, application-code: 457ms)
+✓ Compiled in 94ms
+ GET /dashboard 200 in 766ms (next.js: 200ms, proxy.ts: 83ms, application-code: 483ms)
+ GET /dashboard 200 in 463ms (next.js: 40ms, proxy.ts: 100ms, application-code: 322ms)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'filter')
+    at RecentArchivesCard.useMemo[filtered] (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/src_1h6dbvo._.js:3155:29)
+    at updateMemo (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:5413:21)
+    at Object.useMemo (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:15465:24)
+    at exports.useMemo (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:1742:36)
+    at RecentArchivesCard (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/src_1h6dbvo._.js:3150:195)
+    at Object.react_stack_bottom_frame (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:15037:24)
+    at renderWithHooks (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:4620:24)
+    at updateFunctionComponent (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6081:21)
+    at beginWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6691:24)
+    at runWithFiberInDEV (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at performUnitOfWork (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9555:97)
+    at workLoopSync (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9449:40)
+    at renderRootSync (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9433:13)
+    at performWorkOnRoot (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9098:47)
+    at performWorkOnRootViaSchedulerTask (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+    at DashboardPage (src\app\dashboard\page.tsx:197:13)
+  195 |               </Link>
+  196 |             </div>
+> 197 |             <RecentArchivesCard
+      |             ^
+  198 |               archives={recentArchives.map((archive) => ({
+  199 |                 id: archive.id,
+  200 |                 name: archive.name,
+✓ Compiled in 90ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 457ms (next.js: 153ms, application-code: 303ms)
+ GET /dashboard 200 in 1582ms (next.js: 220ms, proxy.ts: 128ms, application-code: 1234ms)
+ GET /login 200 in 1387ms (next.js: 294ms, proxy.ts: 5ms, application-code: 1088ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 53ms (next.js: 18ms, application-code: 35ms)
+ GET /dashboard 200 in 337ms (next.js: 5ms, proxy.ts: 6ms, application-code: 326ms)
+ POST /login 303 in 503ms (next.js: 4ms, proxy.ts: 5ms, application-code: 494ms)
+  └─ ƒ login(undefined, {}) in 101ms src/app/actions/auth.ts
+ GET /dashboard?archivesQ=EARN&archivesDateFrom=&archivesDateFromEnd= 200 in 449ms (next.js: 5ms, proxy.ts: 6ms, application-code: 438ms)
+ GET /dashboard 200 in 437ms (next.js: 5ms, proxy.ts: 5ms, application-code: 426ms)
+ GET /login 200 in 76ms (next.js: 4ms, proxy.ts: 7ms, application-code: 64ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 47ms (next.js: 15ms, application-code: 32ms)
+ GET /dashboard 200 in 349ms (next.js: 5ms, proxy.ts: 6ms, application-code: 338ms)
+ POST /login 303 in 462ms (next.js: 4ms, proxy.ts: 6ms, application-code: 452ms)
+  └─ ƒ login(undefined, {}) in 86ms src/app/actions/auth.ts
+ GET /dashboard?archivesDateFrom=2026-01-01&archivesDateFromEnd=2026-07-10 200 in 1082ms (next.js: 33ms, proxy.ts: 58ms, application-code: 992ms)
+ GET /archives 200 in 688ms (next.js: 206ms, proxy.ts: 6ms, application-code: 476ms)
+○ Compiling /archives/export ...
+ POST /archives/export?format=excel& 200 in 5.9s (next.js: 5.8s, proxy.ts: 6ms, application-code: 108ms)
+ GET /archives 200 in 317ms (next.js: 7ms, proxy.ts: 10ms, application-code: 300ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 540ms (next.js: 5ms, proxy.ts: 7ms, application-code: 528ms)
+ GET /login 200 in 155ms (next.js: 6ms, proxy.ts: 17ms, application-code: 132ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 63ms (next.js: 20ms, application-code: 43ms)
+ GET /dashboard 200 in 407ms (next.js: 6ms, proxy.ts: 6ms, application-code: 395ms)
+ POST /login 303 in 564ms (next.js: 4ms, proxy.ts: 14ms, application-code: 546ms)
+  └─ ƒ login(undefined, {}) in 113ms src/app/actions/auth.ts
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-02&archivesDateFromEnd=2026-07-02 200 in 530ms (next.js: 5ms, proxy.ts: 7ms, application-code: 519ms)
+✓ Compiled in 118ms
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].category.findMany()` invocation in
+D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__1u7u8q_._.js:1703:145
+
+  1700 const params = await searchParams;
+  1701 const [archives, categories] = await Promise.all([
+  1702     (0, {imported module ./src/lib/browse-archives.ts}["browseArchives"])(user, params),
+→ 1703     {imported module ./src/lib/prisma.ts}["prisma"].category.findMany(
+Server has closed the connection.
+    at <unknown> (src\app\archives\page.tsx:23:21)
+    at async ArchivesPage (src\app\archives\page.tsx:21:34)
+  21 |   const [archives, categories] = await Promise.all([
+  22 |     browseArchives(user, params),
+> 23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+     |                     ^
+  24 |   ]);
+  25 |
+  26 |   const categoryName = params.categoryId ? categories.find((c) => c.id === params.category... {
+  code: 'P1017',
+  meta: {
+    modelName: 'Category',
+    driverAdapterError: Error [DriverAdapterError]: ConnectionClosed
+        at async ArchivesPage (src\app\archives\page.tsx:21:34)
+      19 |   const params = await searchParams;
+      20 |
+    > 21 |   const [archives, categories] = await Promise.all([
+         |                                  ^
+      22 |     browseArchives(user, params),
+      23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+      24 |   ]); {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.8.0',
+  digest: '2119727699'
+}
+⨯ ReferenceError: formatEventDate is not defined
+    at <unknown> (src\app\dashboard\page.tsx:217:28)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:211:38)
+  215 |                 status: archive.status,
+  216 |                 createdAt: archive.createdAt.toLocaleDateString(),
+> 217 |                 eventDate: formatEventDate(archive.eventDate, archive.eventEndDate),
+      |                            ^
+  218 |                 health: archive.health,
+  219 |               }))}
+  220 |               searchResults={archivesSearchResults.map((archive) => ({ {
+  digest: '329888348'
+}
+ GET /archives 200 in 1592ms (next.js: 472ms, proxy.ts: 178ms, application-code: 942ms)
+ GET /archives 200 in 840ms (next.js: 71ms, proxy.ts: 17ms, application-code: 752ms)
+⨯ ReferenceError: formatEventDate is not defined
+    at <unknown> (src\app\dashboard\page.tsx:217:28)
+    at Array.map (<anonymous>)
+    at DashboardPage (src\app\dashboard\page.tsx:211:38)
+  215 |                 status: archive.status,
+  216 |                 createdAt: archive.createdAt.toLocaleDateString(),
+> 217 |                 eventDate: formatEventDate(archive.eventDate, archive.eventEndDate),
+      |                            ^
+  218 |                 health: archive.health,
+  219 |               }))}
+  220 |               searchResults={archivesSearchResults.map((archive) => ({ {
+  digest: '1666231444'
+}
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 872ms (next.js: 15ms, proxy.ts: 18ms, application-code: 839ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 1630ms (next.js: 292ms, proxy.ts: 179ms, application-code: 1159ms)
+[browser] Uncaught ReferenceError: formatEventDate is not defined
+    at <anonymous> (src\app\dashboard\page.tsx:217:28)
+    at Array.map (<anonymous>:1:18)
+    at DashboardPage (src\app\dashboard\page.tsx:211:38)
+    at resolveErrorDev (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:1919:150)
+    at processFullStringRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2434:29)
+    at processFullBinaryRow (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2393:9)
+    at processBinaryChunk (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2502:221)
+    at progress (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-6._.js:2689:13)
+  215 |                 status: archive.status,
+  216 |                 createdAt: archive.createdAt.toLocaleDateString(),
+> 217 |                 eventDate: formatEventDate(archive.eventDate, archive.eventEndDate),
+      |                            ^
+  218 |                 health: archive.health,
+  219 |               }))}
+  220 |               searchResults={archivesSearchResults.map((archive) => ({
+✓ Compiled in 103ms
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].category.findMany()` invocation in
+D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__1u7u8q_._.js:1703:145
+
+  1700 const params = await searchParams;
+  1701 const [archives, categories] = await Promise.all([
+  1702     (0, {imported module ./src/lib/browse-archives.ts}["browseArchives"])(user, params),
+→ 1703     {imported module ./src/lib/prisma.ts}["prisma"].category.findMany(
+Server has closed the connection.
+    at <unknown> (src\app\archives\page.tsx:23:21)
+    at async ArchivesPage (src\app\archives\page.tsx:21:34)
+  21 |   const [archives, categories] = await Promise.all([
+  22 |     browseArchives(user, params),
+> 23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+     |                     ^
+  24 |   ]);
+  25 |
+  26 |   const categoryName = params.categoryId ? categories.find((c) => c.id === params.category... {
+  code: 'P1017',
+  meta: {
+    modelName: 'Category',
+    driverAdapterError: Error [DriverAdapterError]: ConnectionClosed
+        at async ArchivesPage (src\app\archives\page.tsx:21:34)
+      19 |   const params = await searchParams;
+      20 |
+    > 21 |   const [archives, categories] = await Promise.all([
+         |                                  ^
+      22 |     browseArchives(user, params),
+      23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+      24 |   ]); {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.8.0',
+  digest: '2119727699'
+}
+ GET /archives 500 in 1781ms (next.js: 560ms, proxy.ts: 134ms, application-code: 1088ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 1800ms (next.js: 289ms, proxy.ts: 134ms, application-code: 1377ms)
+✓ Compiled in 110ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 1296ms (next.js: 274ms, proxy.ts: 134ms, application-code: 889ms)
+ GET /archives 200 in 1291ms (next.js: 432ms, proxy.ts: 144ms, application-code: 716ms)
+✓ Compiled in 86ms
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 1688ms (next.js: 189ms, proxy.ts: 86ms, application-code: 1412ms)
+ GET /archives 200 in 1643ms (next.js: 53ms, proxy.ts: 343ms, application-code: 1247ms)
+ GET /login 200 in 280ms (next.js: 24ms, proxy.ts: 6ms, application-code: 250ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 268ms (next.js: 172ms, application-code: 96ms)
+ GET /dashboard 200 in 490ms (next.js: 6ms, proxy.ts: 6ms, application-code: 478ms)
+ POST /login 303 in 668ms (next.js: 5ms, proxy.ts: 6ms, application-code: 657ms)
+  └─ ƒ login(undefined, {}) in 117ms src/app/actions/auth.ts
+ GET /dashboard?archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 517ms (next.js: 5ms, proxy.ts: 9ms, application-code: 503ms)
+ GET /dashboard?archivesDateFrom=2026-07-04&archivesDateFromEnd=2026-07-04 200 in 465ms (next.js: 4ms, proxy.ts: 5ms, application-code: 457ms)
+ GET /login 200 in 76ms (next.js: 4ms, proxy.ts: 5ms, application-code: 67ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 47ms (next.js: 16ms, application-code: 32ms)
+ GET /dashboard 200 in 334ms (next.js: 4ms, proxy.ts: 6ms, application-code: 324ms)
+ POST /login 303 in 448ms (next.js: 4ms, proxy.ts: 6ms, application-code: 438ms)
+  └─ ƒ login(undefined, {}) in 83ms src/app/actions/auth.ts
+ GET /dashboard?archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 533ms (next.js: 6ms, proxy.ts: 9ms, application-code: 518ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-02&archivesDateFromEnd=2026-07-02 200 in 634ms (next.js: 5ms, proxy.ts: 8ms, application-code: 621ms)
+ GET /dashboard 200 in 34ms (next.js: 11ms, proxy.ts: 6ms, application-code: 17ms)
+ GET /dashboard 200 in 376ms (next.js: 5ms, proxy.ts: 12ms, application-code: 360ms)
+✓ Compiled in 105ms
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].category.findMany()` invocation in
+D:\Departmental\Official Assignements\Achieve Management\archivo\.next\dev\server\chunks\ssr\[root-of-the-server]__1u7u8q_._.js:1703:145
+
+  1700 const params = await searchParams;
+  1701 const [archives, categories] = await Promise.all([
+  1702     (0, {imported module ./src/lib/browse-archives.ts}["browseArchives"])(user, params),
+→ 1703     {imported module ./src/lib/prisma.ts}["prisma"].category.findMany(
+Server has closed the connection.
+    at <unknown> (src\app\archives\page.tsx:23:21)
+    at async ArchivesPage (src\app\archives\page.tsx:21:34)
+  21 |   const [archives, categories] = await Promise.all([
+  22 |     browseArchives(user, params),
+> 23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+     |                     ^
+  24 |   ]);
+  25 |
+  26 |   const categoryName = params.categoryId ? categories.find((c) => c.id === params.category... {
+  code: 'P1017',
+  meta: {
+    modelName: 'Category',
+    driverAdapterError: Error [DriverAdapterError]: ConnectionClosed
+        at async ArchivesPage (src\app\archives\page.tsx:21:34)
+      19 |   const params = await searchParams;
+      20 |
+    > 21 |   const [archives, categories] = await Promise.all([
+         |                                  ^
+      22 |     browseArchives(user, params),
+      23 |     prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: tru...
+      24 |   ]); {
+      [cause]: [Object]
+    }
+  },
+  clientVersion: '7.8.0',
+  digest: '2119727699'
+}
+ GET /archives 200 in 1006ms (next.js: 478ms, proxy.ts: 69ms, application-code: 459ms)
+ GET /dashboard 200 in 1072ms (next.js: 205ms, proxy.ts: 66ms, application-code: 802ms)
+✓ Compiled in 95ms
+ GET /dashboard 200 in 1267ms (next.js: 339ms, proxy.ts: 38ms, application-code: 890ms)
+ GET /archives 200 in 1282ms (next.js: 159ms, proxy.ts: 38ms, application-code: 1085ms)
+ GET /dashboard 200 in 843ms (next.js: 112ms, proxy.ts: 172ms, application-code: 559ms)
+✓ Compiled in 98ms
+ GET /archives 200 in 1109ms (next.js: 408ms, proxy.ts: 52ms, application-code: 649ms)
+ GET /archives 200 in 537ms (next.js: 115ms, proxy.ts: 18ms, application-code: 404ms)
+ GET /dashboard 200 in 1160ms (next.js: 143ms, proxy.ts: 52ms, application-code: 964ms)
+ GET /dashboard 200 in 702ms (next.js: 55ms, proxy.ts: 40ms, application-code: 607ms)
+ GET /archives 200 in 551ms (next.js: 260ms, proxy.ts: 41ms, application-code: 250ms)
+ GET /dashboard 200 in 768ms (next.js: 147ms, proxy.ts: 41ms, application-code: 579ms)
+✓ Compiled in 101ms
+ GET /archives 200 in 2.0s (next.js: 794ms, proxy.ts: 65ms, application-code: 1148ms)
+ GET /dashboard 200 in 2.2s (next.js: 164ms, proxy.ts: 66ms, application-code: 1981ms)
+✓ Compiled in 87ms
+ GET /archives 200 in 665ms (next.js: 165ms, proxy.ts: 32ms, application-code: 468ms)
+ GET /archives 200 in 1140ms (next.js: 311ms, proxy.ts: 79ms, application-code: 749ms)
+ GET /dashboard 200 in 1143ms (next.js: 191ms, proxy.ts: 72ms, application-code: 880ms)
+ GET /dashboard 200 in 688ms (next.js: 99ms, proxy.ts: 30ms, application-code: 559ms)
+ GET /login 200 in 348ms (next.js: 30ms, proxy.ts: 28ms, application-code: 290ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 229ms (next.js: 131ms, application-code: 98ms)
+ GET /dashboard 200 in 442ms (next.js: 5ms, proxy.ts: 5ms, application-code: 431ms)
+ POST /login 303 in 632ms (next.js: 5ms, proxy.ts: 6ms, application-code: 621ms)
+  └─ ƒ login(undefined, {}) in 126ms src/app/actions/auth.ts
+ GET /archives 200 in 285ms (next.js: 7ms, proxy.ts: 5ms, application-code: 273ms)
+ GET /archives?dateFrom=2026-07-03&dateFromEnd=2026-07-03 200 in 194ms (next.js: 5ms, proxy.ts: 7ms, application-code: 181ms)
+ GET /dashboard?archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 478ms (next.js: 5ms, proxy.ts: 5ms, application-code: 469ms)
+ GET /archives 200 in 125ms (next.js: 3ms, proxy.ts: 4ms, application-code: 118ms)
+ GET /dashboard 200 in 353ms (next.js: 5ms, proxy.ts: 7ms, application-code: 342ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-02&archivesDateFromEnd=2026-07-02 200 in 565ms (next.js: 5ms, proxy.ts: 7ms, application-code: 552ms)
+ GET /dashboard 200 in 23ms (next.js: 6ms, proxy.ts: 8ms, application-code: 9ms)
+ GET /dashboard 200 in 376ms (next.js: 5ms, proxy.ts: 15ms, application-code: 355ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 567ms (next.js: 11ms, proxy.ts: 13ms, application-code: 543ms)
+ GET /dashboard?tab=uploads-browse&uploadsQ=&uploadsDateFrom=2026-07-03&uploadsDateFromEnd=2026-07-03 200 in 590ms (next.js: 5ms, proxy.ts: 7ms, application-code: 577ms)
+ GET /dashboard?archivesQ=&archivesDateFrom=2026-07-03&archivesDateFromEnd=2026-07-03 200 in 520ms (next.js: 5ms, proxy.ts: 7ms, application-code: 508ms)
+ GET /archives/cmr66az450000ug20615mclt3 200 in 2.5s (next.js: 2.2s, proxy.ts: 6ms, application-code: 290ms)
+ GET /dashboard 200 in 23ms (next.js: 6ms, proxy.ts: 7ms, application-code: 10ms)
+ GET /dashboard 200 in 361ms (next.js: 5ms, proxy.ts: 6ms, application-code: 350ms)
+○ Compiling /settings ...
+ GET /settings 200 in 6.2s (next.js: 3.6s, proxy.ts: 5ms, application-code: 2.5s)
+ GET /settings 200 in 2.5s (next.js: 760ms, proxy.ts: 1411ms, application-code: 329ms)
+ GET /archives 200 in 2.5s (next.js: 618ms, proxy.ts: 1413ms, application-code: 474ms)
+ GET /settings/roles 200 in 1302ms (next.js: 1187ms, proxy.ts: 5ms, application-code: 110ms)
+ GET /settings/security 200 in 921ms (next.js: 813ms, proxy.ts: 6ms, application-code: 101ms)
+ GET /login 200 in 720ms (next.js: 266ms, proxy.ts: 5ms, application-code: 449ms)
+ GET /dashboard 200 in 788ms (next.js: 344ms, proxy.ts: 4ms, application-code: 440ms)
+ POST /login 303 in 967ms (next.js: 5ms, proxy.ts: 6ms, application-code: 956ms)
+  └─ ƒ login(undefined, {}) in 135ms src/app/actions/auth.ts
+ GET /archives 200 in 293ms (next.js: 7ms, proxy.ts: 6ms, application-code: 280ms)
+ GET /archives/does-not-matter 404 in 10.2s (next.js: 9.9s, proxy.ts: 6ms, application-code: 283ms)
+ GET /dashboard 200 in 593ms (next.js: 6ms, proxy.ts: 6ms, application-code: 581ms)
+ GET /dashboard?archivesQ=Business+AI+Summit&archivesDateFrom=&archivesDateFromEnd= 200 in 517ms (next.js: 6ms, proxy.ts: 6ms, application-code: 505ms)
+ GET /dashboard 200 in 498ms (next.js: 5ms, proxy.ts: 5ms, application-code: 488ms)
+ GET /archives 200 in 219ms (next.js: 5ms, proxy.ts: 5ms, application-code: 208ms)
+ POST /archives/export?format=excel& 200 in 2.2s (next.js: 1948ms, proxy.ts: 22ms, application-code: 194ms)
+ GET /settings/file-naming 200 in 673ms (next.js: 463ms, proxy.ts: 5ms, application-code: 205ms)
+ GET /login 200 in 80ms (next.js: 6ms, proxy.ts: 6ms, application-code: 69ms)
+ GET /dashboard 200 in 361ms (next.js: 5ms, proxy.ts: 7ms, application-code: 350ms)
+ POST /login 303 in 500ms (next.js: 5ms, proxy.ts: 6ms, application-code: 489ms)
+  └─ ƒ login(undefined, {}) in 103ms src/app/actions/auth.ts
+ GET /archives 200 in 221ms (next.js: 5ms, proxy.ts: 8ms, application-code: 208ms)
+ POST /archives/export?format=excel& 200 in 106ms (next.js: 4ms, proxy.ts: 7ms, application-code: 95ms)
+ GET /settings/appearance 200 in 1376ms (next.js: 1301ms, proxy.ts: 6ms, application-code: 69ms)
+ POST /settings/appearance 200 in 258ms (next.js: 4ms, proxy.ts: 6ms, application-code: 248ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 75ms src/app/actions/appearance.ts
+ POST /settings/appearance 200 in 250ms (next.js: 6ms, proxy.ts: 15ms, application-code: 229ms)
+  └─ ƒ updateAppearanceSettings({"message":"Appearance updated for the whole organization.","status":"success"}, {}) in 49ms src/app/actions/appearance.ts
+ GET /dashboard 200 in 1232ms (next.js: 6ms, proxy.ts: 7ms, application-code: 1220ms)
+ GET /api/users/cmr28vyj60005j020yas424wc/avatar 200 in 633ms (next.js: 565ms, application-code: 68ms)
+ POST /settings/appearance 200 in 228ms (next.js: 5ms, proxy.ts: 8ms, application-code: 216ms)
+  └─ ƒ updateAppearanceSettings({"message":"Appearance updated for the whole organization.","status":"success"}, {}) in 43ms src/app/actions/appearance.ts
+ GET /archives 200 in 1137ms (next.js: 38ms, proxy.ts: 27ms, application-code: 1072ms)
+ POST /settings/appearance 200 in 244ms (next.js: 15ms, proxy.ts: 7ms, application-code: 222ms)
+  └─ ƒ updateAppearanceSettings({"message":"Appearance updated for the whole organization.","status":"success"}, {}) in 49ms src/app/actions/appearance.ts
+ GET /archives 200 in 416ms (next.js: 6ms, proxy.ts: 14ms, application-code: 396ms)
+ GET /settings/appearance 200 in 550ms (next.js: 14ms, proxy.ts: 5ms, application-code: 531ms)
+ POST /settings/appearance 200 in 126ms (next.js: 4ms, proxy.ts: 5ms, application-code: 117ms)
+  └─ ƒ updateAppearanceSettings(undefined, {}) in 29ms src/app/actions/appearance.ts
+ POST /settings/appearance 200 in 320ms (next.js: 6ms, proxy.ts: 6ms, application-code: 308ms)
+  └─ ƒ setThemePreference("system") in 28ms src/app/actions/appearance.ts
+ POST /settings/appearance 200 in 198ms (next.js: 6ms, proxy.ts: 7ms, application-code: 185ms)
+  └─ ƒ updateAppearanceSettings({"message":"Appearance updated for the whole organization.","status":"success"}, {}) in 40ms src/app/actions/appearance.ts
+ GET /settings/appearance 200 in 304ms (next.js: 56ms, proxy.ts: 15ms, application-code: 233ms)
+ GET /settings 200 in 179ms (next.js: 58ms, proxy.ts: 9ms, application-code: 112ms)
+ GET /settings/organization 200 in 2.5s (next.js: 2.1s, proxy.ts: 14ms, application-code: 348ms)
+ GET /settings/folder-templates 200 in 1086ms (next.js: 861ms, proxy.ts: 5ms, application-code: 219ms)
+ POST /settings/folder-templates 200 in 606ms (next.js: 5ms, proxy.ts: 17ms, application-code: 584ms)
+  └─ ƒ updateFolderTemplateRules("cmr28vz05000gj0200w54nb28", {"allowedFileTypes":["video"],"alternateOptions":{"enabled":false,"options":[]},"counts":{"video":"[Object]"},"...":"2 items not stringified"}) in 282ms src/app/actions/folder-templates.ts
+ POST /settings/folder-templates 200 in 260ms (next.js: 5ms, proxy.ts: 15ms, application-code: 240ms)
+  └─ ƒ updateFolderTemplateRules("cmr28vyve000cj0204nwe3anh", {"alternateOptions":{"enabled":true,"options":"[Array]"},"externalLinkFallback":{"enabled":false}}) in 39ms src/app/actions/folder-templates.ts
+ POST /settings/folder-templates 200 in 268ms (next.js: 6ms, proxy.ts: 14ms, application-code: 247ms)
+  └─ ƒ updateFolderTemplateRules("cmr28vyyv000fj0203l2md5d8", {"alternateOptions":{"enabled":false,"options":[]},"externalLinkFallback":{"enabled":false},"minResolution":{"height":1000,"width":1000}}) in 34ms src/app/actions/folder-templates.ts

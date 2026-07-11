@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import { HealthBadge } from "@/components/health-badge";
 import { Badge, Button, ClearableSearchField, DateRangePicker, EmptyState } from "@/components/ui";
@@ -17,90 +16,97 @@ export type RecentArchiveRow = {
   name: string;
   categoryName: string;
   status: string;
-  createdAt: string; // display string, already formatted
-  eventDateMs: number | null; // start of [eventDate, eventEndDate ?? eventDate]
-  eventEndDateMs: number | null; // end of that span
+  updatedAt: string; // display string, already formatted
+  eventDate: string | null; // display string, already formatted (range shows as "start – end")
   health: ArchiveHealth;
 };
 
-// Instant client-side filter over the dashboard's already-fetched Recent
-// Archives preview (10 rows) — typing a name or picking a date narrows
-// the same list in place; clicking a row still navigates to that
-// archive's page as before. This is deliberately NOT a server round trip
-// (unlike /archives, the full browse page) since it's filtering a small,
-// already-loaded preview list, not querying the full dataset.
+// Search box searches the FULL archive set by event date (via
+// browseArchives, the same query /archives uses) — not just the small
+// 10-row "most recently created" preview. A "find my event from last
+// month" search needs to look at every archive's actual event date, not
+// be limited to whichever archives happen to have been created most
+// recently, which is what a purely client-side filter over the preview
+// would silently get wrong.
+function ArchiveRowItem({ archive }: { archive: RecentArchiveRow }) {
+  return (
+    <li className="px-4 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <Link href={`/archives/${archive.id}`} className="truncate font-medium text-on-surface hover:text-primary hover:underline">
+          {archive.name}
+        </Link>
+        <span className="whitespace-nowrap type-body-small text-on-surface-variant">Updated {archive.updatedAt}</span>
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+        <span className="type-body-small text-on-surface-variant">{archive.categoryName}</span>
+        <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
+        <HealthBadge health={archive.health} compact />
+        {archive.eventDate && (
+          <span className="inline-flex items-center gap-1 type-body-small text-on-surface-variant">
+            <span className="text-on-surface-variant/60">·</span>
+            Event: {archive.eventDate}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export function RecentArchivesCard({
-  archives,
+  recent,
+  searchResults,
+  searchQuery,
+  searchDateFrom,
+  searchDateFromEnd,
+  hasSearchParams,
   canCreateArchive,
 }: {
-  archives: RecentArchiveRow[];
+  recent: RecentArchiveRow[];
+  searchResults: RecentArchiveRow[];
+  searchQuery: string;
+  searchDateFrom: string;
+  searchDateFromEnd: string;
+  hasSearchParams: boolean;
   canCreateArchive: boolean;
 }) {
-  const [q, setQ] = useState("");
-  const [dateStart, setDateStart] = useState("");
-  const [dateEnd, setDateEnd] = useState("");
-
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    const from = dateStart ? new Date(`${dateStart}T00:00:00`).getTime() : null;
-    const to = dateEnd ? new Date(`${dateEnd}T23:59:59.999`).getTime() : from ? new Date(`${dateStart}T23:59:59.999`).getTime() : null;
-
-    return archives.filter((archive) => {
-      if (query && !archive.name.toLowerCase().includes(query)) return false;
-      if (from !== null || to !== null) {
-        if (archive.eventDateMs === null) return false;
-        const spanStart = archive.eventDateMs;
-        const spanEnd = archive.eventEndDateMs ?? archive.eventDateMs;
-        if (from !== null && spanEnd < from) return false;
-        if (to !== null && spanStart > to) return false;
-      }
-      return true;
-    });
-  }, [archives, q, dateStart, dateEnd]);
-
-  const isFiltering = q.trim() !== "" || dateStart !== "";
+  const rows = hasSearchParams ? searchResults : recent;
 
   return (
     <div>
-      <div className="space-y-2 border-b border-outline-variant px-4 py-3">
-        <ClearableSearchField
-          name="recentArchivesFilter"
-          placeholder="Filter archives by name…"
-          className="w-full"
-          onChange={setQ}
-        />
-        <DateRangePicker
-          name="recentArchivesDate"
-          compact
-          className="w-full"
-          onChangeStart={setDateStart}
-          onChangeEnd={setDateEnd}
-        />
-      </div>
+      <form action="/dashboard" className="space-y-2 border-b border-outline-variant px-4 py-3">
+        <ClearableSearchField name="archivesQ" defaultValue={searchQuery} placeholder="Search archives by name…" className="w-full" />
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangePicker
+            name="archivesDateFrom"
+            compact
+            className="flex-1"
+            defaultStart={searchDateFrom}
+            defaultEnd={searchDateFromEnd}
+          />
+          <Button type="submit" size="sm" icon="search">
+            Search
+          </Button>
+          {hasSearchParams && (
+            <Button href="/dashboard" variant="text" size="sm">
+              Clear
+            </Button>
+          )}
+        </div>
+        {hasSearchParams && (
+          <p className="type-body-small text-on-surface-variant">
+            Searches by event date — e.g. set a range from last month to today to find every event held in that window.
+          </p>
+        )}
+      </form>
 
-      {filtered.length > 0 ? (
+      {rows.length > 0 ? (
         <ul className="divide-y divide-outline-variant/60">
-          {filtered.map((archive) => (
-            <li key={archive.id} className="px-4 py-3">
-              <div className="flex items-center justify-between gap-2">
-                <Link
-                  href={`/archives/${archive.id}`}
-                  className="truncate font-medium text-on-surface hover:text-primary hover:underline"
-                >
-                  {archive.name}
-                </Link>
-                <span className="whitespace-nowrap type-body-small text-on-surface-variant">{archive.createdAt}</span>
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                <span className="type-body-small text-on-surface-variant">{archive.categoryName}</span>
-                <Badge tone={STATUS_TONE[archive.status] ?? "neutral"}>{archive.status}</Badge>
-                <HealthBadge health={archive.health} />
-              </div>
-            </li>
+          {rows.map((archive) => (
+            <ArchiveRowItem key={archive.id} archive={archive} />
           ))}
         </ul>
-      ) : isFiltering ? (
-        <EmptyState icon="search_off" title="No matches" description="No recent archives match that filter." />
+      ) : hasSearchParams ? (
+        <EmptyState icon="search_off" title="No matches" description="No archives had an event in that range or matched that name." />
       ) : (
         <EmptyState
           icon="folder_off"

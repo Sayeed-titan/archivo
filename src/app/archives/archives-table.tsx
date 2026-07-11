@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { DataTable, type DataTableColumn, Badge } from "@/components/ui";
 import { HealthBadge } from "@/components/health-badge";
+import { useSnackbar } from "@/components/ui/snackbar";
 import type { ArchiveHealth } from "@/lib/archive-health";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "neutral"> = {
@@ -18,7 +19,7 @@ export type ArchiveRow = {
   categoryName: string;
   status: string;
   eventDate: string | null;
-  createdAt: string;
+  updatedAt: string;
   fileCount: number;
   health: ArchiveHealth;
 };
@@ -50,10 +51,27 @@ const COLUMNS: DataTableColumn<ArchiveRow>[] = [
   },
   { key: "eventDate", label: "Event date", render: (row) => row.eventDate ?? "—" },
   { key: "fileCount", label: "Files" },
-  { key: "createdAt", label: "Created" },
+  { key: "updatedAt", label: "Last updated" },
 ];
 
-export function ArchivesTable({ rows }: { rows: ArchiveRow[] }) {
+export function ArchivesTable({ rows, exportQuery }: { rows: ArchiveRow[]; exportQuery: string }) {
+  const { showSnackbar } = useSnackbar();
+
+  async function handleExport(format: "excel" | "pdf") {
+    const res = await fetch(`/archives/export?format=${format}&${exportQuery}`, { method: "POST" });
+    if (!res.ok) {
+      showSnackbar("Export failed.");
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = format === "excel" ? "archives.xlsx" : "archives.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <DataTable
       rows={rows}
@@ -61,6 +79,7 @@ export function ArchivesTable({ rows }: { rows: ArchiveRow[] }) {
       getRowKey={(row) => row.id}
       emptyMessage="No archives match your filters."
       storageKey="archives-browse-table"
+      onExport={handleExport}
     />
   );
 }
