@@ -196,6 +196,33 @@ export async function updateFolderTemplateRules(folderTemplateId: string, rulesI
   });
 }
 
+// Flips required/optional inline, independent of renaming — the row-level
+// checkbox (see folder-template-list.tsx) doesn't need to open the rename
+// form just to change this one flag.
+export async function toggleFolderMandatory(folderTemplateId: string, isMandatory: boolean) {
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageSettings", "manage folder templates");
+
+    const updated = await prisma.folderTemplate.update({
+      where: { id: folderTemplateId, organizationId: user.organizationId },
+      data: { isMandatory },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "FolderTemplate",
+        entityId: folderTemplateId,
+        note: isMandatory ? `marked "${updated.name}" as required` : `marked "${updated.name}" as optional`,
+      },
+    });
+
+    revalidatePath("/settings/folder-templates");
+  });
+}
+
 export async function removeFolderTemplate(folderTemplateId: string) {
   return withAuditContext(async (user) => {
     requirePermission(user.role, "canManageSettings", "manage folder templates");

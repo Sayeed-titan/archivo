@@ -41,10 +41,10 @@ const addFolderButton = folderNameInput.locator("xpath=ancestor::form").locator(
 
 await folderNameInput.fill("First Folder");
 await addFolderButton.click();
-await page.waitForTimeout(600);
+await page.waitForTimeout(1000);
 await folderNameInput.fill("Second Folder");
 await addFolderButton.click();
-await page.waitForTimeout(600);
+await page.waitForTimeout(1000);
 
 const rows = (await details.locator("li").allTextContents()).map((t) => t.replace(/\s+/g, " ").trim().slice(0, 40));
 console.log("Folder rows (expect 'Second Folder' first):", rows);
@@ -53,18 +53,33 @@ console.log("Folder rows (expect 'Second Folder' first):", rows);
 console.log("Edit buttons in category:", await details.locator('button:has-text("Edit")').count());
 console.log("Remove buttons in category:", await details.locator('button:has-text("Remove")').count());
 
-// --- Keyboard reorder ---
+// --- Keyboard reorder: Up/Down directly moves the row, no Space pick-up needed ---
 await details.scrollIntoViewIfNeeded();
 const handle = details.locator('button[aria-label*="Reorder"]').first();
 await handle.focus();
 await page.waitForTimeout(150);
 await page.screenshot({ path: `${shots}/2-focus-ring.png` });
-await page.keyboard.press("Space");
 await page.keyboard.press("ArrowDown");
-await page.keyboard.press("Space");
 await page.waitForTimeout(600);
 const rowsAfterKb = (await details.locator("li").allTextContents()).map((t) => t.replace(/\s+/g, " ").trim().slice(0, 40));
-console.log("Folder rows after keyboard reorder:", rowsAfterKb);
+console.log("Folder rows after plain ArrowDown (expect swapped):", rowsAfterKb);
+
+// --- Rules button has icon+label ---
+console.log("Rules buttons in category:", await details.locator('button:has-text("Rules")').count());
+
+// --- Inline Required checkbox toggles without opening Edit ---
+const requiredCheckbox = details.locator("li").first().getByLabel("Required");
+const before = await requiredCheckbox.isChecked();
+await requiredCheckbox.click();
+await page.waitForTimeout(400);
+console.log("Required checkbox toggled inline:", before, "->", await requiredCheckbox.isChecked());
+
+// --- View toggle switches to the flat List view ---
+await page.locator('button[aria-label="List view"]').click();
+await page.waitForTimeout(400);
+console.log("List view table visible:", (await page.locator("table").count()) > 0);
+await page.locator('button[aria-label="Folders view"]').click();
+await page.waitForTimeout(300);
 
 // --- Empty-name validation blocks save (native required attr) ---
 await details.locator("li").first().locator('button:has-text("Edit")').click();

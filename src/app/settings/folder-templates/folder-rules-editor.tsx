@@ -98,8 +98,8 @@ export function FolderRulesEditor({ folderTemplateId, folderName, rules }: { fol
 
   return (
     <>
-      <Button variant="text" size="inline" type="button" onClick={() => setOpen(true)}>
-        rules
+      <Button variant="text" size="inline" type="button" icon="tune" onClick={() => setOpen(true)}>
+        Rules
       </Button>
       <Dialog
         open={open}
@@ -183,8 +183,8 @@ export function FolderRulesEditor({ folderTemplateId, folderName, rules }: { fol
                     value={row.max}
                     onChange={(e) => setCounts((prev) => prev.map((r, i) => (i === index ? { ...r, max: e.target.value } : r)))}
                   />
-                  <Button variant="text-error" size="inline" type="button" onClick={() => removeCountRow(index)}>
-                    remove
+                  <Button variant="text-error" size="inline" type="button" icon="delete" onClick={() => removeCountRow(index)}>
+                    Remove
                   </Button>
                 </div>
               ))}

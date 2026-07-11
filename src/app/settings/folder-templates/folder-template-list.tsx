@@ -17,12 +17,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { reorderFolderTemplates } from "@/app/actions/folder-templates";
+import { reorderFolderTemplates, toggleFolderMandatory } from "@/app/actions/folder-templates";
 import { RemoveFolderButton } from "./remove-folder-button";
 import { FolderRulesEditor } from "./folder-rules-editor";
 import { RenameFolderForm } from "./rename-folder-form";
 import type { FolderRules } from "@/lib/folder-rules";
-import { Badge, Button } from "@/components/ui";
+import { Badge, Button, CheckboxField } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { cn } from "@/lib/cn";
 
@@ -31,14 +31,36 @@ type FolderTemplateItem = { id: string; name: string; isMandatory: boolean; rule
 function SortableFolderRow({
   folder,
   position,
+  count,
   canManage,
+  onMove,
 }: {
   folder: FolderTemplateItem;
   position: number;
+  count: number;
   canManage: boolean;
+  onMove: (direction: -1 | 1) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
   const [editing, setEditing] = useState(false);
+  const [mandatory, setMandatory] = useState(folder.isMandatory);
+  const [, startTransition] = useTransition();
+
+  // dnd-kit's own keyboard sensor requires an explicit Space/Enter "pick up"
+  // before arrow keys do anything, which isn't obvious and reads as "arrow
+  // keys don't work" — this handles Up/Down directly on the focused handle
+  // instead, moving the row immediately with no pick-up step. Left/Right are
+  // deliberately not bound here: this is a single-column vertical list, so
+  // there's no second axis for them to control.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (e.key === "ArrowUp" && position > 0) {
+      e.preventDefault();
+      onMove(-1);
+    } else if (e.key === "ArrowDown" && position < count - 1) {
+      e.preventDefault();
+      onMove(1);
+    }
+  }
 
   return (
     <li
@@ -54,7 +76,11 @@ function SortableFolderRow({
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`Reorder ${folder.name}. Press Space to pick up, then Up or Down to move, then Space to drop.`}
+          onKeyDown={(e) => {
+            listeners?.onKeyDown?.(e);
+            handleKeyDown(e);
+          }}
+          aria-label={`Reorder ${folder.name}. Press Up or Down to move.`}
           className="flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:cursor-grabbing"
         >
           <Icon name="drag_indicator" size={18} />
@@ -74,12 +100,24 @@ function SortableFolderRow({
         <>
           <span className="min-w-0 flex-1 truncate">
             {folder.name}
-            {folder.isMandatory && (
+            {mandatory && (
               <Badge tone="warning" pill={false} className="ml-2">
                 required
               </Badge>
             )}
           </span>
+          {canManage && (
+            <CheckboxField
+              label="Required"
+              compact
+              checked={mandatory}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setMandatory(next);
+                startTransition(() => toggleFolderMandatory(folder.id, next));
+              }}
+            />
+          )}
           {canManage && (
             <Button
               type="button"
@@ -117,6 +155,11 @@ export function FolderTemplateList({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  function commitOrder(next: string[]) {
+    setOrder(next);
+    startTransition(() => reorderFolderTemplates(categoryId, next));
+  }
+
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -125,8 +168,15 @@ export function FolderTemplateList({
     const next = [...order];
     next.splice(oldIndex, 1);
     next.splice(newIndex, 0, String(active.id));
-    setOrder(next);
-    startTransition(() => reorderFolderTemplates(categoryId, next));
+    commitOrder(next);
+  }
+
+  function moveByIndex(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= order.length) return;
+    const next = [...order];
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    commitOrder(next);
   }
 
   if (folders.length === 0) {
@@ -137,7 +187,7 @@ export function FolderTemplateList({
     <DndContext id={`folder-templates-${categoryId}`} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       {canManage && (
         <p className="pb-1 type-body-small text-on-surface-variant">
-          Drag the handle to reorder, or tab to it and press Space to pick up, Up/Down to move, Space again to drop.
+          Drag the handle to reorder, or tab to it and press Up/Down to move.
         </p>
       )}
       <SortableContext items={order} strategy={verticalListSortingStrategy}>
@@ -145,7 +195,14 @@ export function FolderTemplateList({
           {order.map((id, index) => {
             const folder = byId.get(id);
             return folder ? (
-              <SortableFolderRow key={id} folder={folder} position={index} canManage={canManage} />
+              <SortableFolderRow
+                key={id}
+                folder={folder}
+                position={index}
+                count={order.length}
+                canManage={canManage}
+                onMove={(direction) => moveByIndex(index, direction)}
+              />
             ) : null;
           })}
         </ul>
