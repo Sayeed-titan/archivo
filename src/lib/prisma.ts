@@ -1,9 +1,10 @@
 import "server-only";
 import { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { getAuditContext } from "@/lib/audit-context";
 
 declare global {
-  var prismaGlobal: PrismaClient | undefined;
+  var prismaGlobal: ReturnType<typeof createExtendedClient> | undefined;
 }
 
 function createClient() {
@@ -11,7 +12,103 @@ function createClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalThis.prismaGlobal ?? createClient();
+// Which tracking columns each model actually has, keyed by Prisma model name
+// (as seen in the extension's `model` query-callback argument). Kept as a
+// hand-written map next to this list rather than reflecting on
+// Prisma.dmmf at runtime — the model set rarely changes, and a mismatch here
+// (naming a column that doesn't exist) fails immediately and loudly via tsc/
+// a P2009-style Prisma error, rather than silently doing nothing. Update
+// this map in the same commit as any future tracking-column schema change.
+type TrackedFields = {
+  createdById?: string;
+  updatedById?: string;
+  createdIp?: string;
+  updatedIp?: string;
+};
+
+const MODEL_TRACKED_FIELDS: Record<string, TrackedFields> = {
+  // Full create+update tracking.
+  Organization: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  User: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  Role: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  Category: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  LookupList: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  LookupListItem: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  FolderTemplate: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  Folder: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  CustomFieldDefinition: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  Archive: { updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" }, // createdById already set explicitly by createArchive()
+  WorkflowState: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  WorkflowTransition: { createdById: "createdById", updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" },
+  ReportTemplate: { updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" }, // createdById already set explicitly
+  OrgIntegration: { updatedById: "updatedById", createdIp: "createdIp", updatedIp: "updatedIp" }, // connectedById already set explicitly
+  // Append-only event/log models: create-only, no updatedAt/updatedById exists on these.
+  AuditLog: { createdIp: "ip" },
+  FileDownload: { createdIp: "ip" },
+  File: { createdIp: "uploadIp" },
+  ArchiveGrant: { createdIp: "createdIp" },
+  ShareLink: { createdIp: "createdIp" },
+  ExternalDocLink: { createdIp: "createdIp" },
+};
+
+function buildCreateFields(model: string, ctx: { userId: string; ip: string | null }) {
+  const tracked = MODEL_TRACKED_FIELDS[model];
+  if (!tracked) return {};
+  const fields: Record<string, unknown> = {};
+  if (tracked.createdById) fields[tracked.createdById] = ctx.userId;
+  if (tracked.createdIp) fields[tracked.createdIp] = ctx.ip;
+  return fields;
+}
+
+function buildUpdateFields(model: string, ctx: { userId: string; ip: string | null }) {
+  const tracked = MODEL_TRACKED_FIELDS[model];
+  if (!tracked?.updatedById && !tracked?.updatedIp) return {};
+  const fields: Record<string, unknown> = {};
+  if (tracked.updatedById) fields[tracked.updatedById] = ctx.userId;
+  if (tracked.updatedIp) fields[tracked.updatedIp] = ctx.ip;
+  return fields;
+}
+
+function createExtendedClient() {
+  return createClient().$extends({
+    name: "audit-tracking",
+    query: {
+      $allModels: {
+        async create({ model, args, query }) {
+          const ctx = getAuditContext();
+          if (ctx) {
+            (args as { data: Record<string, unknown> }).data = {
+              ...(args as { data: Record<string, unknown> }).data,
+              ...buildCreateFields(model, ctx),
+            };
+          }
+          return query(args);
+        },
+        async update({ model, args, query }) {
+          const ctx = getAuditContext();
+          if (ctx) {
+            (args as { data: Record<string, unknown> }).data = {
+              ...(args as { data: Record<string, unknown> }).data,
+              ...buildUpdateFields(model, ctx),
+            };
+          }
+          return query(args);
+        },
+        async upsert({ model, args, query }) {
+          const ctx = getAuditContext();
+          if (ctx) {
+            const typedArgs = args as { create: Record<string, unknown>; update: Record<string, unknown> };
+            typedArgs.create = { ...typedArgs.create, ...buildCreateFields(model, ctx) };
+            typedArgs.update = { ...typedArgs.update, ...buildUpdateFields(model, ctx) };
+          }
+          return query(args);
+        },
+      },
+    },
+  });
+}
+
+export const prisma = globalThis.prismaGlobal ?? createExtendedClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prismaGlobal = prisma;

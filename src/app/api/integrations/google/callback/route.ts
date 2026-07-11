@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { decrypt } from "@/lib/session";
 import { exchangeGoogleCode } from "@/lib/connectors/google";
+import { resolveClientIp } from "@/lib/request-ip";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -18,15 +19,21 @@ export async function GET(request: NextRequest) {
 
   const tokens = await exchangeGoogleCode(code);
   const credentials = JSON.parse(JSON.stringify(tokens));
+  const ip = await resolveClientIp();
 
+  // No getCurrentUser() call in this OAuth redirect flow (the actor comes
+  // from the encrypted `state` payload, not the current session), so this
+  // is outside the audit Prisma extension's ALS context — createdIp is set
+  // explicitly instead.
   await prisma.orgIntegration.upsert({
     where: { organizationId_provider: { organizationId: payload.organizationId, provider: "google" } },
-    update: { credentials, connectedById: payload.userId },
+    update: { credentials, connectedById: payload.userId, updatedIp: ip },
     create: {
       organizationId: payload.organizationId,
       provider: "google",
       credentials,
       connectedById: payload.userId,
+      createdIp: ip,
     },
   });
 

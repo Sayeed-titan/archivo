@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/dal";
+import { withAuditContext } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { NAMING_TOKENS } from "@/lib/file-naming";
@@ -19,39 +19,40 @@ export async function updateWatermarkSettings(
   _state: WatermarkSettingsState,
   formData: FormData
 ): Promise<WatermarkSettingsState> {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canManageSettings", "manage watermark settings");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageSettings", "manage watermark settings");
 
-  const validated = WatermarkSettingsSchema.safeParse({
-    watermarkEnabled: formData.get("watermarkEnabled") ?? undefined,
-    watermarkText: formData.get("watermarkText") ?? undefined,
+    const validated = WatermarkSettingsSchema.safeParse({
+      watermarkEnabled: formData.get("watermarkEnabled") ?? undefined,
+      watermarkText: formData.get("watermarkText") ?? undefined,
+    });
+    if (!validated.success) {
+      return { message: "Invalid settings." };
+    }
+
+    await prisma.organization.update({
+      where: { id: user.organizationId },
+      data: {
+        watermarkEnabled: validated.data.watermarkEnabled === "on",
+        watermarkText: validated.data.watermarkText || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Organization",
+        entityId: user.organizationId,
+        note: "updated watermark settings",
+      },
+    });
+
+    revalidatePath("/settings/security");
+    // Truthy-but-messageless state = success (the form shows a snackbar).
+    return {};
   });
-  if (!validated.success) {
-    return { message: "Invalid settings." };
-  }
-
-  await prisma.organization.update({
-    where: { id: user.organizationId },
-    data: {
-      watermarkEnabled: validated.data.watermarkEnabled === "on",
-      watermarkText: validated.data.watermarkText || null,
-    },
-  });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Organization",
-      entityId: user.organizationId,
-      note: "updated watermark settings",
-    },
-  });
-
-  revalidatePath("/settings/security");
-  // Truthy-but-messageless state = success (the form shows a snackbar).
-  return {};
 }
 
 const VALID_TOKENS = new Set<string>(NAMING_TOKENS.map((t) => t.token));
@@ -72,42 +73,43 @@ export async function updateFileNamingTemplate(
   _state: FileNamingState,
   formData: FormData
 ): Promise<FileNamingState> {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canManageSettings", "manage file naming settings");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageSettings", "manage file naming settings");
 
-  const validated = FileNamingSchema.safeParse({ template: formData.get("template") });
-  if (!validated.success) {
-    return { message: validated.error.issues[0]?.message ?? "Invalid template." };
-  }
+    const validated = FileNamingSchema.safeParse({ template: formData.get("template") });
+    if (!validated.success) {
+      return { message: validated.error.issues[0]?.message ?? "Invalid template." };
+    }
 
-  const { template } = validated.data;
+    const { template } = validated.data;
 
-  if (!template.includes("{originalName}")) {
-    return { message: "The template must include {originalName} so uploaded files stay traceable to their source name." };
-  }
+    if (!template.includes("{originalName}")) {
+      return { message: "The template must include {originalName} so uploaded files stay traceable to their source name." };
+    }
 
-  const usedTokens = template.match(/\{[a-zA-Z]+\}/g) ?? [];
-  const unknownToken = usedTokens.find((t) => !VALID_TOKENS.has(t));
-  if (unknownToken) {
-    return { message: `"${unknownToken}" is not a recognized token.` };
-  }
+    const usedTokens = template.match(/\{[a-zA-Z]+\}/g) ?? [];
+    const unknownToken = usedTokens.find((t) => !VALID_TOKENS.has(t));
+    if (unknownToken) {
+      return { message: `"${unknownToken}" is not a recognized token.` };
+    }
 
-  await prisma.organization.update({
-    where: { id: user.organizationId },
-    data: { fileNamingTemplate: template },
+    await prisma.organization.update({
+      where: { id: user.organizationId },
+      data: { fileNamingTemplate: template },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Organization",
+        entityId: user.organizationId,
+        note: "updated file naming template",
+      },
+    });
+
+    revalidatePath("/settings/file-naming");
+    return {};
   });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Organization",
-      entityId: user.organizationId,
-      note: "updated file naming template",
-    },
-  });
-
-  revalidatePath("/settings/file-naming");
-  return {};
 }

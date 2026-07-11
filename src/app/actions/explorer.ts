@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/dal";
+import { withAuditContext } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 import { archiveVisibilityWhere } from "@/lib/visibility";
@@ -32,60 +32,60 @@ function splitExtension(filename: string): { base: string; ext: string } {
 }
 
 export async function renameFile(_state: RenameFileState, formData: FormData): Promise<RenameFileState> {
-  const user = await getCurrentUser();
+  return withAuditContext(async (user) => {
+    const validated = RenameFileSchema.safeParse({
+      fileId: formData.get("fileId"),
+      name: formData.get("name"),
+    });
+    if (!validated.success) {
+      return { message: validated.error.issues[0]?.message ?? "Invalid name." };
+    }
+    const { fileId, name } = validated.data;
 
-  const validated = RenameFileSchema.safeParse({
-    fileId: formData.get("fileId"),
-    name: formData.get("name"),
+    const file = await prisma.file.findFirst({
+      where: { id: fileId, deletedAt: null, folder: { archive: { organizationId: user.organizationId } } },
+      include: { folder: { include: { archive: true } } },
+    });
+    if (!file) {
+      return { message: "File not found." };
+    }
+
+    const access = await resolveArchiveAccess(user, file.folder.archiveId);
+    const canEdit = user.role.canEditMetadata || (access && canUploadToFolder(access, file.folderId));
+    if (!canEdit) {
+      return { message: "Not authorized to rename this file." };
+    }
+
+    const { ext } = splitExtension(file.filename);
+    const { base: newBase } = splitExtension(name);
+    const nextFilename = `${newBase}${ext}`;
+
+    const duplicate = await prisma.file.findFirst({
+      where: { folderId: file.folderId, filename: nextFilename, isLatest: true, deletedAt: null, id: { not: fileId } },
+    });
+    if (duplicate) {
+      return { message: `"${nextFilename}" already exists in this folder.` };
+    }
+
+    await prisma.file.update({ where: { id: fileId }, data: { filename: nextFilename } });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "File",
+        entityId: fileId,
+        note: `renamed to "${nextFilename}"`,
+      },
+    });
+
+    revalidatePath(`/archives/${file.folder.archiveId}`);
+    // Truthy-but-messageless state = success — RenameDialog's effect only
+    // fires on state change, and its initial state is also undefined, so a
+    // bare `return;` here would be indistinguishable from "never submitted."
+    return {};
   });
-  if (!validated.success) {
-    return { message: validated.error.issues[0]?.message ?? "Invalid name." };
-  }
-  const { fileId, name } = validated.data;
-
-  const file = await prisma.file.findFirst({
-    where: { id: fileId, deletedAt: null, folder: { archive: { organizationId: user.organizationId } } },
-    include: { folder: { include: { archive: true } } },
-  });
-  if (!file) {
-    return { message: "File not found." };
-  }
-
-  const access = await resolveArchiveAccess(user, file.folder.archiveId);
-  const canEdit = user.role.canEditMetadata || (access && canUploadToFolder(access, file.folderId));
-  if (!canEdit) {
-    return { message: "Not authorized to rename this file." };
-  }
-
-  const { ext } = splitExtension(file.filename);
-  const { base: newBase } = splitExtension(name);
-  const nextFilename = `${newBase}${ext}`;
-
-  const duplicate = await prisma.file.findFirst({
-    where: { folderId: file.folderId, filename: nextFilename, isLatest: true, deletedAt: null, id: { not: fileId } },
-  });
-  if (duplicate) {
-    return { message: `"${nextFilename}" already exists in this folder.` };
-  }
-
-  await prisma.file.update({ where: { id: fileId }, data: { filename: nextFilename } });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "File",
-      entityId: fileId,
-      note: `renamed to "${nextFilename}"`,
-    },
-  });
-
-  revalidatePath(`/archives/${file.folder.archiveId}`);
-  // Truthy-but-messageless state = success — RenameDialog's effect only
-  // fires on state change, and its initial state is also undefined, so a
-  // bare `return;` here would be indistinguishable from "never submitted."
-  return {};
 }
 
 const RenameFolderSchema = z.object({
@@ -96,65 +96,67 @@ const RenameFolderSchema = z.object({
 export type RenameFolderState = { message?: string } | undefined;
 
 export async function renameFolder(_state: RenameFolderState, formData: FormData): Promise<RenameFolderState> {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canEditMetadata", "rename folders");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canEditMetadata", "rename folders");
 
-  const validated = RenameFolderSchema.safeParse({
-    folderId: formData.get("folderId"),
-    name: formData.get("name"),
+    const validated = RenameFolderSchema.safeParse({
+      folderId: formData.get("folderId"),
+      name: formData.get("name"),
+    });
+    if (!validated.success) {
+      return { message: validated.error.issues[0]?.message ?? "Invalid name." };
+    }
+    const { folderId, name } = validated.data;
+
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, archive: archiveVisibilityWhere(user) },
+    });
+    if (!folder) {
+      return { message: "Folder not found." };
+    }
+
+    const duplicate = await prisma.folder.findFirst({
+      where: { archiveId: folder.archiveId, name, id: { not: folderId } },
+    });
+    if (duplicate) {
+      return { message: `"${name}" already exists in this archive.` };
+    }
+
+    await prisma.folder.update({ where: { id: folderId }, data: { name } });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Archive",
+        entityId: folder.archiveId,
+        note: `renamed folder to "${name}"`,
+      },
+    });
+
+    revalidatePath(`/archives/${folder.archiveId}`);
+    return {};
   });
-  if (!validated.success) {
-    return { message: validated.error.issues[0]?.message ?? "Invalid name." };
-  }
-  const { folderId, name } = validated.data;
-
-  const folder = await prisma.folder.findFirst({
-    where: { id: folderId, archive: archiveVisibilityWhere(user) },
-  });
-  if (!folder) {
-    return { message: "Folder not found." };
-  }
-
-  const duplicate = await prisma.folder.findFirst({
-    where: { archiveId: folder.archiveId, name, id: { not: folderId } },
-  });
-  if (duplicate) {
-    return { message: `"${name}" already exists in this archive.` };
-  }
-
-  await prisma.folder.update({ where: { id: folderId }, data: { name } });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Archive",
-      entityId: folder.archiveId,
-      note: `renamed folder to "${name}"`,
-    },
-  });
-
-  revalidatePath(`/archives/${folder.archiveId}`);
-  return {};
 }
 
 const VALID_COLORS = new Set(FOLDER_COLORS.map((c) => c.key));
 
 export async function setFolderColor(folderId: string, color: FolderColorKey | null) {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canEditMetadata", "colorize folders");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canEditMetadata", "colorize folders");
 
-  if (color !== null && !VALID_COLORS.has(color)) {
-    throw new Error("Invalid folder color.");
-  }
+    if (color !== null && !VALID_COLORS.has(color)) {
+      throw new Error("Invalid folder color.");
+    }
 
-  const folder = await prisma.folder.findFirst({
-    where: { id: folderId, archive: archiveVisibilityWhere(user) },
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, archive: archiveVisibilityWhere(user) },
+    });
+    if (!folder) return;
+
+    await prisma.folder.update({ where: { id: folderId }, data: { color } });
+
+    revalidatePath(`/archives/${folder.archiveId}`);
   });
-  if (!folder) return;
-
-  await prisma.folder.update({ where: { id: folderId }, data: { color } });
-
-  revalidatePath(`/archives/${folder.archiveId}`);
 }

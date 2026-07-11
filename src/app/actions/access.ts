@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser, withAuditContext } from "@/lib/dal";
 import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 
@@ -31,90 +31,92 @@ async function assertManageableArchive(organizationId: string, archiveId: string
 }
 
 export async function grantArchiveAccess(_state: GrantAccessState, formData: FormData): Promise<GrantAccessState> {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canManageUsers", "manage archive access");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageUsers", "manage archive access");
 
-  const validated = GrantSchema.safeParse(Object.fromEntries(formData));
-  if (!validated.success) {
-    return { message: "Invalid grant." };
-  }
-  const { archiveId, userId, folderId, canView, canUpload } = validated.data;
-
-  await assertManageableArchive(user.organizationId, archiveId);
-
-  const targetUser = await prisma.user.findFirst({ where: { id: userId, organizationId: user.organizationId } });
-  if (!targetUser) {
-    return { message: "User not found." };
-  }
-
-  if (folderId) {
-    const folder = await prisma.folder.findFirst({ where: { id: folderId, archiveId } });
-    if (!folder) {
-      return { message: "Folder not found on this archive." };
+    const validated = GrantSchema.safeParse(Object.fromEntries(formData));
+    if (!validated.success) {
+      return { message: "Invalid grant." };
     }
-  }
+    const { archiveId, userId, folderId, canView, canUpload } = validated.data;
 
-  // Prisma's compound-unique upsert can't target a NULL folderId (Postgres
-  // treats NULLs as distinct from one another, so the unique index doesn't
-  // actually dedupe archive-level grants) — resolved manually here instead.
-  const existingGrant = await prisma.archiveGrant.findFirst({
-    where: { archiveId, userId, folderId: folderId || null },
-  });
+    await assertManageableArchive(user.organizationId, archiveId);
 
-  if (existingGrant) {
-    await prisma.archiveGrant.update({
-      where: { id: existingGrant.id },
-      data: { canView: canView === "on", canUpload: canUpload === "on" },
+    const targetUser = await prisma.user.findFirst({ where: { id: userId, organizationId: user.organizationId } });
+    if (!targetUser) {
+      return { message: "User not found." };
+    }
+
+    if (folderId) {
+      const folder = await prisma.folder.findFirst({ where: { id: folderId, archiveId } });
+      if (!folder) {
+        return { message: "Folder not found on this archive." };
+      }
+    }
+
+    // Prisma's compound-unique upsert can't target a NULL folderId (Postgres
+    // treats NULLs as distinct from one another, so the unique index doesn't
+    // actually dedupe archive-level grants) — resolved manually here instead.
+    const existingGrant = await prisma.archiveGrant.findFirst({
+      where: { archiveId, userId, folderId: folderId || null },
     });
-  } else {
-    await prisma.archiveGrant.create({
+
+    if (existingGrant) {
+      await prisma.archiveGrant.update({
+        where: { id: existingGrant.id },
+        data: { canView: canView === "on", canUpload: canUpload === "on" },
+      });
+    } else {
+      await prisma.archiveGrant.create({
+        data: {
+          organizationId: user.organizationId,
+          archiveId,
+          userId,
+          folderId: folderId || null,
+          canView: canView === "on",
+          canUpload: canUpload === "on",
+          createdById: user.id,
+        },
+      });
+    }
+
+    await prisma.auditLog.create({
       data: {
         organizationId: user.organizationId,
-        archiveId,
-        userId,
-        folderId: folderId || null,
-        canView: canView === "on",
-        canUpload: canUpload === "on",
-        createdById: user.id,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Archive",
+        entityId: archiveId,
+        note: `granted access to ${targetUser.name}${folderId ? ` (folder-scoped)` : ""}`,
       },
     });
-  }
 
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Archive",
-      entityId: archiveId,
-      note: `granted access to ${targetUser.name}${folderId ? ` (folder-scoped)` : ""}`,
-    },
+    revalidatePath(`/archives/${archiveId}/access`);
   });
-
-  revalidatePath(`/archives/${archiveId}/access`);
 }
 
 export async function revokeArchiveAccess(grantId: string) {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canManageUsers", "manage archive access");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageUsers", "manage archive access");
 
-  const grant = await prisma.archiveGrant.findFirst({ where: { id: grantId, organizationId: user.organizationId } });
-  if (!grant) return;
+    const grant = await prisma.archiveGrant.findFirst({ where: { id: grantId, organizationId: user.organizationId } });
+    if (!grant) return;
 
-  await prisma.archiveGrant.delete({ where: { id: grantId } });
+    await prisma.archiveGrant.delete({ where: { id: grantId } });
 
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Archive",
-      entityId: grant.archiveId,
-      note: "revoked archive access grant",
-    },
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Archive",
+        entityId: grant.archiveId,
+        note: "revoked archive access grant",
+      },
+    });
+
+    revalidatePath(`/archives/${grant.archiveId}/access`);
   });
-
-  revalidatePath(`/archives/${grant.archiveId}/access`);
 }
 
 // Lists org users a grant could plausibly matter for — anyone visible to

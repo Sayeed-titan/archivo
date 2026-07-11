@@ -14,48 +14,54 @@ datasource db {
 // ── Tenancy & Identity ──────────────────────────────────────────────
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  industry  String? // e.g. "ngo", "healthcare", "education" — informational, not a schema branch
+  id                 String   @id @default(cuid())
+  name               String
+  slug               String   @unique
+  industry           String? // e.g. "ngo", "healthcare", "education" — informational, not a schema branch
   // Which "open in" connector this org uses for Office-type documents.
   // Pluggable per HANDOFF.md point 5 — Google today, Microsoft stubbed.
-  docEditorProvider String? // "google" | "microsoft" | null (not configured)
+  docEditorProvider  String? // "google" | "microsoft" | null (not configured)
   // Storage limit warning (SRS.md FR-10.1 / NFR-2): notify as usage
   // approaches this ceiling. Null = no limit configured/enforced yet.
-  storageQuotaBytes BigInt?
+  storageQuotaBytes  BigInt?
   // SRS.md FR-11.5: optional watermark on downloaded images / exported
   // PDF reports. Off by default — an org opts in and sets the text.
-  watermarkEnabled Boolean @default(false)
-  watermarkText    String? // null = fall back to Organization.name at render time
+  watermarkEnabled   Boolean  @default(false)
+  watermarkText      String? // null = fall back to Organization.name at render time
   // Material Design 3 theming (org brand). The seed color drives the full
   // MD3 light+dark color scheme, generated at render time in src/lib/theme/.
   // Editable at /settings/appearance (canManageSettings).
-  themeSeedColor String @default("#6750A4") // any hex; MD3 baseline purple by default
-  themeMode      String @default("system") // "light" | "dark" | "system" — org default; User.themePreference overrides
-  themeShape     String @default("standard") // "sharp" | "standard" | "rounded" — global corner-radius scale
-  themeFontScale String @default("medium") // "small" | "medium" | "large" — global base font size
+  themeSeedColor     String   @default("#6750A4") // any hex; MD3 baseline purple by default
+  themeMode          String   @default("system") // "light" | "dark" | "system" — org default; User.themePreference overrides
+  themeShape         String   @default("standard") // "sharp" | "standard" | "rounded" — global corner-radius scale
+  themeFontScale     String   @default("medium") // "small" | "medium" | "large" — global base font size
   // Token-based upload filename template, e.g.
   // "{originalName}_{folderName}_{archiveName}_{eventDate}" — resolved by
   // src/lib/file-naming.ts at upload time. {originalName} is always kept
   // somewhere in the template (enforced in the settings-page action, not
   // here) so a computed name never fully loses the human-recognizable
   // source filename.
-  fileNamingTemplate String @default("{originalName}_{folderName}_{archiveName}_{eventDate}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  fileNamingTemplate String   @default("{originalName}_{folderName}_{archiveName}_{eventDate}")
+  createdById        String?
+  updatedById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdIp          String?
+  updatedIp          String?
 
-  users           User[]
-  roles           Role[]
-  categories      Category[]
-  lookupLists     LookupList[]
-  folderTemplates FolderTemplate[]
-  customFields    CustomFieldDefinition[]
-  archives        Archive[]
-  auditLogs       AuditLog[]
-  integrations    OrgIntegration[]
-  reportTemplates ReportTemplate[]
-  notifications   Notification[]
+  users               User[]
+  createdBy           User?                   @relation("OrganizationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy           User?                   @relation("OrganizationUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  roles               Role[]
+  categories          Category[]
+  lookupLists         LookupList[]
+  folderTemplates     FolderTemplate[]
+  customFields        CustomFieldDefinition[]
+  archives            Archive[]
+  auditLogs           AuditLog[]
+  integrations        OrgIntegration[]
+  reportTemplates     ReportTemplate[]
+  notifications       Notification[]
   workflowStates      WorkflowState[]
   workflowTransitions WorkflowTransition[]
   shareLinks          ShareLink[]
@@ -79,7 +85,16 @@ model WorkflowState {
   isInitial      Boolean @default(false) // the status new archives start in
   isTerminal     Boolean @default(false) // e.g. "Archived" — no further transitions expected
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("WorkflowStateCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?        @relation("WorkflowStateUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, name])
   @@map("workflow_states")
@@ -98,7 +113,16 @@ model WorkflowTransition {
   // e.g. [{ "kind": "mandatoryFoldersFilled" }, { "kind": "fieldRequired", "field": "donor" }]
   requirements   Json   @default("[]")
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("WorkflowTransitionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?        @relation("WorkflowTransitionUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, fromState, toState])
   @@map("workflow_transitions")
@@ -111,14 +135,14 @@ model WorkflowTransition {
 // recipient rather than a fan-out join table, since read/unread state is
 // inherently per-user.
 model Notification {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   recipientId    String
   type           String // "archive_created" | "missing_documents" | "upload_completed" | "review_pending" | "storage_limit"
   message        String
   linkPath       String? // e.g. "/archives/<id>" — where clicking the notification should go
   readAt         DateTime?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   recipient    User         @relation(fields: [recipientId], references: [id], onDelete: Cascade)
@@ -134,27 +158,31 @@ model Notification {
 // Missing Documents, User Activity) are seeded as ReportTemplate rows
 // using this same engine — see prisma/seed.ts and src/lib/reports/.
 model ReportTemplate {
-  id             String   @id @default(cuid())
-  organizationId String
-  name           String
-  description    String?
+  id              String   @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String?
   // Archive-level field keys to include as report columns, e.g.
   // ["archiveNumber", "name", "category", "donor", "fileCount"].
   // See src/lib/reports/fields.ts for the full catalog (raw columns +
   // computed ones like fileCount/storageBytes/missingMandatoryFolders).
-  fields         Json
+  fields          Json
   // Filter conditions as a small typed shape (field, operator, value) —
   // see src/lib/reports/filters.ts. Kept as JSON because filter shapes
   // vary by field type (date range vs. text-equals vs. status-in), and
   // this list grows without needing schema migrations.
-  filters        Json     @default("[]")
-  isSystemDefault Boolean @default(false) // true for the 7 SRS starter templates
-  createdById    String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  filters         Json     @default("[]")
+  isSystemDefault Boolean  @default(false) // true for the 7 SRS starter templates
+  createdById     String
+  updatedById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdIp       String?
+  updatedIp       String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy    User         @relation(fields: [createdById], references: [id])
+  createdBy    User         @relation("ReportTemplateCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?        @relation("ReportTemplateUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, name])
   @@map("report_templates")
@@ -171,11 +199,15 @@ model OrgIntegration {
   provider       String // "google" | "microsoft"
   credentials    Json // refresh_token, access_token, expiry, scope, etc.
   connectedById  String
+  updatedById    String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  createdIp      String?
+  updatedIp      String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  connectedBy  User         @relation(fields: [connectedById], references: [id])
+  connectedBy  User         @relation("OrgIntegrationConnectedBy", fields: [connectedById], references: [id])
+  updatedBy    User?        @relation("OrgIntegrationUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, provider])
   @@map("org_integrations")
@@ -186,25 +218,32 @@ model OrgIntegration {
 // so an organization can add its own roles/permission sets later without
 // a schema migration.
 model Role {
-  id             String   @id @default(cuid())
-  organizationId String
-  name           String
+  id                String   @id @default(cuid())
+  organizationId    String
+  name              String
   // Permission flags per SRS 3.9 matrix. Kept as explicit booleans (not a
   // JSON bag) because these gate real authorization checks — flexibility
   // here belongs in future custom roles' *values*, not in hiding the checks.
-  canCreateArchive  Boolean @default(false)
-  canUpload         Boolean @default(false)
-  canEditMetadata   Boolean @default(false)
-  canDeleteArchive  Boolean @default(false)
-  canHardDelete     Boolean @default(false)
-  canManageUsers    Boolean @default(false)
-  canManageSettings Boolean @default(false)
-  canGenerateReport Boolean @default(false)
-  canViewAll        Boolean @default(false) // false = own/department scope only
-  canDownload       Boolean @default(false)
+  canCreateArchive  Boolean  @default(false)
+  canUpload         Boolean  @default(false)
+  canEditMetadata   Boolean  @default(false)
+  canDeleteArchive  Boolean  @default(false)
+  canHardDelete     Boolean  @default(false)
+  canManageUsers    Boolean  @default(false)
+  canManageSettings Boolean  @default(false)
+  canGenerateReport Boolean  @default(false)
+  canViewAll        Boolean  @default(false) // false = own/department scope only
+  canDownload       Boolean  @default(false)
+  createdById       String?
+  updatedById       String?
   createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  createdIp         String?
+  updatedIp         String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("RoleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?        @relation("RoleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   users        User[]
 
   @@unique([organizationId, name])
@@ -212,24 +251,24 @@ model Role {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  organizationId String
-  email          String
-  passwordHash   String
-  name           String
-  department     String?
-  roleId         String
-  isActive       Boolean  @default(true)
+  id                        String   @id @default(cuid())
+  organizationId            String
+  email                     String
+  passwordHash              String
+  name                      String
+  department                String?
+  roleId                    String
+  isActive                  Boolean  @default(true)
   // SRS.md FR-10.2: email is a configurable enhancement on top of in-app
   // notifications, opt-in per user (default on — matches "notify by
   // default" expectation, users who don't want it can turn it off).
-  emailNotificationsEnabled Boolean @default(true)
+  emailNotificationsEnabled Boolean  @default(true)
   // Per-user light/dark override: "light" | "dark" | "system" | null
   // (null = follow the org's themeMode default). Toggled from the top app bar.
-  themePreference String?
+  themePreference           String?
   // Profile photo, stored under storage/avatars/ (see src/lib/file-storage.ts).
   // Null = fall back to computed initials, same as today.
-  avatarPath     String?
+  avatarPath                String?
   // The user's own Google account email, self-linked at /profile. Required
   // for embedded per-user editing of Office files opened via the Google
   // connector — Drive permissions.create needs a real Google account to
@@ -237,23 +276,54 @@ model User {
   // *app* access, not this specific person). Not validated against Google
   // at save time; a bad address just fails the first share attempt with a
   // visible error.
-  googleEmail    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  googleEmail               String?
+  createdById               String?
+  updatedById               String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  createdIp                 String?
+  updatedIp                 String?
 
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role              Role              @relation(fields: [roleId], references: [id])
-  createdArchives   Archive[]         @relation("ArchiveCreatedBy")
-  uploadedFiles     File[]            @relation("FileUploadedBy")
-  auditLogs         AuditLog[]
-  externalDocLinks  ExternalDocLink[]
-  connectedIntegrations OrgIntegration[]
-  reportTemplates   ReportTemplate[]
-  notifications     Notification[]
-  shareLinks        ShareLink[]
-  externalDocShares ExternalDocShare[]
-  archiveGrantsReceived ArchiveGrant[] @relation("ArchiveGrantUser")
-  archiveGrantsCreated  ArchiveGrant[] @relation("ArchiveGrantCreatedBy")
+  organization                  Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role                          Role                    @relation(fields: [roleId], references: [id])
+  createdBy                     User?                   @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers                  User[]                  @relation("UserCreatedBy")
+  updatedBy                     User?                   @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedUsers                  User[]                  @relation("UserUpdatedBy")
+  createdArchives               Archive[]               @relation("ArchiveCreatedBy")
+  updatedArchives               Archive[]               @relation("ArchiveUpdatedBy")
+  uploadedFiles                 File[]                  @relation("FileUploadedBy")
+  auditLogs                     AuditLog[]
+  externalDocLinks              ExternalDocLink[]
+  connectedIntegrations         OrgIntegration[]        @relation("OrgIntegrationConnectedBy")
+  updatedIntegrations           OrgIntegration[]        @relation("OrgIntegrationUpdatedBy")
+  reportTemplates               ReportTemplate[]        @relation("ReportTemplateCreatedBy")
+  updatedReportTemplates        ReportTemplate[]        @relation("ReportTemplateUpdatedBy")
+  notifications                 Notification[]
+  shareLinks                    ShareLink[]
+  externalDocShares             ExternalDocShare[]
+  archiveGrantsReceived         ArchiveGrant[]          @relation("ArchiveGrantUser")
+  archiveGrantsCreated          ArchiveGrant[]          @relation("ArchiveGrantCreatedBy")
+  createdOrganizations          Organization[]          @relation("OrganizationCreatedBy")
+  updatedOrganizations          Organization[]          @relation("OrganizationUpdatedBy")
+  createdRoles                  Role[]                  @relation("RoleCreatedBy")
+  updatedRoles                  Role[]                  @relation("RoleUpdatedBy")
+  createdCategories             Category[]              @relation("CategoryCreatedBy")
+  updatedCategories             Category[]              @relation("CategoryUpdatedBy")
+  createdLookupLists            LookupList[]            @relation("LookupListCreatedBy")
+  updatedLookupLists            LookupList[]            @relation("LookupListUpdatedBy")
+  createdLookupListItems        LookupListItem[]        @relation("LookupListItemCreatedBy")
+  updatedLookupListItems        LookupListItem[]        @relation("LookupListItemUpdatedBy")
+  createdFolderTemplates        FolderTemplate[]        @relation("FolderTemplateCreatedBy")
+  updatedFolderTemplates        FolderTemplate[]        @relation("FolderTemplateUpdatedBy")
+  createdFolders                Folder[]                @relation("FolderCreatedBy")
+  updatedFolders                Folder[]                @relation("FolderUpdatedBy")
+  createdCustomFieldDefinitions CustomFieldDefinition[] @relation("CustomFieldDefinitionCreatedBy")
+  updatedCustomFieldDefinitions CustomFieldDefinition[] @relation("CustomFieldDefinitionUpdatedBy")
+  createdWorkflowStates         WorkflowState[]         @relation("WorkflowStateCreatedBy")
+  updatedWorkflowStates         WorkflowState[]         @relation("WorkflowStateUpdatedBy")
+  createdWorkflowTransitions    WorkflowTransition[]    @relation("WorkflowTransitionCreatedBy")
+  updatedWorkflowTransitions    WorkflowTransition[]    @relation("WorkflowTransitionUpdatedBy")
 
   @@unique([organizationId, email])
   @@map("users")
@@ -268,7 +338,16 @@ model Category {
   order          Int     @default(0)
   isActive       Boolean @default(true)
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User?            @relation("CategoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy       User?            @relation("CategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   folderTemplates FolderTemplate[]
   archives        Archive[]
 
@@ -284,7 +363,16 @@ model LookupList {
   organizationId String
   key            String // e.g. "donor", "project", "department"
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?            @relation("LookupListCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?            @relation("LookupListUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   items        LookupListItem[]
 
   @@unique([organizationId, key])
@@ -297,7 +385,16 @@ model LookupListItem {
   value        String
   isActive     Boolean @default(true)
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   lookupList LookupList @relation(fields: [lookupListId], references: [id], onDelete: Cascade)
+  createdBy  User?      @relation("LookupListItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy  User?      @relation("LookupListItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([lookupListId, value])
   @@map("lookup_list_items")
@@ -309,7 +406,7 @@ model FolderTemplate {
   id             String  @id @default(cuid())
   organizationId String
   categoryId     String
-  name           String // e.g. "01 Proposal"
+  name           String // e.g. "Proposal" — order is tracked separately below, never baked into this text
   order          Int
   isMandatory    Boolean @default(false)
   // Upload rules (allowed types, min resolution, max size, per-type min/max
@@ -318,8 +415,17 @@ model FolderTemplate {
   // a migration, same pattern as WorkflowTransition.requirements.
   rules          Json    @default("{}")
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category     Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("FolderTemplateCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?        @relation("FolderTemplateUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   folders      Folder[]
 
   @@unique([categoryId, name])
@@ -337,9 +443,16 @@ model CustomFieldDefinition {
   options        Json? // for "select" type
   isRequired     Boolean  @default(false)
   order          Int      @default(0)
+  createdById    String?
+  updatedById    String?
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+  createdIp      String?
+  updatedIp      String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("CustomFieldDefinitionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?        @relation("CustomFieldDefinitionUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, key])
   @@map("custom_field_definitions")
@@ -348,35 +461,39 @@ model CustomFieldDefinition {
 // ── Archive (the core entity) ────────────────────────────────────────
 
 model Archive {
-  id             String   @id @default(cuid())
-  organizationId String
-  archiveNumber  String // human-facing auto ID, e.g. "ARC-2026-00042"
-  name           String // the only required field at creation (Zero-Friction Capture, point 9)
-  categoryId     String?
-  department     String?
-  eventDate      DateTime? // start date when a range is set, or the single event day
-  eventEndDate   DateTime? // null for a single-day event; set for a multi-day range
-  venue          String?
-  organizer      String?
-  coordinator    String?
-  donor          String?
-  projectName    String?
-  tags           String[] @default([])
-  description    String?
-  status         String   @default("Draft") // Draft | Pending Review | Archived | org-defined (point 7)
+  id               String    @id @default(cuid())
+  organizationId   String
+  archiveNumber    String // human-facing auto ID, e.g. "ARC-2026-00042"
+  name             String // the only required field at creation (Zero-Friction Capture, point 9)
+  categoryId       String?
+  department       String?
+  eventDate        DateTime? // start date when a range is set, or the single event day
+  eventEndDate     DateTime? // null for a single-day event; set for a multi-day range
+  venue            String?
+  organizer        String?
+  coordinator      String?
+  donor            String?
+  projectName      String?
+  tags             String[]  @default([])
+  description      String?
+  status           String    @default("Draft") // Draft | Pending Review | Archived | org-defined (point 7)
   // Org-configurable metadata that doesn't warrant a fixed column
   // (CustomFieldDefinition supplies the schema; this holds the values).
-  customFields   Json     @default("{}")
-  isMigrationInbox Boolean @default(false) // true for the always-open backlog bucket (point 3)
+  customFields     Json      @default("{}")
+  isMigrationInbox Boolean   @default(false) // true for the always-open backlog bucket (point 3)
 
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdIp   String?
+  updatedIp   String?
   deletedAt   DateTime? // soft delete (point 5)
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  category     Category?     @relation(fields: [categoryId], references: [id])
-  createdBy    User          @relation("ArchiveCreatedBy", fields: [createdById], references: [id])
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?      @relation(fields: [categoryId], references: [id])
+  createdBy    User           @relation("ArchiveCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?          @relation("ArchiveUpdatedBy", fields: [updatedById], references: [id])
   folders      Folder[]
   grants       ArchiveGrant[]
 
@@ -404,8 +521,17 @@ model Folder {
   // folder icon color. Purely cosmetic, no behavior attached.
   color            String?
 
+  createdById String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdIp   String?
+  updatedIp   String?
+
   archive        Archive         @relation(fields: [archiveId], references: [id], onDelete: Cascade)
   folderTemplate FolderTemplate? @relation(fields: [folderTemplateId], references: [id], onDelete: SetNull)
+  createdBy      User?           @relation("FolderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?           @relation("FolderUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   files          File[]
   grants         ArchiveGrant[]
 
@@ -427,15 +553,16 @@ model Folder {
 // folderId narrows the grant to one folder only, e.g. "this Viewer may
 // upload into the Photos folder but not see Legal."
 model ArchiveGrant {
-  id             String  @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   archiveId      String
   userId         String
   folderId       String?
-  canView        Boolean @default(true)
-  canUpload      Boolean @default(false)
+  canView        Boolean  @default(true)
+  canUpload      Boolean  @default(false)
   createdAt      DateTime @default(now())
   createdById    String
+  createdIp      String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   archive      Archive      @relation(fields: [archiveId], references: [id], onDelete: Cascade)
@@ -449,26 +576,26 @@ model ArchiveGrant {
 }
 
 model File {
-  id            String    @id @default(cuid())
-  folderId      String
-  filename      String
-  fileType      String // pdf | word | excel | powerpoint | image | video | audio | zip
-  mimeType      String
-  sizeBytes     Int
-  storagePath   String
-  version       Int       @default(1)
-  isLatest      Boolean   @default(true)
+  id                   String    @id @default(cuid())
+  folderId             String
+  filename             String
+  fileType             String // pdf | word | excel | powerpoint | image | video | audio | zip
+  mimeType             String
+  sizeBytes            Int
+  storagePath          String
+  version              Int       @default(1)
+  isLatest             Boolean   @default(true)
   // Re-upload of the same logical document creates a new File row pointing
   // back at the one it superseded, instead of overwriting it in place —
   // the whole chain stays retrievable (HANDOFF.md point 5).
-  previousVersionId String? @unique
-  consentFlag   Boolean? // photo consent/safeguarding flag (point 10), null when not applicable
-  externalDocId String? // ID assigned by an external editor connector (see ExternalDocLink), duplicated here for quick lookup
+  previousVersionId    String?   @unique
+  consentFlag          Boolean? // photo consent/safeguarding flag (point 10), null when not applicable
+  externalDocId        String? // ID assigned by an external editor connector (see ExternalDocLink), duplicated here for quick lookup
   // SRS.md FR-6.2: auto-generated for fileType="video" at upload time via
   // ffmpeg (see src/lib/video-processing.ts). Null for non-video files or
   // if extraction failed (e.g. corrupt upload) — never blocks the upload.
-  thumbnailPath   String?
-  durationSeconds Int?
+  thumbnailPath        String?
+  durationSeconds      Int?
   // Which configured FolderRules.alternateOptions.options label (e.g.
   // "Tender" vs "TOR") this upload satisfies; null when the folder has no
   // alternate-options rule configured.
@@ -477,17 +604,18 @@ model File {
   // file exceeds the folder's max size. storagePath/mimeType are empty
   // placeholders and sizeBytes is 0 in this case — externalUrl is the real
   // payload. Still counts toward that file type's min/max counts.
-  isExternalLink  Boolean   @default(false)
-  externalUrl     String?
-  uploadedById  String
-  uploadedAt    DateTime  @default(now())
-  deletedAt     DateTime? // soft delete
+  isExternalLink       Boolean   @default(false)
+  externalUrl          String?
+  uploadedById         String
+  uploadedAt           DateTime  @default(now())
+  uploadIp             String?
+  deletedAt            DateTime? // soft delete
 
-  folder          Folder         @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  uploadedBy      User           @relation("FileUploadedBy", fields: [uploadedById], references: [id])
+  folder          Folder           @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  uploadedBy      User             @relation("FileUploadedBy", fields: [uploadedById], references: [id])
   downloads       FileDownload[]
-  previousVersion File?          @relation("FileVersionHistory", fields: [previousVersionId], references: [id])
-  nextVersion     File?          @relation("FileVersionHistory")
+  previousVersion File?            @relation("FileVersionHistory", fields: [previousVersionId], references: [id])
+  nextVersion     File?            @relation("FileVersionHistory")
   externalDocLink ExternalDocLink?
   shareLinks      ShareLink[]
 
@@ -511,6 +639,7 @@ model ShareLink {
   maxDownloads   Int?
   downloadCount  Int       @default(0)
   createdAt      DateTime  @default(now())
+  createdIp      String?
   revokedAt      DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -526,13 +655,14 @@ model ShareLink {
 // later). One row per file; `provider` selects which connector interprets
 // `externalId`/`externalUrl` — see src/lib/connectors/.
 model ExternalDocLink {
-  id           String   @id @default(cuid())
-  fileId       String   @unique
-  provider     String // "google" | "microsoft"
-  externalId   String // e.g. Google Drive file ID
-  externalUrl  String // direct "open in <provider>" link
-  createdById  String
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  fileId      String   @unique
+  provider    String // "google" | "microsoft"
+  externalId  String // e.g. Google Drive file ID
+  externalUrl String // direct "open in <provider>" link
+  createdById String
+  createdAt   DateTime @default(now())
+  createdIp   String?
 
   file      File               @relation(fields: [fileId], references: [id], onDelete: Cascade)
   createdBy User               @relation(fields: [createdById], references: [id])
@@ -562,6 +692,7 @@ model FileDownload {
   fileId       String
   downloadedBy String
   downloadedAt DateTime @default(now())
+  ip           String?
 
   file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
 
@@ -579,6 +710,7 @@ model AuditLog {
   entityId       String
   note           String? // optional reason, mandatory in practice for hard-delete
   createdAt      DateTime @default(now())
+  ip             String?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actor        User         @relation(fields: [actorId], references: [id])

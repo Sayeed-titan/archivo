@@ -1,24 +1,20 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { renameFolderTemplate, type RenameFolderState } from "@/app/actions/folder-templates";
+import { renameCategory, type CategoryFormState } from "@/app/actions/categories";
 import { Button } from "@/components/ui";
 
-export function RenameFolderForm({
-  folderTemplateId,
+export function RenameCategoryForm({
+  categoryId,
   name,
-  isMandatory,
   onDone,
 }: {
-  folderTemplateId: string;
+  categoryId: string;
   name: string;
-  isMandatory: boolean;
   onDone: () => void;
 }) {
-  const [state, action, pending] = useActionState<RenameFolderState, FormData>(renameFolderTemplate, undefined);
-  // A returned `message` means the action rejected the submission (empty
-  // name, duplicate name) — closing the row on every submit regardless of
-  // outcome would discard that message before anyone could read it.
+  const action = renameCategory.bind(null, categoryId);
+  const [state, formAction, pending] = useActionState<CategoryFormState, FormData>(action, undefined);
   const lastHandledMessage = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (state === undefined) return;
@@ -30,9 +26,7 @@ export function RenameFolderForm({
   }, [state]);
 
   return (
-    <form action={action} className="flex min-w-0 flex-1 flex-col gap-1">
-      <input type="hidden" name="folderTemplateId" value={folderTemplateId} />
-      <input type="hidden" name="isMandatory" value={isMandatory ? "on" : ""} />
+    <form action={formAction} className="flex min-w-0 flex-1 flex-col gap-1" onClick={(e) => e.stopPropagation()}>
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <input
           name="name"

@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { decrypt } from "@/lib/session";
 import { prisma, withConnectionRetry } from "@/lib/prisma";
+import { runWithAuditContext } from "@/lib/audit-context";
+import { resolveClientIp } from "@/lib/request-ip";
 
 export const verifySession = cache(async () => {
   const cookie = (await cookies()).get("session")?.value;
@@ -55,3 +57,18 @@ export const getCurrentUser = cache(async () => {
 
   return user;
 });
+
+// Every mutating Server Action's first line should call this instead of
+// getCurrentUser() directly — it resolves the same user, but also stamps the
+// actor + client IP into AsyncLocalStorage for the duration of the wrapped
+// callback, so the Prisma audit extension (src/lib/prisma.ts) can populate
+// createdById/updatedById/createdIp/updatedIp with zero further plumbing.
+// Read-only Server Components (pages, layouts) should keep using
+// getCurrentUser()/getShellUser() directly — they never call create/update.
+export async function withAuditContext<T>(
+  fn: (user: Awaited<ReturnType<typeof getCurrentUser>>) => Promise<T>
+): Promise<T> {
+  const user = await getCurrentUser();
+  const ip = await resolveClientIp();
+  return runWithAuditContext({ userId: user.id, userName: user.name, ip }, () => fn(user));
+}

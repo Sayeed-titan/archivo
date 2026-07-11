@@ -3,22 +3,22 @@
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/dal";
+import { withAuditContext } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { saveAvatar } from "@/lib/file-storage";
 
 export type EmailPreferenceState = { message?: string } | undefined;
 
 export async function updateEmailPreference(_state: EmailPreferenceState, formData: FormData): Promise<EmailPreferenceState> {
-  const user = await getCurrentUser();
+  return withAuditContext(async (user) => {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailNotificationsEnabled: formData.get("emailNotificationsEnabled") === "on" },
+    });
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { emailNotificationsEnabled: formData.get("emailNotificationsEnabled") === "on" },
+    revalidatePath("/profile");
+    return undefined;
   });
-
-  revalidatePath("/profile");
-  return undefined;
 }
 
 const ChangePasswordSchema = z
@@ -35,37 +35,37 @@ const ChangePasswordSchema = z
 export type ChangePasswordState = { message?: string; success?: boolean } | undefined;
 
 export async function changePassword(_state: ChangePasswordState, formData: FormData): Promise<ChangePasswordState> {
-  const user = await getCurrentUser();
+  return withAuditContext(async (user) => {
+    const validated = ChangePasswordSchema.safeParse({
+      currentPassword: formData.get("currentPassword"),
+      newPassword: formData.get("newPassword"),
+      confirmPassword: formData.get("confirmPassword"),
+    });
+    if (!validated.success) {
+      return { message: validated.error.issues[0]?.message ?? "Invalid input." };
+    }
 
-  const validated = ChangePasswordSchema.safeParse({
-    currentPassword: formData.get("currentPassword"),
-    newPassword: formData.get("newPassword"),
-    confirmPassword: formData.get("confirmPassword"),
+    const passwordMatches = await bcrypt.compare(validated.data.currentPassword, user.passwordHash);
+    if (!passwordMatches) {
+      return { message: "Current password is incorrect." };
+    }
+
+    const newHash = await bcrypt.hash(validated.data.newPassword, 10);
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: newHash } });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "User",
+        entityId: user.id,
+        note: "changed password",
+      },
+    });
+
+    return { success: true };
   });
-  if (!validated.success) {
-    return { message: validated.error.issues[0]?.message ?? "Invalid input." };
-  }
-
-  const passwordMatches = await bcrypt.compare(validated.data.currentPassword, user.passwordHash);
-  if (!passwordMatches) {
-    return { message: "Current password is incorrect." };
-  }
-
-  const newHash = await bcrypt.hash(validated.data.newPassword, 10);
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: newHash } });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "User",
-      entityId: user.id,
-      note: "changed password",
-    },
-  });
-
-  return { success: true };
 }
 
 const GoogleEmailSchema = z.object({
@@ -80,39 +80,39 @@ export type GoogleEmailState = { message?: string; success?: boolean } | undefin
 // (empty string) unlinks it — existing ExternalDocShare grants on Drive
 // are not revoked, only future embeds stop auto-sharing to it.
 export async function updateGoogleEmail(_state: GoogleEmailState, formData: FormData): Promise<GoogleEmailState> {
-  const user = await getCurrentUser();
+  return withAuditContext(async (user) => {
+    const validated = GoogleEmailSchema.safeParse({ googleEmail: formData.get("googleEmail") });
+    if (!validated.success) {
+      return { message: validated.error.issues[0]?.message ?? "Invalid input." };
+    }
 
-  const validated = GoogleEmailSchema.safeParse({ googleEmail: formData.get("googleEmail") });
-  if (!validated.success) {
-    return { message: validated.error.issues[0]?.message ?? "Invalid input." };
-  }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { googleEmail: validated.data.googleEmail || null },
+    });
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { googleEmail: validated.data.googleEmail || null },
+    revalidatePath("/profile");
+    return { success: true };
   });
-
-  revalidatePath("/profile");
-  return { success: true };
 }
 
 export type AvatarUploadState = { message?: string } | undefined;
 
 export async function uploadAvatar(_state: AvatarUploadState, formData: FormData): Promise<AvatarUploadState> {
-  const user = await getCurrentUser();
+  return withAuditContext(async (user) => {
+    const file = formData.get("avatar");
+    if (!(file instanceof File)) {
+      return { message: "No file provided." };
+    }
 
-  const file = formData.get("avatar");
-  if (!(file instanceof File)) {
-    return { message: "No file provided." };
-  }
+    const result = await saveAvatar(file, user.avatarPath);
+    if (!result.ok) {
+      return { message: result.message };
+    }
 
-  const result = await saveAvatar(file, user.avatarPath);
-  if (!result.ok) {
-    return { message: result.message };
-  }
+    await prisma.user.update({ where: { id: user.id }, data: { avatarPath: result.avatarPath } });
 
-  await prisma.user.update({ where: { id: user.id }, data: { avatarPath: result.avatarPath } });
-
-  revalidatePath("/", "layout"); // avatar shows in the top-bar user menu too
-  return undefined;
+    revalidatePath("/", "layout"); // avatar shows in the top-bar user menu too
+    return undefined;
+  });
 }

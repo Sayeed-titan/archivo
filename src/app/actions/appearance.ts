@@ -2,23 +2,24 @@
 
 import * as z from "zod";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "@/lib/dal";
+import { withAuditContext } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/authz";
 
 // ── Per-user light/dark preference (top-bar toggle, any signed-in user) ──
 
 export async function setThemePreference(preference: "light" | "dark" | "system") {
-  const user = await getCurrentUser();
-  if (preference !== "light" && preference !== "dark" && preference !== "system") return;
+  return withAuditContext(async (user) => {
+    if (preference !== "light" && preference !== "dark" && preference !== "system") return;
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { themePreference: preference },
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { themePreference: preference },
+    });
+
+    // The theme attribute is rendered by the root layout — revalidate it.
+    revalidatePath("/", "layout");
   });
-
-  // The theme attribute is rendered by the root layout — revalidate it.
-  revalidatePath("/", "layout");
 }
 
 // ── Org-wide MD3 appearance settings (/settings/appearance) ─────────────
@@ -36,36 +37,37 @@ export async function updateAppearanceSettings(
   _state: AppearanceFormState,
   formData: FormData
 ): Promise<AppearanceFormState> {
-  const user = await getCurrentUser();
-  requirePermission(user.role, "canManageSettings", "manage appearance settings");
+  return withAuditContext(async (user) => {
+    requirePermission(user.role, "canManageSettings", "manage appearance settings");
 
-  const validated = AppearanceSchema.safeParse({
-    themeSeedColor: formData.get("themeSeedColor"),
-    themeMode: formData.get("themeMode"),
-    themeShape: formData.get("themeShape"),
-    themeFontScale: formData.get("themeFontScale"),
+    const validated = AppearanceSchema.safeParse({
+      themeSeedColor: formData.get("themeSeedColor"),
+      themeMode: formData.get("themeMode"),
+      themeShape: formData.get("themeShape"),
+      themeFontScale: formData.get("themeFontScale"),
+    });
+    if (!validated.success) {
+      return { status: "error", message: validated.error.issues[0]?.message ?? "Invalid appearance settings." };
+    }
+
+    await prisma.organization.update({
+      where: { id: user.organizationId },
+      data: validated.data,
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId: user.organizationId,
+        actorId: user.id,
+        action: "edit",
+        entityType: "Organization",
+        entityId: user.organizationId,
+        note: `updated appearance settings (seed ${validated.data.themeSeedColor}, ${validated.data.themeMode} mode, ${validated.data.themeShape} shape, ${validated.data.themeFontScale} text)`,
+      },
+    });
+
+    // Tokens are emitted in the root layout — revalidate everything.
+    revalidatePath("/", "layout");
+    return { status: "success", message: "Appearance updated for the whole organization." };
   });
-  if (!validated.success) {
-    return { status: "error", message: validated.error.issues[0]?.message ?? "Invalid appearance settings." };
-  }
-
-  await prisma.organization.update({
-    where: { id: user.organizationId },
-    data: validated.data,
-  });
-
-  await prisma.auditLog.create({
-    data: {
-      organizationId: user.organizationId,
-      actorId: user.id,
-      action: "edit",
-      entityType: "Organization",
-      entityId: user.organizationId,
-      note: `updated appearance settings (seed ${validated.data.themeSeedColor}, ${validated.data.themeMode} mode, ${validated.data.themeShape} shape, ${validated.data.themeFontScale} text)`,
-    },
-  });
-
-  // Tokens are emitted in the root layout — revalidate everything.
-  revalidatePath("/", "layout");
-  return { status: "success", message: "Appearance updated for the whole organization." };
 }

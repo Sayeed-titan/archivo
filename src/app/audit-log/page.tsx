@@ -50,6 +50,7 @@ export default async function AuditLogPage({
           options={[
             { value: "Archive", label: "Archive" },
             { value: "File", label: "File" },
+            { value: "Category", label: "Category" },
             { value: "FolderTemplate", label: "Folder Template" },
           ]}
         />

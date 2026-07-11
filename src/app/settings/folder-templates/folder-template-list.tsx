@@ -22,13 +22,21 @@ import { RemoveFolderButton } from "./remove-folder-button";
 import { FolderRulesEditor } from "./folder-rules-editor";
 import { RenameFolderForm } from "./rename-folder-form";
 import type { FolderRules } from "@/lib/folder-rules";
-import { Badge } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import { Icon } from "@/components/icon";
 import { cn } from "@/lib/cn";
 
 type FolderTemplateItem = { id: string; name: string; isMandatory: boolean; rules: FolderRules };
 
-function SortableFolderRow({ folder, canManage }: { folder: FolderTemplateItem; canManage: boolean }) {
+function SortableFolderRow({
+  folder,
+  position,
+  canManage,
+}: {
+  folder: FolderTemplateItem;
+  position: number;
+  canManage: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
   const [editing, setEditing] = useState(false);
 
@@ -46,12 +54,15 @@ function SortableFolderRow({ folder, canManage }: { folder: FolderTemplateItem; 
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`Reorder ${folder.name}`}
-          className="flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8 active:cursor-grabbing"
+          aria-label={`Reorder ${folder.name}. Press Space to pick up, then Up or Down to move, then Space to drop.`}
+          className="flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:cursor-grabbing"
         >
           <Icon name="drag_indicator" size={18} />
         </button>
       )}
+      <span className="w-5 shrink-0 text-right type-label-small text-on-surface-variant" aria-hidden="true">
+        {position + 1}.
+      </span>
       {editing ? (
         <RenameFolderForm
           folderTemplateId={folder.id}
@@ -70,14 +81,15 @@ function SortableFolderRow({ folder, canManage }: { folder: FolderTemplateItem; 
             )}
           </span>
           {canManage && (
-            <button
+            <Button
               type="button"
-              aria-label={`Rename ${folder.name}`}
+              variant="text"
+              size="inline"
+              icon="edit_square"
               onClick={() => setEditing(true)}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface-8"
             >
-              <Icon name="edit" size={16} />
-            </button>
+              Edit
+            </Button>
           )}
           {canManage && <FolderRulesEditor folderTemplateId={folder.id} folderName={folder.name} rules={folder.rules} />}
           {canManage && <RemoveFolderButton folderTemplateId={folder.id} />}
@@ -123,11 +135,18 @@ export function FolderTemplateList({
 
   return (
     <DndContext id={`folder-templates-${categoryId}`} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      {canManage && (
+        <p className="pb-1 type-body-small text-on-surface-variant">
+          Drag the handle to reorder, or tab to it and press Space to pick up, Up/Down to move, Space again to drop.
+        </p>
+      )}
       <SortableContext items={order} strategy={verticalListSortingStrategy}>
         <ul className="divide-y divide-outline-variant/50">
-          {order.map((id) => {
+          {order.map((id, index) => {
             const folder = byId.get(id);
-            return folder ? <SortableFolderRow key={id} folder={folder} canManage={canManage} /> : null;
+            return folder ? (
+              <SortableFolderRow key={id} folder={folder} position={index} canManage={canManage} />
+            ) : null;
           })}
         </ul>
       </SortableContext>
