@@ -6,7 +6,6 @@ import { Menu, MenuItem } from "@/components/ui";
 import { fileTypeIcon } from "@/lib/file-icon";
 import { FilePreviewButton } from "@/components/file-preview/file-preview-dialog";
 import { FileShareButton } from "@/components/file-share/file-share-dialog";
-import { OpenInEditorButton } from "@/app/archives/[id]/open-in-editor-button";
 import { RenameDialog } from "./rename-dialog";
 import { renameFile } from "@/app/actions/explorer";
 import type { ExplorerFile } from "./types";
@@ -90,7 +89,7 @@ export function FileTile({
             filename={file.filename}
             fileType={file.fileType}
             canOpenInEditor={canOpenInEditor}
-            openInEditorSlot={canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} mode="embed" />}
+            docEditorProvider={docEditorProvider}
           />
           <FileShareButton fileId={file.id} filename={file.filename} />
         </div>

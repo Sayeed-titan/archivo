@@ -27,6 +27,10 @@ export const microsoftConnector: DocEditorConnector = {
     throw new Error("Microsoft 365 connector is not implemented yet.");
   },
 
+  async getEmbedUrl(): Promise<string> {
+    throw new Error("Microsoft 365 connector is not implemented yet.");
+  },
+
   async shareWithUser(): Promise<void> {
     throw new Error("Microsoft 365 connector is not implemented yet.");
   },

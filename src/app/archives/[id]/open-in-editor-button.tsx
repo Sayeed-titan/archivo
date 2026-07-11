@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { openInExternalEditor, openInEmbeddedEditor } from "@/app/actions/integrations";
 
@@ -13,27 +13,50 @@ export function OpenInEditorButton({
   fileId,
   provider,
   mode = "inline",
+  onEmbedStart,
+  onEmbedEnd,
+  placeholder,
 }: {
   fileId: string;
   provider: string;
   mode?: "inline" | "embed";
+  /** embed mode only: lets the parent dialog resize itself (e.g. go
+   * near-fullscreen) once the editor iframe is actually showing. */
+  onEmbedStart?: () => void;
+  onEmbedEnd?: () => void;
+  /** embed mode only: wraps the button/error/link-account states before
+   * the editor loads (e.g. a "can't preview inline" message alongside the
+   * button). Not shown once the iframe is up — that gets the full area. */
+  placeholder?: React.ReactNode;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [needsGoogleAccount, setNeedsGoogleAccount] = useState(false);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
 
+  // Notifies the parent dialog so it can resize itself around the embed —
+  // a genuine external-system signal (parent layout), not state being
+  // synced/derived here, so an effect is the right tool, not a render-time
+  // computation.
+  useEffect(() => {
+    if (embedUrl) {
+      onEmbedStart?.();
+      return () => onEmbedEnd?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedUrl]);
+
   if (embedUrl) {
     return (
       <iframe
         src={embedUrl}
         title={`Edit in ${provider === "google" ? "Google" : provider}`}
-        className="h-[70vh] w-full rounded-sm border border-outline-variant"
+        className="h-full min-h-[70vh] w-full flex-1 rounded-sm border border-outline-variant"
       />
     );
   }
 
-  return (
+  const trigger = (
     <>
       <button
         disabled={isPending}
@@ -72,6 +95,15 @@ export function OpenInEditorButton({
           first so this file can be shared with you for editing.
         </p>
       )}
+    </>
+  );
+
+  if (!placeholder) return trigger;
+
+  return (
+    <>
+      {placeholder}
+      {trigger}
     </>
   );
 }

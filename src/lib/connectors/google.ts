@@ -9,6 +9,18 @@ const GOOGLE_MIME_TYPES: Record<OpenableFileKind, string> = {
   powerpoint: "application/vnd.google-apps.presentation",
 };
 
+// docs.google.com/<type>/d/<id>/... is the real per-kind editor host —
+// drive.google.com/open (used by getOpenUrl below) sends X-Frame-Options
+// and refuses to render inside an <iframe> at all. "/preview" is Google's
+// documented embeddable path; "/edit" also gets blocked for third-party
+// embeds in most cases, so this deliberately isn't a shared helper with
+// getOpenUrl despite the similar-looking URLs.
+const GOOGLE_EMBED_PATH: Record<OpenableFileKind, string> = {
+  word: "document",
+  excel: "spreadsheets",
+  powerpoint: "presentation",
+};
+
 // Requires, in Google Cloud Console: a project with the Drive API enabled,
 // an OAuth 2.0 Web client (Client ID/Secret), and this redirect URI added
 // under "Authorized redirect URIs". Scope requested is drive.file, which
@@ -98,6 +110,10 @@ export const googleConnector: DocEditorConnector = {
 
   async getOpenUrl(externalId) {
     return `https://drive.google.com/open?id=${externalId}`;
+  },
+
+  async getEmbedUrl(externalId, fileKind) {
+    return `https://docs.google.com/${GOOGLE_EMBED_PATH[fileKind]}/d/${externalId}/preview`;
   },
 
   async shareWithUser(externalId, organizationId, userEmail) {

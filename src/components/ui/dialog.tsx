@@ -49,13 +49,15 @@ export function Dialog({
       )}
     >
       {icon && (
-        <div className="mb-4 flex justify-center text-secondary">
+        <div className="mb-4 flex shrink-0 justify-center text-secondary">
           <Icon name={icon} size={24} />
         </div>
       )}
-      <h2 className={cn("type-headline-small", icon && "text-center")}>{headline}</h2>
-      {children && <div className="mt-4 type-body-medium text-on-surface-variant">{children}</div>}
-      <div className="mt-6 flex flex-wrap justify-end gap-2">{actions}</div>
+      <h2 className={cn("shrink-0 type-headline-small", icon && "text-center")}>{headline}</h2>
+      {children && (
+        <div className="mt-4 min-h-0 flex-1 type-body-medium text-on-surface-variant">{children}</div>
+      )}
+      <div className="mt-6 flex shrink-0 flex-wrap justify-end gap-2">{actions}</div>
     </dialog>
   );
 }

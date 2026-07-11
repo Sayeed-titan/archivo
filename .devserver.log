@@ -21256,3 +21256,6 @@ Failed to send notification email to admin@demo-ngo.org: Error: connect ECONNREF
     at createFetch (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:8207:21)
     at async fetchServerResponse (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:8051:21)
     at async navigateToUnknownRoute (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:10221:20) (file://D:/Departmental/Official Assignements/Achieve Management/archivo/.next/dev/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:8128:21)
+  Reload env: .env
+  Reload env: .env
+[?25h

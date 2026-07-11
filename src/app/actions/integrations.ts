@@ -74,7 +74,7 @@ export async function openInExternalEditor(fileId: string) {
       },
     });
 
-    return { openUrl, externalId, provider: org.docEditorProvider };
+    return { openUrl, externalId, provider: org.docEditorProvider, fileKind: file.fileType as OpenableFileKind };
   });
 }
 
@@ -88,7 +88,7 @@ export type EmbedEditorResult = { embedUrl: string } | { needsGoogleAccount: tru
 // only grants the *app* Drive access, not this specific person.
 export async function openInEmbeddedEditor(fileId: string): Promise<EmbedEditorResult> {
   return withAuditContext(async (user) => {
-    const { openUrl, externalId, provider } = await openInExternalEditor(fileId);
+    const { externalId, provider, fileKind } = await openInExternalEditor(fileId);
 
     if (provider === "google") {
       if (!user.googleEmail) {
@@ -112,6 +112,8 @@ export async function openInEmbeddedEditor(fileId: string): Promise<EmbedEditorR
       }
     }
 
-    return { embedUrl: openUrl };
+    const connector = getConnector(provider as "google" | "microsoft");
+    const embedUrl = await connector.getEmbedUrl(externalId, fileKind);
+    return { embedUrl };
   });
 }

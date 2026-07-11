@@ -83,7 +83,7 @@ export function FileRow({
               filename={file.filename}
               fileType={file.fileType}
               canOpenInEditor={canOpenInEditor}
-              openInEditorSlot={canOpenInEditor && <OpenInEditorButton fileId={file.id} provider={docEditorProvider} mode="embed" />}
+              docEditorProvider={docEditorProvider}
             />
             <FileShareButton fileId={file.id} filename={file.filename} />
           </span>

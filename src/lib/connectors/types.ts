@@ -38,8 +38,17 @@ export interface DocEditorConnector {
   }): Promise<OpenInResult>;
 
   // Builds a fresh "open" URL for an already-linked external document
-  // (tokens/URLs can expire or need re-signing depending on provider).
+  // (tokens/URLs can expire or need re-signing depending on provider). Used
+  // for the new-tab "Open in <provider>" link — the provider's own full UI
+  // (e.g. Drive) is fine here since it's not going in an iframe.
   getOpenUrl(externalId: string): Promise<string>;
+
+  // Builds a URL suitable for embedding in an <iframe> (used by the file
+  // preview dialog's in-app editor). Not every "open" URL is embeddable —
+  // e.g. Google's drive.google.com/open sends X-Frame-Options and refuses
+  // to render inside a frame at all, so this needs its own dedicated,
+  // provider-specific embeddable URL shape, not a reuse of getOpenUrl.
+  getEmbedUrl(externalId: string, fileKind: OpenableFileKind): Promise<string>;
 
   // Grants a specific end user edit access to an already-created external
   // document, so embedded edits are attributed to them individually rather
