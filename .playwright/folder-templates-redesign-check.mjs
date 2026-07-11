@@ -74,10 +74,15 @@ await requiredCheckbox.click();
 await page.waitForTimeout(400);
 console.log("Required checkbox toggled inline:", before, "->", await requiredCheckbox.isChecked());
 
-// --- View toggle switches to the flat List view ---
+// --- View toggle: three views (Folders, Explorer, List) ---
+await page.locator('button[aria-label="Explorer view"]').click();
+await page.waitForTimeout(400);
+console.log("Explorer sidebar visible:", (await page.locator("text=Categories").count()) > 0);
+
 await page.locator('button[aria-label="List view"]').click();
 await page.waitForTimeout(400);
 console.log("List view table visible:", (await page.locator("table").count()) > 0);
+
 await page.locator('button[aria-label="Folders view"]').click();
 await page.waitForTimeout(300);
 

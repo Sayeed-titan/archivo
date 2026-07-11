@@ -16,7 +16,7 @@ export default async function FolderTemplatesPage() {
   const canManage = user.role.canManageSettings;
 
   return (
-    <main className="mx-auto max-w-2xl p-4 sm:p-8">
+    <main className="mx-auto max-w-6xl p-4 sm:p-8">
       <PageHeader
         backHref="/settings"
         backLabel="Settings"

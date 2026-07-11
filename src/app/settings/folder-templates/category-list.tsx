@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CategoryRow } from "./category-row";
 import { AddCategoryForm } from "./add-category-form";
 import { FolderTemplateFlatList } from "./folder-template-flat-list";
+import { FolderTemplatesExplorer } from "./folder-templates-explorer";
 import type { FolderRules } from "@/lib/folder-rules";
 import { ClearableSearchField, EmptyState } from "@/components/ui";
 import { Icon } from "@/components/icon";
@@ -12,10 +13,11 @@ import { cn } from "@/lib/cn";
 type FolderTemplateItem = { id: string; name: string; isMandatory: boolean; rules: FolderRules };
 type CategoryItem = { id: string; name: string; folderTemplates: FolderTemplateItem[] };
 
-type View = "folders" | "list";
+type View = "folders" | "explorer" | "list";
 
 const VIEW_OPTIONS: { value: View; icon: string; label: string }[] = [
   { value: "folders", icon: "folder", label: "Folders view" },
+  { value: "explorer", icon: "account_tree", label: "Explorer view" },
   { value: "list", icon: "view_list", label: "List view" },
 ];
 
@@ -63,6 +65,8 @@ export function CategoryList({ categories, canManage }: { categories: CategoryIt
         />
       ) : view === "folders" ? (
         filtered.map((category) => <CategoryRow key={category.id} category={category} canManage={canManage} />)
+      ) : view === "explorer" ? (
+        <FolderTemplatesExplorer categories={filtered} canManage={canManage} />
       ) : (
         <FolderTemplateFlatList categories={filtered} canManage={canManage} />
       )}
