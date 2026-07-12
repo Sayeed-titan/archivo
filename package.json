@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:all": "concurrently -n db,app -c blue,green --kill-others \"npx prisma dev\" \"next dev\"",
+    "dev": "next dev -p 3001",
+    "dev:all": "concurrently -n db,app -c blue,green --kill-others \"npx prisma dev\" \"next dev -p 3001\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

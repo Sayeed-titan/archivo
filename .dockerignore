@@ -1,0 +1,31 @@
+# Keep the Docker build context small and never leak local state into the image.
+node_modules
+.next
+out
+build
+
+# Local env + secrets — env vars are injected by Render at runtime, never baked in.
+.env
+.env.*
+
+# Local dev / data / tooling
+storage/uploads/*
+storage/avatars/*
+backups/*
+.playwright
+coverage
+*.tsbuildinfo
+
+# Generated Prisma client — regenerated inside the image (npx prisma generate)
+src/generated/prisma
+
+# VCS + editor
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# Docs that don't belong in the runtime image
+DEPLOYMENT.md
+README.md

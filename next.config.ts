@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Produces a self-contained .next/standalone server (only the files and
+  // node_modules actually needed at runtime) so the Docker production image
+  // stays small and doesn't ship the full dependency tree. See Dockerfile.
+  output: "standalone",
   // ffmpeg-static/ffprobe-static resolve their bundled binary paths via
   // __dirname at require-time; letting Next.js bundle them into the
   // server chunk rewrites that to a virtual \ROOT\ path that doesn't
