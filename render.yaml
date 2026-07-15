@@ -32,27 +32,27 @@ services:
     # attach the persistent disk below (free instances can't have disks).
     plan: free
     region: oregon # pick the region closest to your users (oregon | frankfurt | singapore | ohio | virginia)
-    branch: main
+    branch: master
     healthCheckPath: /login # a lightweight always-200 route Render pings to confirm the app is up
 
-    # Runs on every deploy, BEFORE the new version goes live, with all env vars
-    # (incl. DATABASE_URL) available. `migrate deploy` applies any pending
-    # migrations in prisma/migrations/ to the production DB — it is safe to run
-    # repeatedly (it only applies what hasn't been applied yet). This is how
-    # your schema gets created on the very first deploy and updated on later ones.
-    # First-time seeding of the demo org is done ONCE manually via the Render
-    # Shell after the first deploy — see DEPLOYMENT.md (we don't seed on every
-    # deploy or it would try to re-create the demo data each time).
-    preDeployCommand: npx prisma migrate deploy
+    # preDeployCommand (`npx prisma migrate deploy`) requires a paid instance
+    # plan — not supported on free. On free tier, run migrations manually
+    # instead via Render Shell after each deploy that changes the schema:
+    #   npx prisma migrate deploy
+    # If you upgrade the web service off "free" later, uncomment this so
+    # migrations apply automatically on every deploy:
+    # preDeployCommand: npx prisma migrate deploy
 
     # Persistent disk for uploaded files + avatars + backups. Survives deploys.
-    # NOTE: disks require a PAID instance plan. On the free plan, comment this
-    # whole "disk:" block out — uploads will then be ephemeral (lost on each
-    # deploy/restart), which is acceptable for a throwaway test but not for real use.
-    disk:
-      name: archivo-storage
-      mountPath: /app/storage
-      sizeGB: 1 # grow later as needed; you're billed per GB
+    # NOTE: disks require a PAID instance plan — not supported on free tier,
+    # so this is commented out. Uploaded files WILL be lost on every redeploy
+    # and on restart from the free plan's sleep/wake cycle. Fine for a
+    # UI-only demo, not for testing real upload persistence. Uncomment and
+    # upgrade the web service plan below if you need files to persist.
+    # disk:
+    #   name: archivo-storage
+    #   mountPath: /app/storage
+    #   sizeGB: 1 # grow later as needed; you're billed per GB
 
     envVars:
       # ── Database ──────────────────────────────────────────────────────────
