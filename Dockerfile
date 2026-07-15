@@ -49,8 +49,14 @@ RUN npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Render (and most PaaS) inject PORT; Next's standalone server reads it.
-ENV PORT=3000
+# Do NOT hardcode PORT here. Render injects its own PORT env var into the
+# running container at runtime, and Next's standalone server.js reads
+# process.env.PORT at startup — an ENV set in the image can win over that
+# injection depending on the runtime, causing the app to bind the wrong
+# port while Render's proxy still tries to route to its assigned one
+# (silent 502s with zero app-side logs, since the request never reaches
+# the process). Leaving PORT unset here lets Render's real value flow
+# through unmodified.
 
 # Run as a non-root user for safety.
 RUN groupadd --system --gid 1001 nodejs \
