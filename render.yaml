@@ -33,7 +33,13 @@ services:
     plan: free
     region: oregon # pick the region closest to your users (oregon | frankfurt | singapore | ohio | virginia)
     branch: master
-    healthCheckPath: /login # a lightweight always-200 route Render pings to confirm the app is up
+    # TEMPORARILY DISABLED for debugging a 502 that shows zero app-side logs
+    # (i.e. Render's proxy isn't forwarding any traffic to the container,
+    # even though the app's own logs show it booting and reporting "live").
+    # If removing this makes the site reachable, the health check itself was
+    # failing and blocking all routing — re-add once /login's real runtime
+    # behavior on Render is confirmed working, don't leave this off long-term.
+    # healthCheckPath: /login
 
     # preDeployCommand (`npx prisma migrate deploy`) requires a paid instance
     # plan — not supported on free. On free tier, run migrations manually
