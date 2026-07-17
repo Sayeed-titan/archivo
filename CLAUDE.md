@@ -15,6 +15,15 @@ sibling `ngo-archive/` folder at the repo root:
   project is being built from (**all 7 prompts complete** as of this
   session — see the Prompt 7 section below for what's next if resuming)
 
+Two more docs worth knowing about:
+- `docs/user-manual/` — the end-user-facing manual (screenshots + how each
+  screen/action works), kept up to date alongside feature changes; see its
+  own `README.md` for how to regenerate screenshots.
+- `docs/testing.md` — the test suite (unit/integration/E2E), how the git
+  hooks and GitHub Actions CI work, and the deploy gate that replaced
+  Render's old "deploy on every push" behavior. Read this before adding a
+  feature without a test, or before touching `render.yaml`/`.github/workflows/`.
+
 ## Key decisions locked in
 - **Multi-tenant from day one**: single deployment, every domain table
   scoped by `organizationId` (see `prisma/schema.prisma`).

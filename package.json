@@ -5,17 +5,35 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "dev:all": "concurrently -n db,app -c blue,green --kill-others \"npx prisma dev\" \"next dev -p 3001\"",
+    "dev:e2e": "next dev -p 3101",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "backup": "tsx scripts/backup/run-backup.ts",
-    "backup:restore": "tsx scripts/backup/run-restore.ts"
+    "backup:restore": "tsx scripts/backup/run-restore.ts",
+    "test:db:start": "prisma dev --name test --detach",
+    "test:db:stop": "prisma dev stop test",
+    "test:db:reset": "cross-env DOTENV_CONFIG_PATH=.env.test prisma db push --force-reset --accept-data-loss && cross-env DOTENV_CONFIG_PATH=.env.test tsx prisma/seed.ts",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "cross-env DOTENV_CONFIG_PATH=.env.test vitest run tests/integration",
+    "test:watch": "vitest",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:e2e": "cross-env DOTENV_CONFIG_PATH=.env.test playwright test",
+    "test:e2e:smoke": "cross-env DOTENV_CONFIG_PATH=.env.test playwright test --grep @smoke",
+    "test:ci": "npm run typecheck && npm run lint && npm run test:unit && npm run test:integration && npm run build && npm run test:e2e",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -46,6 +64,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/archiver": "^8.0.0",
     "@types/bcryptjs": "^2.4.6",
@@ -56,13 +75,17 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "maildev": "^2.2.1",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

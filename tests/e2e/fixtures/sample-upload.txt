@@ -1,0 +1,3 @@
+This is a small fixture file used by the E2E test suite to exercise the
+upload flow. Its contents are never asserted on — only that the upload
+completes and the file appears in the folder.

@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/dal";
-import { prisma } from "@/lib/prisma";
+import { prisma, withConnectionRetry } from "@/lib/prisma";
 import { searchArchives } from "@/lib/search-archives";
 import { PageHeader, ClearableSearchField, DateRangePicker, Combobox, Button } from "@/components/ui";
 import { SearchResultsTable } from "./search-results-table";
@@ -21,13 +21,21 @@ export default async function SearchPage({
   const user = await getCurrentUser();
   const params = await searchParams;
 
+  // Three concurrent queries via Promise.all — each wrapped individually in
+  // withConnectionRetry, same pattern as dashboard-data.ts, since the local
+  // embedded dev database intermittently drops connections under exactly
+  // this kind of concurrent load (see src/lib/prisma.ts's comment).
   const [results, categories, projectList] = await Promise.all([
-    searchArchives(user, params),
-    prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: true }, orderBy: { order: "asc" } }),
-    prisma.lookupList.findFirst({
-      where: { organizationId: user.organizationId, key: "project" },
-      include: { items: { where: { isActive: true } } },
-    }),
+    withConnectionRetry(() => searchArchives(user, params)),
+    withConnectionRetry(() =>
+      prisma.category.findMany({ where: { organizationId: user.organizationId, isActive: true }, orderBy: { order: "asc" } })
+    ),
+    withConnectionRetry(() =>
+      prisma.lookupList.findFirst({
+        where: { organizationId: user.organizationId, key: "project" },
+        include: { items: { where: { isActive: true } } },
+      })
+    ),
   ]);
 
   return (
