@@ -42,6 +42,38 @@ export async function resetTestDb() {
     throw new Error(`Refusing to reset a non-local DATABASE_URL: ${url}`);
   }
 
+  try {
+    await resetTestDbInner(url);
+  } catch (error) {
+    throw new Error(explainDbError(error), { cause: error });
+  }
+}
+
+// Turns a raw pg/connection error into an actionable message instead of a
+// bare ECONNRESET/ECONNREFUSED — this is what shows up in a failed
+// `pre-push` run, and "why did my push fail" shouldn't require reading this
+// file's source to answer. See docs/testing.md's "known gotcha" section.
+function explainDbError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/econnrefused/i.test(message)) {
+    return (
+      `Could not reach the local test database (${message}). ` +
+      `It's probably not running — start it with:\n\n  npm run test:db:start\n\n` +
+      `See docs/testing.md's "The test database" section.`
+    );
+  }
+  if (RETRYABLE_MESSAGE.test(message)) {
+    return (
+      `The local test database kept dropping the connection after several ` +
+      `retries (${message}). CI is unaffected by this — see docs/testing.md's ` +
+      `"known gotcha" section for the local-only cause. Try restarting it:\n\n` +
+      `  npx prisma dev rm test --force\n  npm run test:db:start\n  npm run test:db:reset\n`
+    );
+  }
+  return message;
+}
+
+async function resetTestDbInner(url: string) {
   await withRetry(async () => {
     const client = new Client({ connectionString: url });
     // pg's Client emits its own "error" event when the embedded engine
