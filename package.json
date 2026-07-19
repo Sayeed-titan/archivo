@@ -15,7 +15,7 @@
     "db:studio": "prisma studio",
     "backup": "tsx scripts/backup/run-backup.ts",
     "backup:restore": "tsx scripts/backup/run-restore.ts",
-    "test:db:start": "prisma dev --name test --detach",
+    "test:db:start": "prisma dev --name test --detach && node -e \"setTimeout(()=>{},8000)\"",
     "test:db:stop": "prisma dev stop test",
     "test:db:reset": "cross-env DOTENV_CONFIG_PATH=.env.test prisma db push --force-reset --accept-data-loss && cross-env DOTENV_CONFIG_PATH=.env.test tsx prisma/seed.ts",
     "test:unit": "vitest run tests/unit",

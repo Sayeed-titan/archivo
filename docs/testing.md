@@ -117,10 +117,19 @@ particular starting state beyond what that seed produces.
 - **`pre-commit`** — `lint-staged` (ESLint `--fix` on staged files),
   `typecheck`, `test:unit`. Fast (seconds), no database needed, runs on
   every commit.
-- **`pre-push`** — `build`, `test:integration`, `test:e2e:smoke`. Slower
-  (this is what catches a broken production build before it leaves your
-  machine — the exact class of issue behind several past Render deploy
-  failures), runs on every push.
+- **`pre-push`** — `build` only. This is what catches a broken production
+  build before it leaves your machine — the exact class of issue behind
+  several past Render deploy failures.
+
+  `test:integration`/`test:e2e:smoke` were deliberately **removed** from
+  `pre-push` (they originally ran here) — the local embedded test database
+  proved unstable enough in practice to make pushing unreliable for a check
+  that CI redundantly repeats seconds later against a real, stable Postgres
+  container anyway. Local integration/E2E are still one command away
+  (`npm run test:integration`, `npm run test:e2e`) whenever you want the
+  faster feedback and the local test DB happens to be healthy — they're
+  just not a hard gate on every push. **CI is the actual gate** before
+  anything reaches production; see below.
 
 If a hook fails, fix the issue and commit/push again — don't skip hooks
 (`--no-verify`) to work around a real failure.

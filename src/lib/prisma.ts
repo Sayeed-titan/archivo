@@ -8,7 +8,16 @@ declare global {
 }
 
 function createClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  // @prisma/adapter-pg does NOT read `?schema=` out of DATABASE_URL (that's
+  // only honored by Prisma's classic connector) — a non-public schema must
+  // be passed explicitly here, or every query silently targets the wrong
+  // schema (or errors "relation does not exist") once DATABASE_URL points
+  // somewhere other than the default/public schema. DATABASE_SCHEMA is
+  // optional and unset in local dev, preserving today's default behavior.
+  const adapter = new PrismaPg(
+    { connectionString: process.env.DATABASE_URL },
+    process.env.DATABASE_SCHEMA ? { schema: process.env.DATABASE_SCHEMA } : undefined,
+  );
   return new PrismaClient({ adapter });
 }
 

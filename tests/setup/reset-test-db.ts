@@ -10,7 +10,7 @@ import { execSync } from "node:child_process";
 // a second explanation of the same root cause.
 const RETRYABLE_MESSAGE = /connection terminated|server has closed the connection|econnreset|connection.*closed/i;
 
-async function withRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, attempts = 6): Promise<T> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
@@ -18,7 +18,7 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
     } catch (error) {
       lastError = error;
       if (!(error instanceof Error) || !RETRYABLE_MESSAGE.test(error.message)) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 300 * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
     }
   }
   throw lastError;
