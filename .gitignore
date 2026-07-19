@@ -54,3 +54,7 @@ next-env.d.ts
 # local backup snapshots (NFR-5) — never commit actual data dumps
 /backups/*
 !/backups/.gitkeep
+
+# local one-click deploy tooling — names VM2's real IP/paths, kept out of
+# this public repo on purpose, see deploy/vm2/DEPLOY_NOTES.md
+/deploy/
