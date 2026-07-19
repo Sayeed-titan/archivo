@@ -1,6 +1,6 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 // Read lazily (not at module load) so `next build` can statically collect
 // page data without SESSION_SECRET set — Docker builds have no runtime env
@@ -44,9 +44,19 @@ export async function createSession(userId: string, organizationId: string) {
   const session = await encrypt({ userId, organizationId, expiresAt: expiresAt.toISOString() });
   const cookieStore = await cookies();
 
+  // Trust the reverse proxy's X-Forwarded-Proto over NODE_ENV where present —
+  // a `production` NODE_ENV behind a plain-HTTP proxy (no TLS/domain yet)
+  // would otherwise set `secure: true` on a cookie served over HTTP, which
+  // browsers silently refuse to store: login "succeeds" but the very next
+  // request has no cookie and bounces back to /login. Falls back to the old
+  // NODE_ENV check when there's no proxy in front (e.g. local dev).
+  const headersList = await headers();
+  const forwardedProto = headersList.get("x-forwarded-proto");
+  const isSecure = forwardedProto ? forwardedProto === "https" : process.env.NODE_ENV === "production";
+
   cookieStore.set("session", session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     expires: expiresAt,
     sameSite: "lax",
     path: "/",

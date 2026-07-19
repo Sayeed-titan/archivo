@@ -5,7 +5,12 @@ import { PrismaClient } from "../../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { BACKUP_MODEL_ORDER } from "./models";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+// See src/lib/prisma.ts for why DATABASE_SCHEMA must be passed explicitly —
+// @prisma/adapter-pg does not read `?schema=` out of DATABASE_URL.
+const adapter = new PrismaPg(
+  { connectionString: process.env.DATABASE_URL },
+  process.env.DATABASE_SCHEMA ? { schema: process.env.DATABASE_SCHEMA } : undefined,
+);
 const prisma = new PrismaClient({ adapter });
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "uploads");
