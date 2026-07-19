@@ -46,7 +46,12 @@ export function Menu({
         <div
           role="menu"
           // Selecting any item closes the menu; navigation/actions proceed.
-          onClick={() => setOpen(false)}
+          // Deferred: closing synchronously in the click's bubble phase would
+          // unmount a nested <form> (e.g. MenuFormItem's sign-out button)
+          // before the browser dispatches its native "submit" event, which
+          // cancels the submission ("Form submission canceled because the
+          // form is not connected").
+          onClick={() => setTimeout(() => setOpen(false), 0)}
           className={cn(
             "absolute z-40 mt-1 min-w-48 overflow-hidden rounded-xs bg-surface-container py-2 shadow-elevation-2",
             align === "end" ? "right-0" : "left-0",

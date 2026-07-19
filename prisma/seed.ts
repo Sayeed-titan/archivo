@@ -62,12 +62,12 @@ const LEAN_CATEGORIES = new Set(["Meetings"]);
 
 async function main() {
   const org = await prisma.organization.upsert({
-    where: { slug: "demo-ngo" },
+    where: { slug: "spellbound" },
     update: {},
     create: {
-      name: "Demo NGO Foundation",
-      slug: "demo-ngo",
-      industry: "ngo",
+      name: "Spellbound Communications Limited",
+      slug: "spellbound",
+      industry: "private-company",
     },
   });
 
@@ -138,47 +138,47 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("Password123!", 10);
   await prisma.user.upsert({
-    where: { organizationId_email: { organizationId: org.id, email: "admin@demo-ngo.org" } },
+    where: { organizationId_email: { organizationId: org.id, email: "admin@spellboundbd.com" } },
     update: {},
     create: {
       organizationId: org.id,
-      email: "admin@demo-ngo.org",
+      email: "admin@spellboundbd.com",
       passwordHash,
-      name: "Ava Administrator",
-      department: "IT",
+      name: "Shah Hasibur Rahman",
+      department: "Secretariat",
       roleId: roles["Administrator"].id,
     },
   });
   await prisma.user.upsert({
-    where: { organizationId_email: { organizationId: org.id, email: "officer@demo-ngo.org" } },
+    where: { organizationId_email: { organizationId: org.id, email: "director@spellboundbd.com" } },
     update: {},
     create: {
       organizationId: org.id,
-      email: "officer@demo-ngo.org",
+      email: "director@spellboundbd.com",
       passwordHash,
-      name: "Omar Officer",
+      name: "Mr. Kawser",
       department: "Programs",
       roleId: roles["Archive Officer"].id,
     },
   });
   await prisma.user.upsert({
-    where: { organizationId_email: { organizationId: org.id, email: "deptuser@demo-ngo.org" } },
+    where: { organizationId_email: { organizationId: org.id, email: "deptuser@spellboundbd.com" } },
     update: {},
     create: {
       organizationId: org.id,
-      email: "deptuser@demo-ngo.org",
+      email: "deptuser@spellboundbd.com",
       passwordHash,
-      name: "Dana Deptuser",
+      name: "Md. Foyez",
       department: "Programs",
       roleId: roles["Department User"].id,
     },
   });
   await prisma.user.upsert({
-    where: { organizationId_email: { organizationId: org.id, email: "viewer@demo-ngo.org" } },
+    where: { organizationId_email: { organizationId: org.id, email: "viewer@spellboundbd.com" } },
     update: {},
     create: {
       organizationId: org.id,
-      email: "viewer@demo-ngo.org",
+      email: "viewer@spellboundbd.com",
       passwordHash,
       name: "Val Viewer",
       department: "Finance",
@@ -256,7 +256,7 @@ async function main() {
 
   // Sample archive with its provisioned folder structure, to prove the flow.
   const admin = await prisma.user.findFirstOrThrow({
-    where: { organizationId: org.id, email: "admin@demo-ngo.org" },
+    where: { organizationId: org.id, email: "admin@spellboundbd.com" },
   });
 
   const sampleArchive = await prisma.archive.upsert({
@@ -406,7 +406,9 @@ async function main() {
   }
 
   console.log(`Seeded organization "${org.name}" (${org.slug})`);
-  console.log("Login as admin@demo-ngo.org / officer@demo-ngo.org with password: Password123!");
+  console.log(
+    "Login as admin@spellboundbd.com / director@spellboundbd.com / deptuser@spellboundbd.com / viewer@spellboundbd.com with password: Password123!"
+  );
 }
 
 main()
